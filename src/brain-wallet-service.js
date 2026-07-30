@@ -1,5 +1,4 @@
-import { formatUtxoAddressPure, tronAddressFromPrivateKey } from "./crypto-utils.js";
-import { formatAddress } from "./address-service.js";
+
 
 async function sha256Bytes(text) {
   var enc = new TextEncoder();
@@ -7,7 +6,7 @@ async function sha256Bytes(text) {
   return new Uint8Array(buf);
 }
 
-export function brainStrengthInfo(text) {
+function brainStrengthInfo(text) {
   var len = text.length;
   if (len === 0) return { pct: 0, label: "-", color: "var(--text-muted)" };
   var charSet = 0;
@@ -24,7 +23,7 @@ export function brainStrengthInfo(text) {
   return { pct: 95, label: "High bits*", color: "var(--success)" };
 }
 
-export async function deriveBrainWalletData(sourcePassphrase, bip39Passphrase, account, addressIndex) {
+async function deriveBrainWalletData(sourcePassphrase, bip39Passphrase, account, addressIndex) {
   var hash = await sha256Bytes(sourcePassphrase);
   var phrase = ethers.utils.entropyToMnemonic(hash);
   var hdRoot = ethers.utils.HDNode.fromMnemonic(phrase, bip39Passphrase);
@@ -64,7 +63,7 @@ export async function deriveBrainWalletData(sourcePassphrase, bip39Passphrase, a
   };
 }
 
-export async function deriveBrainSolAddress(phrase, solPath, bip39Passphrase) {
+async function deriveBrainSolAddress(phrase, solPath, bip39Passphrase) {
   var solRes = await formatAddress(phrase, solPath, 44, 501, "", bip39Passphrase);
   return solRes.address;
 }

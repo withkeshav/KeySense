@@ -1,10 +1,4 @@
-import {
-  toHex,
-  base58Encode,
-  tronAddressFromPrivateKey,
-  formatUtxoAddressPure
-} from "./crypto-utils.js";
-import { hardenAllPathSegments } from "./hd-paths.js";
+
 
 function toSeed32Bytes(keyMaterial) {
   if (!keyMaterial) throw new Error("Solana derivation returned empty key.");
@@ -34,7 +28,7 @@ function loadSolanaDeps() {
   return solanaDepsPromise;
 }
 
-export async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase) {
+async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase) {
   if (coinType === 60) {
     var wallet = new ethers.Wallet(secpPrivateKeyHex);
     var pubC = ethers.utils.computePublicKey(secpPrivateKeyHex, true);
@@ -114,7 +108,7 @@ export async function formatAddress(mnemonic, path, purpose, coinType, secpPriva
   };
 }
 
-export async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHex, purpose, coinType, devOverride) {
+async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHex, purpose, coinType, devOverride) {
   if (!devOverride || devOverride === "auto") {
     return formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase);
   }
@@ -154,7 +148,7 @@ export async function applyDevOutputFormat(mnemonic, path, passphrase, secpPriva
   return formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase);
 }
 
-export function randomMnemonic(words) {
+function randomMnemonic(words) {
   var entropyBytes = words === 24 ? 32 : 16;
   var ent = ethers.utils.randomBytes(entropyBytes);
   return ethers.utils.entropyToMnemonic(ent);

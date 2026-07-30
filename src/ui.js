@@ -1,4 +1,4 @@
-import { THEME_KEY } from "./constants.js";
+
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
@@ -37,7 +37,7 @@ function initTabs() {
   });
 }
 
-export function initUiBasics() {
+function initUiBasics() {
   initTheme();
   initTabs();
 }

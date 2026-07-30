@@ -1,9 +1,9 @@
-export function getSelectedVanityMode() {
+function getSelectedVanityMode() {
   var el = document.querySelector("input[name='vanityMode']:checked");
   return el ? el.value : "prefix";
 }
 
-export function vanityDifficulty(pattern, mode) {
+function vanityDifficulty(pattern, mode) {
   var hexLen = pattern.replace(/^0x/i, "").length;
   if (hexLen === 0) return null;
   var exp = Math.pow(16, hexLen);
@@ -15,13 +15,13 @@ export function vanityDifficulty(pattern, mode) {
   return "Expected ~" + magnitude + " attempts (" + hexLen + " hex char" + (hexLen !== 1 ? "s" : "") + ")";
 }
 
-export function vanityInputLabel(mode) {
+function vanityInputLabel(mode) {
   if (mode === "prefix") return "Prefix to match (e.g. 0xcafe - case-insensitive)";
   if (mode === "suffix") return "Suffix to match - hex chars at end of address (e.g. dead)";
   return "Substring to find anywhere in the address (e.g. beef)";
 }
 
-export function normalizeVanityPattern(rawInput, mode) {
+function normalizeVanityPattern(rawInput, mode) {
   if (!rawInput) throw new Error("Enter a pattern.");
   var raw = rawInput.trim();
   if (!raw) throw new Error("Enter a pattern.");
@@ -51,7 +51,7 @@ export function normalizeVanityPattern(rawInput, mode) {
   return norm;
 }
 
-export function createVanityMiner(options) {
+function createVanityMiner(options) {
   var running = false;
   var attempts = 0;
   var startTime = 0;

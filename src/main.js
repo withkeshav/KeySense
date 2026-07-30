@@ -1,34 +1,3 @@
-import { initUiBasics } from "./ui.js";
-import {
-  formatUtxoAddressPure
-} from "./crypto-utils.js";
-import {
-  applyDevOutputFormat,
-  randomMnemonic
-} from "./address-service.js";
-import {
-  getSelectedVanityMode,
-  vanityDifficulty,
-  vanityInputLabel as getVanityInputLabel,
-  normalizeVanityPattern,
-  createVanityMiner
-} from "./vanity-service.js";
-import {
-  brainStrengthInfo,
-  deriveBrainWalletData,
-  deriveBrainSolAddress
-} from "./brain-wallet-service.js";
-import {
-  branchPathDropLastTwo,
-  inferPurposeCoinFromPath,
-  deriveFromRelativePath,
-  pathWithLastIndexReplaced,
-  uiCoinTypeFromDevFmt,
-  devUtxoCoinForAllFormats,
-  buildPathFromInputs,
-  updateSolanaUiHints
-} from "./hd-paths.js";
-
 (function () {
       initUiBasics();
 
@@ -543,13 +512,13 @@ import {
         var vanityPrivateKey = document.getElementById("vanityPrivateKey");
         var vanityQrHost     = document.getElementById("vanityQrHost");
         var vanityDiffHint   = document.getElementById("vanityDiffHint");
-        var vanityInputLabel = document.getElementById("vanityInputLabel");
+        var vanityInputLabelEl = document.getElementById("vanityInputLabel");
 
         function updateVanityHint() {
           var mode = getSelectedVanityMode();
           var raw = vanityPattern ? vanityPattern.value.trim() : "";
-          if (vanityInputLabel) {
-            vanityInputLabel.textContent = getVanityInputLabel(mode);
+          if (vanityInputLabelEl) {
+            vanityInputLabelEl.textContent = vanityInputLabel(mode);
           }
           if (vanityDiffHint) {
             var d = vanityDifficulty(raw, mode);

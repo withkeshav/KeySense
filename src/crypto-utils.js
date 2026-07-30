@@ -1,14 +1,14 @@
-import { BECH32_CHARS, BECH32_GEN, BECH32M_CONST, COIN_PARAMS } from "./constants.js";
+
 
 /** Uint8Array -> lowercase hex string (no 0x prefix). */
-export function toHex(u8) {
+function toHex(u8) {
   return Array.prototype.map.call(u8, function (b) {
     return ("0" + b.toString(16)).slice(-2);
   }).join("");
 }
 
 /** Bitcoin-style Base58 (same alphabet Solana uses for pubkey addresses). */
-export function base58Encode(bytes) {
+function base58Encode(bytes) {
   var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   if (!bytes || bytes.length === 0) return "";
   var u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -32,12 +32,12 @@ export function base58Encode(bytes) {
 }
 
 /** Bitcoin / Tron style Base58Check: version byte + payload + 4-byte checksum (double SHA-256). */
-export function doubleSha256Bytes(u8) {
+function doubleSha256Bytes(u8) {
   var h1 = ethers.utils.sha256(u8);
   return ethers.utils.arrayify(ethers.utils.sha256(h1));
 }
 
-export function base58CheckEncode(versionByte, payload20) {
+function base58CheckEncode(versionByte, payload20) {
   var body = new Uint8Array(21);
   body[0] = versionByte & 255;
   var p = payload20 instanceof Uint8Array ? payload20 : new Uint8Array(payload20);
@@ -51,7 +51,7 @@ export function base58CheckEncode(versionByte, payload20) {
 }
 
 /** Tron mainnet (0x41 prefix): Keccak-256 of uncompressed pubkey (x||y, no 0x04), last 20 bytes. */
-export function tronAddressFromPrivateKey(privHex) {
+function tronAddressFromPrivateKey(privHex) {
   var uncompressed = ethers.utils.computePublicKey(privHex, false);
   var hexNoPrefix = uncompressed.slice(4);
   var hash = ethers.utils.keccak256("0x" + hexNoPrefix);
@@ -155,7 +155,7 @@ function utxoP2WPKH(pubkeyHex, hrp) {
 }
 
 /** Build address without any external library - pure ethers.js crypto. */
-export function formatUtxoAddressPure(privHex, coinType, purpose) {
+function formatUtxoAddressPure(privHex, coinType, purpose) {
   var cp = COIN_PARAMS[coinType];
   if (!cp) throw new Error("Unsupported coin type: " + coinType);
   var pubkeyHex = ethers.utils.computePublicKey(privHex, true);

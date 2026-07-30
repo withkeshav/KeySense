@@ -1,14 +1,14 @@
-import { HD_HARDENED } from "./constants.js";
+
 
 /** Path with last two segments removed (BIP44 account-level branch). */
-export function branchPathDropLastTwo(path) {
+function branchPathDropLastTwo(path) {
   var parts = path.replace(/^m\//i, "").split("/").filter(Boolean);
   if (parts.length <= 2) return "m";
   return "m/" + parts.slice(0, -2).join("/");
 }
 
 /** Infer purpose + coin_type from first two path segments when possible. */
-export function inferPurposeCoinFromPath(path) {
+function inferPurposeCoinFromPath(path) {
   var parts = path.replace(/^m\//i, "").split("/").filter(Boolean);
   if (parts.length < 2) return null;
   var p = parseInt(parts[0].replace(/['h]/gi, ""), 10);
@@ -18,7 +18,7 @@ export function inferPurposeCoinFromPath(path) {
 }
 
 /** Derive child from an HDNode (from extended key) using a relative path like 0/0 or 0'/0. */
-export function deriveFromRelativePath(rootNode, relPath) {
+function deriveFromRelativePath(rootNode, relPath) {
   if (!relPath || !String(relPath).trim()) return rootNode;
   var segs = String(relPath).trim().replace(/^m\//i, "").split("/").filter(Boolean);
   var cur = rootNode;
@@ -32,7 +32,7 @@ export function deriveFromRelativePath(rootNode, relPath) {
   return cur;
 }
 
-export function pathWithLastIndexReplaced(path, newIndex) {
+function pathWithLastIndexReplaced(path, newIndex) {
   var parts = path.replace(/^m\//i, "").split("/").filter(Boolean);
   if (parts.length === 0) return path;
   var last = parts[parts.length - 1];
@@ -42,7 +42,7 @@ export function pathWithLastIndexReplaced(path, newIndex) {
 }
 
 /** Map dev format dropdown -> coin_type for Step 4 labels / QR. */
-export function uiCoinTypeFromDevFmt(devFmt, coinType) {
+function uiCoinTypeFromDevFmt(devFmt, coinType) {
   if (!devFmt || devFmt === "auto") return coinType;
   if (devFmt === "evm") return 60;
   if (devFmt === "tron") return 195;
@@ -54,13 +54,13 @@ export function uiCoinTypeFromDevFmt(devFmt, coinType) {
   return coinType;
 }
 
-export function devUtxoCoinForAllFormats(devFmt, coinType) {
+function devUtxoCoinForAllFormats(devFmt, coinType) {
   var u = uiCoinTypeFromDevFmt(devFmt, coinType);
   if (u === 0 || u === 2 || u === 3) return u;
   return null;
 }
 
-export function buildPathFromInputs() {
+function buildPathFromInputs() {
   var purposeEl = document.getElementById("purpose");
   var coinEl = document.getElementById("coinType");
   var accountEl = document.getElementById("account");
@@ -78,7 +78,7 @@ export function buildPathFromInputs() {
 }
 
 /** Convert every path segment to hardened — required for SLIP-0010 (Ed25519/Solana). */
-export function hardenAllPathSegments(path) {
+function hardenAllPathSegments(path) {
   var parts = path.replace(/^m\//i, "").split("/").filter(Boolean);
   var hardened = parts.map(function (seg) {
     return (/'$/.test(seg) || /h$/i.test(seg)) ? seg : seg + "'";
@@ -86,7 +86,7 @@ export function hardenAllPathSegments(path) {
   return "m/" + hardened.join("/");
 }
 
-export function updateSolanaUiHints() {
+function updateSolanaUiHints() {
   var coinEl = document.getElementById("coinType");
   var note = document.getElementById("solanaPathNote");
   var ct = parseInt(coinEl.value, 10);
