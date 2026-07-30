@@ -11,7 +11,7 @@
         var v = (mn && mn.value.trim()) || "";
         if (seedBarValue) {
           if (v) {
-            seedBarValue.textContent = v.length > 64 ? v.slice(0, 61) + "..." : v;
+            seedBarValue.textContent = v;
             seedBarValue.classList.remove("seed-bar-empty");
           } else {
             seedBarValue.textContent = "No seed generated - click Generate in the Derive tab";
@@ -51,7 +51,7 @@
         var kind = opts.userInput || isSlipPathError ? "Input error" : "Unexpected error";
         var msg = raw;
         if (isSlipPathError) {
-          msg = "SLIP-0010 (Ed25519/Solana) requires all path segments to be hardened. Use dev mode with Solana output override for auto-hardening, or ensure all segments end with ' in the custom path.";
+          msg = "SLIP-0010 (Ed25519/Solana) requires all path segments to be hardened. Use Expert mode with Solana output override for auto-hardening, or ensure all segments end with ' in the custom path.";
         }
         return feature + " - " + kind + ": " + msg;
       }
@@ -1147,12 +1147,16 @@
           var mn = mnemonicInput.value.trim();
           if (!mn || !ethers.utils.isValidMnemonic(mn)) { showToast("Enter a valid mnemonic first"); return; }
           var path = getEffectivePath();
+          var hasWif = wifBlock && wifBlock.style.display !== "none";
+          var pubKeyText = pubKeyCompressed ? pubKeyCompressed.textContent : "";
           var data = {
             mnemonic: mn,
             address: addrSpan ? addrSpan.textContent : "",
             path: path,
             network: addressLabel ? addressLabel.textContent : "",
-            privateKey: pkSpan ? pkSpan.textContent : ""
+            privateKey: pkSpan ? pkSpan.textContent : "",
+            wif: hasWif && wifOut ? wifOut.textContent : "",
+            pubKey: pubKeyText && pubKeyText !== "—" ? pubKeyText : ""
           };
           await printPaperWallet(data);
         });
@@ -1192,6 +1196,10 @@
           e.preventDefault();
           var deriveTab = document.querySelector('.tab[data-tab="derive"]');
           if (deriveTab) deriveTab.click();
+          if (expertModeToggle && !expertModeToggle.checked) {
+            expertModeToggle.checked = true;
+            expertModeToggle.dispatchEvent(new Event("change"));
+          }
           toggleAccordion("entropy");
           if (entropyHeader) entropyHeader.scrollIntoView({ behavior: "smooth", block: "center" });
         });

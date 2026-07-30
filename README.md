@@ -1,6 +1,6 @@
 # KeySense
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: KeySense License 1.0](https://img.shields.io/badge/License-KeySense%201.0-blue.svg)](LICENSE)
 
 > Crypto key math is confusing, but KeySense makes it simple and understandable.
 
@@ -65,7 +65,7 @@ Zero framework, zero build step. Pure HTML, CSS, and vanilla JavaScript. Only CD
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+Free to download and use, including commercially, unmodified. Modifying, rebranding, or redistributing a changed version requires the copyright holder's written permission. This is a source-available license, not an OSI open source license. See [LICENSE](LICENSE) for the full terms.
 
 ---
 

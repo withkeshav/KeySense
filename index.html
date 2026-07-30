@@ -40,7 +40,7 @@
       </div>
     </header>
 
-    <!-- Sticky seed bar: always visible, display-only. The seed is the center of everything. -->
+    <!-- Sticky seed bar: always visible on scroll, display-only. The seed is the center of everything below. -->
     <div class="seed-bar" id="seedBar">
       <span class="seed-bar-label">Seed</span>
       <code class="seed-bar-value seed-bar-empty" id="seedBarValue">No seed generated - click Generate in the Derive tab</code>
@@ -62,9 +62,12 @@
           <div class="card-title">
             <span>Step 1: Seed phrase</span>
             <span class="badge">BIP39</span>
+            <label class="dev-mode-toggle" title="Simple: browser CSPRNG. Expert: bring your own randomness (dice/coins).">
+              <input type="checkbox" id="expertModeToggle" aria-label="Expert mode"> Expert mode
+            </label>
           </div>
           <label for="mnemonic">Mnemonic (12 or 24 words)</label>
-          <textarea id="mnemonic" placeholder="Click Generate above, or type/paste a BIP39 mnemonic."></textarea>
+          <textarea id="mnemonic" placeholder="Click Generate below, or type/paste a BIP39 mnemonic."></textarea>
           <div class="action-buttons" style="margin-top: 12px;">
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;width:100%;">
               <div style="flex:1;min-width:120px;">
@@ -102,14 +105,7 @@
           <div class="warning-box" style="margin-top:12px;">
             <p><strong>Security:</strong> This page runs entirely in your browser. No data is ever sent to any server. For production wallets, always generate and sign on a trusted offline (air-gapped) machine.</p>
           </div>
-
-          <!-- Expert mode toggle: reveals the physical entropy lab -->
-          <div style="margin-top:16px;">
-            <label class="dev-mode-toggle" title="Bring your own randomness instead of the browser RNG">
-              <input type="checkbox" id="expertModeToggle" aria-label="Expert mode"> Expert mode
-            </label>
-            <p class="hint" style="margin-top:4px;">Off: seeds use the browser CSPRNG. On: roll dice or flip coins and the hash becomes your seed.</p>
-          </div>
+          <p class="hint" style="margin-top:12px;">Off: seeds use the browser CSPRNG. On: roll dice or flip coins and the hash becomes your seed.</p>
 
           <!-- Accordion: Physical entropy lab (your own randomness) - hidden unless Expert mode is on -->
           <div class="acc-wrap" id="entropyAccord" style="display:none;">
@@ -218,7 +214,7 @@
             <span>Step 3: Custom path</span>
             <span class="badge">BIP44</span>
             <label class="dev-mode-toggle" title="Advanced: free-form paths, XPUB/XPRV, batch derive, extended-key import">
-              <input type="checkbox" id="devModeToggle" aria-label="Developer mode"> Developer mode
+              <input type="checkbox" id="devModeToggle" aria-label="Expert mode"> Expert mode
             </label>
           </div>
           <!-- Row 1: purpose · coin_type · account -->
@@ -521,7 +517,7 @@
       <div class="tab-content" data-content="guide" role="tabpanel">
         <div class="card">
           <div class="card-title">What this toolkit does</div>
-          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Libraries load from CDN on first visit, then everything runs in your browser. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Derive tab also has a <strong>Physical entropy lab</strong> (roll dice / flip coins to create a seed without software RNG), a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word), a <strong>Path recovery</strong> scanner (match a known address to its derivation path), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Learn Paths tab. The entropy lab, brain wallet, and Solana/Sui/Aptos derivation require an HTTPS server (not available on <code style="font-family:var(--mono);font-size:0.92em;">file://</code>).</p>
+          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Libraries load from CDN on first visit, then everything runs in your browser. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Derive tab also has a <strong>Physical entropy lab</strong> (roll dice / flip coins to create a seed without software RNG, enable Expert mode to see it), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Learn Paths tab. The Experiments tab has a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word) and a <strong>Path recovery</strong> scanner (match a known address to its derivation path). The current seed also shows in the sticky bar above the tabs. The entropy lab, brain wallet, and Solana/Sui/Aptos derivation require an HTTPS server (not available on <code style="font-family:var(--mono);font-size:0.92em;">file://</code>).</p>
           <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">ed25519-hd-key</code> + <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; browser <code style="font-family:var(--mono);font-size:0.92em;">crypto.subtle</code> (SHA-256 for the entropy lab + brain wallet, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. Download button saves the full page for offline or air-gapped use.</p>
         </div>
         <div class="card">
@@ -632,7 +628,7 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               </code>
             </div>
             <div class="warning-box" style="margin-top:14px;">
-              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG. If you distrust software RNG, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab: roll dice or flip coins, and the SHA-256 hash of your rolls becomes the entropy instead.</p>
+              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG. If you distrust software RNG, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode): roll dice or flip coins, and the SHA-256 hash of your rolls becomes the entropy instead.</p>
             </div>
           </div>
 
@@ -846,8 +842,8 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <div class="card-title">Try it yourself</div>
           <ul class="list-plain">
             <li><strong style="color:var(--accent);">Visualize the tree</strong> - click "Build tree from current seed" above to see every derivation branch and click nodes to derive keys.</li>
-            <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Derive tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
-            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, open "Physical entropy lab" and roll dice to create a seed without trusting software RNG.</li>
+            <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Experiments tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
+            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, enable Expert mode to open "Physical entropy lab" and roll dice to create a seed without trusting software RNG.</li>
           </ul>
         </div>
       </div>
@@ -893,14 +889,13 @@ Child keys: CKD(parent, index) - child private key + child chain code
 
   <!-- Hidden paper wallet print template (only visible during window.print) -->
   <div id="paperWalletPrint" class="paper-wallet-print" aria-hidden="true">
-    <div class="pw-title">KeySense Cold Backup</div>
-    <div class="pw-branding">
-      <div>KeySense - Web3 Key, Path &amp; Security Workbench</div>
-      <div class="pw-links">
-        <span>withkeshav.com</span> &nbsp;|&nbsp;
-        <span>github.com/withkeshav/KeySense</span>
-      </div>
+    <div class="pw-title">Cold Storage Backup</div>
+
+    <div class="pw-section">
+      <div class="pw-label">Seed words (keep secret)</div>
+      <div id="pwWordGrid"></div>
     </div>
+
     <div class="pw-section">
       <div class="pw-label">Address</div>
       <div class="pw-mono" id="pwAddress"></div>
@@ -916,11 +911,28 @@ Child keys: CKD(parent, index) - child private key + child chain code
       </div>
     </div>
     <div class="pw-qr" id="pwQrHost"></div>
-    <div class="pw-section">
-      <div class="pw-label">Seed words (keep secret)</div>
-      <div id="pwWordGrid"></div>
+
+    <div class="pw-section" id="pwPrivKeyWrap">
+      <div class="pw-label">Private key (keep secret)</div>
+      <div class="pw-mono" id="pwPrivateKey"></div>
     </div>
-    <div class="pw-footer">Generated locally in your browser. No data transmitted. For testing and educational use only.</div>
+    <div class="pw-section" id="pwWifWrap" style="display:none;">
+      <div class="pw-label">WIF (private key, Bitcoin format, keep secret)</div>
+      <div class="pw-mono" id="pwWif"></div>
+    </div>
+    <div class="pw-section" id="pwPubKeyWrap" style="display:none;">
+      <div class="pw-label">Public key</div>
+      <div class="pw-mono" id="pwPubKey"></div>
+    </div>
+
+    <div class="pw-branding">
+      <div>KeySense - Web3 Key, Path &amp; Security Workbench</div>
+      <div class="pw-links">
+        <span>keysense.withkeshav.com</span> &nbsp;|&nbsp;
+        <span>github.com/withkeshav/KeySense</span>
+      </div>
+    </div>
+    <div class="pw-footer">Generated locally in your browser. Nothing on this page was transmitted or stored anywhere. Anyone who reads the seed words or private key above can spend these funds instantly, so store this page like cash: offline, out of sight of cameras, and destroyed or secured once you no longer need it. For testing and educational purposes only. Always verify an address with an independent tool before sending real funds. KeySense is not a custodian or wallet provider and is not responsible for lost or stolen funds.</div>
   </div>
 
   <footer style="text-align:center;padding:28px 20px 20px;color:var(--text-subtle);font-size:12px;line-height:1.6;">

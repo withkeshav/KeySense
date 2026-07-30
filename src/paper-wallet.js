@@ -44,11 +44,25 @@ function populatePaperWallet(data) {
   var netEl = document.getElementById("pwNetwork");
   var gridEl = document.getElementById("pwWordGrid");
   var qrHost = document.getElementById("pwQrHost");
+  var privKeyEl = document.getElementById("pwPrivateKey");
+  var wifWrap = document.getElementById("pwWifWrap");
+  var wifEl = document.getElementById("pwWif");
+  var pubKeyWrap = document.getElementById("pwPubKeyWrap");
+  var pubKeyEl = document.getElementById("pwPubKey");
 
   if (addrEl) { addrEl.textContent = data.address || ""; }
   if (pathEl) { pathEl.textContent = data.path || ""; }
   if (netEl) { netEl.textContent = data.network || ""; }
   if (gridEl) { gridEl.innerHTML = buildWordGrid(data.mnemonic || ""); }
+  if (privKeyEl) { privKeyEl.textContent = data.privateKey || ""; }
+  if (wifWrap && wifEl) {
+    if (data.wif) { wifWrap.style.display = ""; wifEl.textContent = data.wif; }
+    else { wifWrap.style.display = "none"; wifEl.textContent = ""; }
+  }
+  if (pubKeyWrap && pubKeyEl) {
+    if (data.pubKey) { pubKeyWrap.style.display = ""; pubKeyEl.textContent = data.pubKey; }
+    else { pubKeyWrap.style.display = "none"; pubKeyEl.textContent = ""; }
+  }
   if (qrHost) {
     renderQrToHost(qrHost, data.address || "").catch(function () {});
   }
@@ -110,4 +124,17 @@ function clearPaperWallet() {
 
   var netEl = document.getElementById("pwNetwork");
   if (netEl) { netEl.textContent = ""; }
+
+  var privKeyEl = document.getElementById("pwPrivateKey");
+  if (privKeyEl) { privKeyEl.textContent = ""; }
+
+  var wifWrap = document.getElementById("pwWifWrap");
+  var wifEl = document.getElementById("pwWif");
+  if (wifWrap) { wifWrap.style.display = "none"; }
+  if (wifEl) { wifEl.textContent = ""; }
+
+  var pubKeyWrap = document.getElementById("pwPubKeyWrap");
+  var pubKeyEl = document.getElementById("pwPubKey");
+  if (pubKeyWrap) { pubKeyWrap.style.display = "none"; }
+  if (pubKeyEl) { pubKeyEl.textContent = ""; }
 }

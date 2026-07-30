@@ -1,21 +1,41 @@
-MIT License
+KeySense License 1.0
 
-Copyright (c) 2026 Keshav Maheshwari
+Copyright (c) 2026 Keshav Maheshwari (https://www.withkeshav.com)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## Use
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+You may download, install, and use this software, unmodified, for any
+purpose, including commercial use, free of charge.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## Restrictions
+
+You may not modify this software or create a derivative or modified
+version of it without prior written permission from the copyright
+holder.
+
+You may not redistribute this software, in original or modified form,
+under a different name or brand, or present a modified or repackaged
+version as an official release of KeySense.
+
+You may not remove or alter the copyright notice, this license, or the
+attribution to the copyright holder that ships with the software.
+
+## Contributions
+
+If you want to propose a change or fix, contact the copyright holder
+instead of publishing your own modified version. Changes accepted into
+the official project remain governed by this license.
+
+## No Warranty
+
+This software is provided "as is," without warranty of any kind,
+express or implied, including but not limited to the warranties of
+merchantability, fitness for a particular purpose, and noninfringement.
+In no event shall the copyright holder be liable for any claim,
+damages, or other liability arising from the use of this software.
+
+## Termination
+
+Any use that violates these terms automatically ends your rights under
+this license. Rights can be reinstated at the copyright holder's
+discretion.
