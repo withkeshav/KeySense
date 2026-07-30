@@ -1,0 +1,12 @@
+{
+  "name": "hd-derivation-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HD Wallet Derivation Playground — BIP39/32/44/49/84/86, vanity miner, brain wallet. Standalone edition.",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "author": "Keshav Maheshwari (https://www.linkedin.com/in/withkeshav)",
+  "license": "ISC"
+}
