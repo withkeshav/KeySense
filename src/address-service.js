@@ -141,6 +141,7 @@ async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHe
   if (devOverride === "btc_legacy") return formatUtxoAddressPure(secpPrivateKeyHex, 0, 44);
   if (devOverride === "btc_p2sh") return formatUtxoAddressPure(secpPrivateKeyHex, 0, 49);
   if (devOverride === "btc_native") return formatUtxoAddressPure(secpPrivateKeyHex, 0, 84);
+  if (devOverride === "btc_taproot") return formatUtxoAddressPure(secpPrivateKeyHex, 0, 86);
   if (devOverride === "ltc_legacy") return formatUtxoAddressPure(secpPrivateKeyHex, 2, 44);
   if (devOverride === "ltc_native") return formatUtxoAddressPure(secpPrivateKeyHex, 2, 84);
   if (devOverride === "doge_legacy") return formatUtxoAddressPure(secpPrivateKeyHex, 3, 44);

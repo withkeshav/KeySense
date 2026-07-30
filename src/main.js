@@ -79,6 +79,7 @@
           "btc-native": { purpose: 84, coinType: 0, account: 0, change: 0, index: 0 },
           "btc-legacy": { purpose: 44, coinType: 0, account: 0, change: 0, index: 0 },
           "btc-segwit": { purpose: 49, coinType: 0, account: 0, change: 0, index: 0 },
+          "btc-taproot": { purpose: 86, coinType: 0, account: 0, change: 0, index: 0 },
           solana: { purpose: 44, coinType: 501, account: 0, change: 0, index: 0 },
           ltc: { purpose: 44, coinType: 2, account: 0, change: 0, index: 0 },
           doge: { purpose: 44, coinType: 3, account: 0, change: 0, index: 0 },
