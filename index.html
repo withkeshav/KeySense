@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<!-- HD Wallet Derivation Playground — created by Keshav Maheshwari (https://www.linkedin.com/in/withkeshav) -->
+<!-- KeySense created by Keshav Maheshwari (https://www.withkeshav.com) -->
 <!-- This attribution comment must remain in all distributed copies. -->
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="author" content="Keshav Maheshwari — https://www.linkedin.com/in/withkeshav">
+  <meta name="author" content="Keshav Maheshwari - https://www.withkeshav.com">
   <meta name="description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab.">
-  <title>KeySense — Web3 Key, Path &amp; Security Workbench</title>
+  <title>KeySense - Web3 Key, Path and Security Workbench</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E">
+
+  <!-- Open Graph / Social Cards -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://github.com/withkeshav/KeySense">
+  <meta property="og:title" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta property="og:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.svg">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta property="twitter:description" content="Crypto key math is confusing, but we make it simple and understandable.">
+
   <link rel="stylesheet" href="./src/styles.css">
 
 </head>
@@ -16,10 +28,11 @@
     <header>
       <div class="header-main">
         <h1><span class="accent">Key</span>Sense</h1>
-        <div class="subtitle">BIP39 · BIP32 · BIP44 / 49 / 84 / 86 — Making sense of multi-chain keys &amp; paths</div>
-        <div class="creator">Created by <strong><a href="https://www.linkedin.com/in/withkeshav" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" title="Keshav Maheshwari on LinkedIn">Keshav Maheshwari</a></strong></div>
+        <div class="subtitle">BIP39 · BIP32 · BIP44 / 49 / 84 / 86 - Making sense of multi-chain keys and paths</div>
+        <div class="creator">Created by <strong><a href="https://www.withkeshav.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" title="Keshav Maheshwari">Keshav Maheshwari</a></strong></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+        <div class="offline-badge" title="All derivation runs in your browser. No seeds or keys ever leave your device.">● 100% Offline</div>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light and dark theme">
           <span class="thumb" aria-hidden="true"></span>
           <span id="themeLabel">Dark</span>
@@ -27,12 +40,19 @@
       </div>
     </header>
 
+    <!-- Sticky seed bar: always visible, display-only. The seed is the center of everything. -->
+    <div class="seed-bar" id="seedBar">
+      <span class="seed-bar-label">Seed</span>
+      <code class="seed-bar-value seed-bar-empty" id="seedBarValue">No seed generated - click Generate in the Derive tab</code>
+    </div>
+
     <div class="tabs" role="tablist">
       <button type="button" class="tab active" data-tab="derive" role="tab">Derive Keys</button>
       <button type="button" class="tab" data-tab="vanity" role="tab">Vanity (EVM)</button>
       <button type="button" class="tab" data-tab="brain" role="tab">Brain Wallet</button>
       <button type="button" class="tab" data-tab="guide" role="tab">Blockchain Guide</button>
       <button type="button" class="tab" data-tab="learn" role="tab">Learn Paths</button>
+      <button type="button" class="tab" data-tab="experiments" role="tab">Experiments (alpha)</button>
     </div>
 
     <div class="tab-panels">
@@ -44,23 +64,136 @@
             <span class="badge">BIP39</span>
           </div>
           <label for="mnemonic">Mnemonic (12 or 24 words)</label>
-          <textarea id="mnemonic" placeholder="Generated automatically on page load, or click Generate 12/24 Words."></textarea>
+          <textarea id="mnemonic" placeholder="Click Generate above, or type/paste a BIP39 mnemonic."></textarea>
           <div class="action-buttons" style="margin-top: 12px;">
-            <button type="button" id="genMnemonic12" class="btn-secondary">Random 12 words</button>
-            <button type="button" id="genMnemonic24" class="btn-secondary">Random 24 words</button>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;width:100%;">
+              <div style="flex:1;min-width:120px;">
+                <label for="mnemonicWordCount" style="margin-bottom:4px;font-size:11px;">Word count</label>
+                <select id="mnemonicWordCount" style="width:100%;padding:9px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-size:13px;">
+                  <option value="12">12 words</option>
+                  <option value="15">15 words</option>
+                  <option value="18">18 words</option>
+                  <option value="21">21 words</option>
+                  <option value="24">24 words</option>
+                </select>
+              </div>
+              <div style="flex:1;min-width:120px;">
+                <label for="mnemonicLang" style="margin-bottom:4px;font-size:11px;">Language</label>
+                <select id="mnemonicLang" style="width:100%;padding:9px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-size:13px;">
+                  <option value="en">English</option>
+                  <option value="cz">Czech</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="it">Italian</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="zh">Chinese Simplified</option>
+                  <option value="zh_tw">Chinese Traditional</option>
+                </select>
+              </div>
+              <button type="button" id="genMnemonic" class="btn-primary" style="margin-top:0;">Generate</button>
+            </div>
           </div>
           <div style="margin-top:16px;">
-            <label for="bip39Pass">BIP39 passphrase <span class="label-chip">optional "25th word"</span></label>
+            <label for="bip39Pass">BIP39 passphrase <span class="label-chip">optional extra passphrase</span></label>
             <input id="bip39Pass" type="password" placeholder="Leave blank for standard derivation" autocomplete="off" style="margin-top:6px;">
-            <p class="hint" style="margin-top:6px;">Same mnemonic + different passphrase → completely different wallet. Any string is valid — there is no wrong passphrase, only wrong <em>remembering</em>. If you lose it, you lose the wallet permanently.</p>
+            <p class="hint" style="margin-top:6px;">Same mnemonic + different passphrase → completely different wallet. Any string is valid; there is no wrong passphrase, only wrong <em>remembering</em>. If you lose it, you lose the wallet permanently.</p>
           </div>
           <div class="warning-box" style="margin-top:12px;">
-            <p><strong>Security:</strong> This page runs locally in your browser. Never paste a real seed on a networked device you do not trust. For experimentation only.</p>
+            <p><strong>Security:</strong> This page runs entirely in your browser. No data is ever sent to any server. For production wallets, always generate and sign on a trusted offline (air-gapped) machine.</p>
+          </div>
+
+          <!-- Expert mode toggle: reveals the physical entropy lab -->
+          <div style="margin-top:16px;">
+            <label class="dev-mode-toggle" title="Bring your own randomness instead of the browser RNG">
+              <input type="checkbox" id="expertModeToggle" aria-label="Expert mode"> Expert mode
+            </label>
+            <p class="hint" style="margin-top:4px;">Off: seeds use the browser CSPRNG. On: roll dice or flip coins and the hash becomes your seed.</p>
+          </div>
+
+          <!-- Accordion: Physical entropy lab (your own randomness) - hidden unless Expert mode is on -->
+          <div class="acc-wrap" id="entropyAccord" style="display:none;">
+            <div class="acc-header acc-closed" id="entropyHeader" role="button" tabindex="0" aria-expanded="false" aria-controls="entropyBody">
+              <span class="acc-chevron">&#9654;</span>
+              <span class="acc-title">Bring your own randomness. Roll dice or flip coins; the hash becomes your seed instead of the browser's RNG.</span>
+            </div>
+            <div class="acc-body acc-closed" id="entropyBody">
+              <p class="hint" style="margin-top:10px;margin-bottom:10px;">Roll dice or flip coins. Your rolls are hashed into a seed. No software RNG. Needs HTTPS.</p>
+
+              <!-- Visual stage: shows the last roll animating -->
+              <div id="entropyStage" class="entropy-stage" aria-hidden="true">
+                <div id="diceFace" class="dice-face" hidden></div>
+                <div id="coinFace" class="coin-face" hidden>H</div>
+              </div>
+
+              <!-- Interactive roll buttons -->
+              <div class="action-buttons" style="margin-top:8px;">
+                <button type="button" id="rollDiceBtn" class="btn-secondary">Roll dice</button>
+                <button type="button" id="flipCoinBtn" class="btn-secondary">Flip coin</button>
+                <button type="button" id="rollManyBtn" class="btn-secondary">Auto-roll 50</button>
+                <button type="button" id="clearEntropyBtn" class="btn-secondary">Clear</button>
+              </div>
+
+              <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:12px;">
+                <div style="flex:1;min-width:200px;">
+                  <label for="diceInput">Dice rolls (1-6)</label>
+                  <input id="diceInput" type="text" placeholder="631245..." autocomplete="off" spellcheck="false" style="margin-top:6px;font-family:var(--mono);font-size:13px;">
+                </div>
+                <div style="flex:1;min-width:200px;">
+                  <label for="coinInput">Coin flips (H/T)</label>
+                  <input id="coinInput" type="text" placeholder="HHTHTTH..." autocomplete="off" spellcheck="false" style="margin-top:6px;font-family:var(--mono);font-size:13px;">
+                </div>
+                <div>
+                  <label for="entropyWords">Words</label>
+                  <select id="entropyWords" style="margin-top:6px;display:block;">
+                    <option value="12">12</option>
+                    <option value="24">24</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Animated progress bar -->
+              <div class="entropy-bar-wrap" style="margin-top:12px;">
+                <div id="entropyBar" class="entropy-bar"></div>
+              </div>
+              <div id="entropyProgress" class="hint" style="margin-top:6px;"></div>
+
+              <div class="action-buttons" style="margin-top:10px;">
+                <button type="button" id="entropyGenBtn" class="btn-primary">Generate seed from rolls</button>
+              </div>
+              <div id="entropyError" class="error" style="display:none;margin-top:8px;"></div>
+
+              <!-- Lite derive strip: rolls -> address in one flow -->
+              <div class="entropy-lite" style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);">
+                <div class="hint" style="margin-bottom:10px;">Full pipeline visible here: <code style="font-family:var(--mono);font-size:11px;">your rolls &rarr; SHA-256 &rarr; 128-bit entropy &rarr; 12 words &rarr; BIP32 derive &rarr; address</code></div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+                  <div style="flex:1;min-width:200px;">
+                    <label for="entropyChainSelect" style="font-size:11px;margin-bottom:4px;">Derive address directly (chain)</label>
+                    <select id="entropyChainSelect" style="width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-size:13px;">
+                      <option value="eth">Ethereum (EVM)</option>
+                      <option value="btc-native">Bitcoin (Native SegWit)</option>
+                      <option value="btc-legacy">Bitcoin (Legacy)</option>
+                      <option value="btc-segwit">Bitcoin (Wrapped SegWit)</option>
+                      <option value="btc-taproot">Bitcoin (Taproot)</option>
+                      <option value="solana">Solana</option>
+                      <option value="tron">Tron</option>
+                      <option value="ltc">Litecoin</option>
+                      <option value="doge">Dogecoin</option>
+                      <option value="cosmos">Cosmos</option>
+                      <option value="sui">Sui</option>
+                      <option value="aptos">Aptos</option>
+                    </select>
+                  </div>
+                  <button type="button" id="entropyDeriveBtn" class="btn-primary">Derive address from rolls</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-title">Step 2: Presets</div>
+          <p class="hint" style="margin-bottom:12px;">Don't know which derivation path to use? Just pick any preset that matches your chain. The path is a template you can customize below. To understand what each path segment does, visit the <strong>Learn Paths</strong> tab or the <strong>Blockchain Guide</strong> tab.</p>
           <div class="preset-grid">
             <button type="button" class="btn-preset" data-preset="eth"><span class="preset-name">Ethereum (MetaMask)</span><span class="preset-path">m/44'/60'/0'/0/0</span></button>
             <button type="button" class="btn-preset" data-preset="btc-native"><span class="preset-name">Bitcoin (Native SegWit)</span><span class="preset-path">m/84'/0'/0'/0/0</span></button>
@@ -74,6 +207,9 @@
             <button type="button" class="btn-preset" data-preset="polygon"><span class="preset-name">Polygon</span><span class="preset-path">m/44'/60'/0'/0/0</span></button>
             <button type="button" class="btn-preset" data-preset="bsc"><span class="preset-name">BSC</span><span class="preset-path">m/44'/60'/0'/0/0</span></button>
             <button type="button" class="btn-preset" data-preset="avalanche"><span class="preset-name">Avalanche</span><span class="preset-path">m/44'/60'/0'/0/0</span></button>
+            <button type="button" class="btn-preset" data-preset="cosmos"><span class="preset-name">Cosmos</span><span class="preset-path">m/44'/118'/0'/0/0</span></button>
+            <button type="button" class="btn-preset" data-preset="sui"><span class="preset-name">Sui</span><span class="preset-path">m/44'/784'/0'/0'</span></button>
+            <button type="button" class="btn-preset" data-preset="aptos"><span class="preset-name">Aptos</span><span class="preset-path">m/44'/637'/0'/0'</span></button>
           </div>
         </div>
 
@@ -88,11 +224,11 @@
           <!-- Row 1: purpose · coin_type · account -->
           <div class="row-bip44-top">
             <div>
-              <label for="purpose">purpose′ <span class="label-chip">44 / 49 / 84 / 86</span></label>
+              <label for="purpose">purpose′ <span class="label-chip" data-tip="44 = Legacy/EVM, 49 = Wrapped SegWit, 84 = Native SegWit (bc1q), 86 = Taproot (bc1p)">44 / 49 / 84 / 86</span></label>
               <input id="purpose" type="number" value="44" min="0">
             </div>
             <div>
-              <label for="coinType">coin_type′ <span class="label-chip">0=BTC · 60=ETH · 195=TRX · 501=SOL</span></label>
+              <label for="coinType">coin_type′ <span class="label-chip" data-tip="60 = Ethereum & EVM, 0 = Bitcoin, 501 = Solana, 195 = Tron, 118 = Cosmos, 784 = Sui, 637 = Aptos">0=BTC · 60=ETH · 118=COSMOS · 195=TRX · 501=SOL · 784=SUI · 637=APTOS</span></label>
               <input id="coinType" type="number" value="60" min="0">
             </div>
             <div>
@@ -103,11 +239,11 @@
           <!-- Row 2: change · index -->
           <div class="row-bip44-bot">
             <div>
-              <label for="change">change <span class="label-chip" id="changeHint">0 = external · 1 = internal</span></label>
+              <label for="change">change <span class="label-chip" id="changeHint" data-tip="0 = external (receiving) addresses, 1 = internal (change) addresses. Only used on UTXO chains (Bitcoin, Litecoin, Dogecoin).">0 = external · 1 = internal</span></label>
               <input id="change" type="number" value="0" min="0" max="1">
             </div>
             <div>
-              <label for="index">index <span class="label-chip" id="indexHint">address index (Sol: hardened)</span></label>
+              <label for="index">index <span class="label-chip" id="indexHint" data-tip="The nth address in this chain. Most wallets increment this for each new address. For Solana/Sui/Aptos (Ed25519) this segment is hardened.">address index (Sol: hardened)</span></label>
               <input id="index" type="number" value="0" min="0">
             </div>
           </div>
@@ -128,6 +264,9 @@
                 <option value="evm">Ethereum / EVM (0x…)</option>
                 <option value="tron">Tron (Base58Check T…)</option>
                 <option value="sol">Solana (Base58)</option>
+                <option value="cosmos">Cosmos (Bech32 cosmos...)</option>
+                <option value="sui">Sui (0x + Ed25519 pubkey)</option>
+                <option value="aptos">Aptos (0x + SHA3-256)</option>
                 <option value="btc_legacy">Bitcoin Legacy (P2PKH)</option>
                 <option value="btc_p2sh">Bitcoin Wrapped SegWit (P2SH-P2WPKH)</option>
                 <option value="btc_native">Bitcoin Native SegWit (bc1…)</option>
@@ -140,7 +279,7 @@
             </div>
             <div id="devXpubBlock" style="display:none;">
               <h4>BIP32 extended keys (secp256k1)</h4>
-              <p class="hint" id="devXpubHint" style="margin:0 0 8px;">At account branch (path minus last two levels) and at the derived leaf. Solana signing uses SLIP-0010 from seed — treat these as informational for the same path string.</p>
+              <p class="hint" id="devXpubHint" style="margin:0 0 8px;">At account branch (path minus last two levels) and at the derived leaf. Solana signing uses SLIP-0010 from seed - treat these as informational for the same path string.</p>
               <div class="dev-out-grid" id="devExtKeyOut"></div>
             </div>
             <div id="devUtxoAllBlock" style="display:none;">
@@ -198,6 +337,7 @@
           <div class="output-label" id="addressLabel">Address</div>
           <div class="output-row">
             <div class="output-value" id="address">Run Derive to generate</div>
+            <button type="button" class="btn-secondary btn-copy" data-copy="address" title="Copy address" style="padding:4px 10px;font-size:11px;">Copy</button>
             <div class="qr-wrap" id="qrHost" title="Address QR"></div>
           </div>
           <div style="margin-top: 16px;">
@@ -205,7 +345,7 @@
             <div class="output-value" id="privateKey">—</div>
           </div>
           <div id="wifBlock" style="margin-top: 16px; display: none;">
-            <div class="output-label">WIF (Wallet Import Format) — Bitcoin-style chains</div>
+            <div class="output-label">WIF (Wallet Import Format) - Bitcoin-style chains</div>
             <div class="output-value" id="wifOut">—</div>
           </div>
           <div id="tronEvmRow" style="margin-top: 16px; display: none;">
@@ -223,7 +363,10 @@
             <div class="output-value" id="solanaSecret64">—</div>
             <p class="hint" id="solanaKeyHint" style="margin-top: 8px;"></p>
           </div>
-            <p class="hint"><strong>How encoding works here:</strong> All BIP32 keys via <code style="font-family:var(--mono);font-size:0.92em;">ethers.js</code> (loaded once as UMD). <strong>EVM / Tron:</strong> ethers Wallet + Keccak-256. <strong>Bitcoin-family (0/2/3):</strong> pure JS using only ethers primitives — <code style="font-family:var(--mono)">sha256</code>, <code style="font-family:var(--mono)">ripemd160</code>, <code style="font-family:var(--mono)">computePublicKey</code> + inline Bech32 — no bitcoinjs-lib, no CDN class bugs. <strong>Solana (501):</strong> SLIP-0010 via <code style="font-family:var(--mono)">ed25519-hd-key</code> + TweetNaCl global. <strong>Brain Wallet</strong> uses <code style="font-family:var(--mono)">crypto.subtle</code>, which works on any HTTPS page — Cloudflare Pages provides HTTPS automatically. Only fails when opened as a local <code style="font-family:var(--mono)">file://</code> URL.</p>
+            <p class="hint"><strong>How encoding works here:</strong> All BIP32 keys via <code style="font-family:var(--mono);font-size:0.92em;">ethers.js</code> (loaded once as UMD). <strong>EVM / Tron:</strong> ethers Wallet + Keccak-256. <strong>Bitcoin-family (0/2/3):</strong> pure JS using only ethers primitives - <code style="font-family:var(--mono)">sha256</code>, <code style="font-family:var(--mono)">ripemd160</code>, <code style="font-family:var(--mono)">computePublicKey</code> + inline Bech32 - no bitcoinjs-lib, no CDN class bugs. <strong>Solana (501):</strong> SLIP-0010 via <code style="font-family:var(--mono)">ed25519-hd-key</code> + TweetNaCl global. <strong>Brain Wallet</strong> uses <code style="font-family:var(--mono)">crypto.subtle</code>, which requires an HTTPS server (blocks on <code style="font-family:var(--mono)">file://</code>). Use a local server for full functionality.</p>
+          <div class="action-buttons" style="margin-top:14px;">
+            <button type="button" id="printWalletBtn" class="btn-secondary">Print cold backup</button>
+          </div>
         </div>
       </div>
 
@@ -234,10 +377,10 @@
             <span>Vanity address miner</span>
             <span class="badge">EVM · fully offline</span>
           </div>
-          <p class="hint">Brute-forces random secp256k1 keypairs until an address matches your pattern. Runs on the main thread in small batches — UI stays responsive, works 100% offline (no CDN needed).</p>
+          <p class="hint">Brute-forces random secp256k1 keypairs until an address matches your pattern. Runs on the main thread in small batches - UI stays responsive, works 100% offline (no CDN needed).</p>
 
           <div style="margin-top:14px;">
-            <label id="vanityInputLabel" for="vanityPattern">Prefix to match (e.g. <code style="font-family:var(--mono)">0xcafe</code> — case-insensitive)</label>
+            <label id="vanityInputLabel" for="vanityPattern">Prefix to match (e.g. <code style="font-family:var(--mono)">0xcafe</code> - case-insensitive)</label>
             <input id="vanityPattern" type="text" placeholder="0xcafe" value="0x00" style="margin-top:6px;" autocomplete="off">
           </div>
 
@@ -277,7 +420,7 @@
           </div>
 
           <div class="warning-box" style="margin-top:16px;">
-            <p><strong>Difficulty grows exponentially:</strong> Each extra hex character takes ~16× longer. A 4-char prefix like <code style="font-family:var(--mono)">0xcafe</code> averages ~65,000 tries; a 6-char prefix averages ~16 million. The key is cryptographically random — as secure as any other key.</p>
+            <p><strong>Difficulty grows exponentially:</strong> Each extra hex character takes ~16× longer. A 4-char prefix like <code style="font-family:var(--mono)">0xcafe</code> averages ~65,000 tries; a 6-char prefix averages ~16 million. The key is cryptographically random - as secure as any other key.</p>
           </div>
         </div>
       </div>
@@ -285,7 +428,7 @@
       <!-- BRAIN -->
       <div class="tab-content" data-content="brain" role="tabpanel">
         <div class="danger-zone">
-          <h2>Critical security warning — read this</h2>
+          <h2>Critical security warning - read this</h2>
           <p><strong>Brain wallets are always unsafe for real money.</strong> Attackers precompute hashes of billions of phrases: quotes, lyrics, passwords, Bible verses, Wikipedia sentences. Funds on brain wallets are routinely stolen within hours. Even a "strong" passphrase has far less entropy than 12 random BIP39 words.</p>
           <p>Use the <strong>Derive Keys</strong> tab for real wallets. This tab exists solely to demonstrate cryptographic concepts.</p>
         </div>
@@ -296,7 +439,7 @@
           </div>
 
           <label for="brainPass">Source passphrase <span class="label-chip">hashed with SHA-256 to produce entropy</span></label>
-          <textarea id="brainPass" placeholder="Type something memorable — e.g. a poem, quote, or any string. Do NOT use for real funds." style="margin-top:6px;min-height:80px;"></textarea>
+          <textarea id="brainPass" placeholder="Type something memorable - e.g. a poem, quote, or any string. Do NOT use for real funds." style="margin-top:6px;min-height:80px;"></textarea>
 
           <!-- Entropy strength meter -->
           <div id="brainStrengthWrap" style="margin-top:8px;display:none;">
@@ -307,12 +450,12 @@
             <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
               <div id="brainStrengthBar" style="height:100%;width:0%;background:var(--error);border-radius:2px;transition:width 0.3s,background 0.3s;"></div>
             </div>
-            <p class="hint" style="margin-top:4px;margin-bottom:0;">SHA-256 always produces 256 bits of output — but the <em>effective</em> entropy is limited by how guessable your phrase is. Longer &amp; more random ≠ safe for real funds.</p>
+            <p class="hint" style="margin-top:4px;margin-bottom:0;">SHA-256 always produces 256 bits of output - but the <em>effective</em> entropy is limited by how guessable your phrase is. Longer &amp; more random ≠ safe for real funds.</p>
           </div>
 
           <div style="margin-top:14px;">
             <label for="brainBip39Pass">BIP39 passphrase <span class="label-chip">optional "25th word" applied to the derived mnemonic</span></label>
-            <input id="brainBip39Pass" type="password" placeholder="Extra passphrase — leave blank for no extra protection" autocomplete="off" style="margin-top:6px;">
+            <input id="brainBip39Pass" type="password" placeholder="Extra passphrase - leave blank for no extra protection" autocomplete="off" style="margin-top:6px;">
             <p class="hint" style="margin-top:6px;">Adds another layer: the mnemonic is always the same SHA-256 output, but this extra word changes every derived key.</p>
           </div>
 
@@ -333,14 +476,14 @@
           <div id="brainError" class="error" style="display:none;margin-top:8px;"></div>
 
           <div id="brainOutput" style="display:none;margin-top:18px;">
-            <div class="output-label">BIP39 mnemonic (24 words — SHA-256 hash of your phrase as entropy)</div>
+            <div class="output-label">BIP39 mnemonic (24 words - SHA-256 hash of your phrase as entropy)</div>
             <div class="output-value" id="brainMnemonic">—</div>
 
             <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
               <div style="font-weight:600;color:var(--text);margin-bottom:12px;">Derived addresses</div>
 
               <!-- ETH -->
-              <div class="output-label">Ethereum / EVM — <code id="brainEthPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/60'/0'/0/0</code></div>
+              <div class="output-label">Ethereum / EVM - <code id="brainEthPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/60'/0'/0/0</code></div>
               <div class="output-row">
                 <div class="output-value" id="brainAddress">—</div>
                 <div class="qr-wrap" id="brainQrHost"></div>
@@ -350,23 +493,23 @@
 
               <!-- BTC -->
               <div style="margin-top:14px;">
-                <div class="output-label">Bitcoin Legacy — <code id="brainBtcLegPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/0'/0'/0/0</code></div>
+                <div class="output-label">Bitcoin Legacy - <code id="brainBtcLegPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/0'/0'/0/0</code></div>
                 <div class="output-value" id="brainBtcLeg">—</div>
-                <div class="output-label" style="margin-top:6px;">Bitcoin Native SegWit — <code id="brainBtcSwPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/84'/0'/0'/0/0</code></div>
+                <div class="output-label" style="margin-top:6px;">Bitcoin Native SegWit - <code id="brainBtcSwPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/84'/0'/0'/0/0</code></div>
                 <div class="output-value" id="brainBtcSw">—</div>
-                <div class="output-label" style="margin-top:6px;">WIF (private key — Bitcoin format)</div>
+                <div class="output-label" style="margin-top:6px;">WIF (private key - Bitcoin format)</div>
                 <div class="output-value" id="brainBtcWif">—</div>
               </div>
 
               <!-- TRX -->
               <div style="margin-top:14px;">
-                <div class="output-label">Tron (TRX) — <code id="brainTrxPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/195'/0'/0/0</code></div>
+                <div class="output-label">Tron (TRX) - <code id="brainTrxPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/195'/0'/0/0</code></div>
                 <div class="output-value" id="brainTrx">—</div>
               </div>
 
               <!-- SOL -->
               <div style="margin-top:14px;">
-                <div class="output-label">Solana — <code id="brainSolPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/501'/0'/0'</code></div>
+                <div class="output-label">Solana - <code id="brainSolPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/501'/0'/0'</code></div>
                 <div class="output-value" id="brainSol">Loading…</div>
               </div>
             </div>
@@ -378,12 +521,13 @@
       <div class="tab-content" data-content="guide" role="tabpanel">
         <div class="card">
           <div class="card-title">What this toolkit does</div>
-          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static page</strong> you can drop on <strong>Cloudflare Pages</strong> or any HTTPS host. Everything runs in the visitor’s browser: mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses using known standards; <strong>Vanity</strong> searches for EVM prefixes in a worker; <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe.</p>
-          <p class="hint" style="margin-bottom: 0;"><strong>Stack (CDN):</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (UMD — all BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">ed25519-hd-key</code> + <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> (Solana); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>. UTXO chains use zero extra libraries — pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. Download button saves the full page for offline / air-gapped use.</p>
+          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Libraries load from CDN on first visit, then everything runs in your browser. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Derive tab also has a <strong>Physical entropy lab</strong> (roll dice / flip coins to create a seed without software RNG), a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word), a <strong>Path recovery</strong> scanner (match a known address to its derivation path), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Learn Paths tab. The entropy lab, brain wallet, and Solana/Sui/Aptos derivation require an HTTPS server (not available on <code style="font-family:var(--mono);font-size:0.92em;">file://</code>).</p>
+          <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">ed25519-hd-key</code> + <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; browser <code style="font-family:var(--mono);font-size:0.92em;">crypto.subtle</code> (SHA-256 for the entropy lab + brain wallet, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. Download button saves the full page for offline or air-gapped use.</p>
         </div>
         <div class="card">
           <div class="card-title">Blockchain derivation reference</div>
-          <p class="hint" style="margin-bottom: 16px;">Each row is a common convention. Your wallet might use a different path for recovery—always check its docs.</p>
+          <p class="hint" style="margin-bottom: 16px;">Each row is a common convention. Your wallet might use a different path for recovery - always check its docs.</p>
+          <div style="overflow-x:auto;">
           <table class="guide-table">
             <thead>
               <tr><th>Blockchain</th><th>Derivation path</th><th>Coin type</th><th>Notes</th></tr>
@@ -393,7 +537,7 @@
               <tr><td><strong>Bitcoin (Native SegWit)</strong></td><td><code>m/84'/0'/0'/0/0</code></td><td>0</td><td><code>bc1q…</code> addresses (BIP84)</td></tr>
               <tr><td><strong>Bitcoin (Wrapped SegWit)</strong></td><td><code>m/49'/0'/0'/0/0</code></td><td>0</td><td><code>3…</code> nested SegWit (BIP49)</td></tr>
               <tr><td><strong>Bitcoin (Legacy)</strong></td><td><code>m/44'/0'/0'/0/0</code></td><td>0</td><td><code>1…</code> P2PKH (BIP44)</td></tr>
-              <tr><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) — experimental on some altcoins</td></tr>
+              <tr><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) - experimental on some altcoins</td></tr>
               <tr><td><strong>Solana</strong></td><td><code>m/44'/501'/0'/0'</code></td><td>501</td><td>Phantom / Solflare-style; Ed25519 not secp256k1</td></tr>
               <tr><td><strong>Polygon</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
               <tr><td><strong>BSC</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
@@ -403,99 +547,385 @@
               <tr><td><strong>Optimism</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
               <tr><td><strong>Litecoin</strong></td><td><code>m/44'/2'/0'/0/0</code></td><td>2</td><td>Legacy; use purpose 84/49 for SegWit-style LTC</td></tr>
               <tr><td><strong>Dogecoin</strong></td><td><code>m/44'/3'/0'/0/0</code></td><td>3</td><td>Legacy-style; SegWit less universal on DOGE</td></tr>
-              <tr><td><strong>Bitcoin Cash</strong></td><td><code>m/44'/145'/0'/0/0</code></td><td>145</td><td>Not modeled in this tool — would need BCH params</td></tr>
+              <tr><td><strong>Bitcoin Cash</strong></td><td><code>m/44'/145'/0'/0/0</code></td><td>145</td><td>Not modeled in this tool - would need BCH params</td></tr>
               <tr><td><strong>Cardano</strong></td><td><code>m/1852'/1815'/0'/0/0</code></td><td>1815</td><td>CIP-1852; different from BIP44-only wallets</td></tr>
+              <tr><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
+              <tr><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + 32-byte pubkey hex</td></tr>
+              <tr><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); address = 0x + SHA3-256(pubkey)</td></tr>
             </tbody>
           </table>
         </div>
         <div class="card">
           <div class="card-title">Key observations</div>
           <ul class="list-plain">
-            <li><strong style="color:var(--accent);">All EVM chains</strong> share <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">coin_type = 60</code> — the same key yields the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> address on Ethereum, Polygon, BSC, etc. (you still pay gas on the chain you use).</li>
+            <li><strong style="color:var(--accent);">All EVM chains</strong> share <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">coin_type = 60</code> - the same key yields the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> address on Ethereum, Polygon, BSC, etc. (you still pay gas on the chain you use).</li>
             <li><strong style="color:var(--accent);">Bitcoin</strong> changes the <em>purpose</em> number (44 / 49 / 84 / 86) to pick address type, not just coin type.</li>
             <li><strong style="color:var(--accent);">Solana</strong> uses Ed25519 derivation (SLIP-0010). You cannot get a Solana address by plugging the same path into a raw secp256k1-only helper.</li>
-            <li><strong style="color:var(--accent);">Non-standard paths</strong> are valid mathematically but wallets may not scan them — backup risk.</li>
+            <li><strong style="color:var(--accent);">Ed25519 chains (Solana, Sui, Aptos)</strong> share the SLIP-0010 derivation pipeline. Every path segment must be hardened; there are no normal (unhardened) children. Sui's address is the raw 32-byte Ed25519 public key as hex; Aptos hashes it with SHA3-256.</li>
+            <li><strong style="color:var(--accent);">Cosmos</strong> uses the same secp256k1 curve as Bitcoin/Ethereum, but its address is Bech32 with the <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">cosmos</code> HRP over a raw 20-byte hash160 - not a Bitcoin-style witness version.</li>
+            <li><strong style="color:var(--accent);">Non-standard paths</strong> are valid mathematically but wallets may not scan them - backup risk.</li>
           </ul>
         </div>
+      </div>
       </div>
 
       <!-- LEARN -->
       <div class="tab-content" data-content="learn" role="tabpanel">
+
+        <!-- Interactive Learning Path -->
+        <div class="card">
+          <div class="card-title">Learning Path: From Seed to Address</div>
+          <p class="hint" style="margin-bottom: 16px;">Walk through the key stages of HD wallet derivation. Each step builds on the previous one.</p>
+
+          <div class="learn-steps">
+            <div class="learn-step active" data-step="1">
+              <div class="step-dot">1</div>
+              <div class="step-label">Seed</div>
+            </div>
+            <div class="learn-connector"></div>
+            <div class="learn-step" data-step="2">
+              <div class="step-dot">2</div>
+              <div class="step-label">Master Key</div>
+            </div>
+            <div class="learn-connector"></div>
+            <div class="learn-step" data-step="3">
+              <div class="step-dot">3</div>
+              <div class="step-label">Path</div>
+            </div>
+            <div class="learn-connector"></div>
+            <div class="learn-step" data-step="4">
+              <div class="step-dot">4</div>
+              <div class="step-label">Hardened</div>
+            </div>
+            <div class="learn-connector"></div>
+            <div class="learn-step" data-step="5">
+              <div class="step-dot">5</div>
+              <div class="step-label">Address</div>
+            </div>
+          </div>
+
+          <!-- Step 1 -->
+          <div class="learn-content" data-step="1">
+            <h3 class="learn-heading">1. The BIP39 Seed Phrase</h3>
+            <p class="hint">A mnemonic seed phrase is a human-readable encoding of random entropy. It is the root of your entire wallet tree.</p>
+            <ul class="list-plain" style="margin-top:12px;">
+              <li><strong>12 words</strong> = 128 bits of entropy + 4-bit checksum</li>
+              <li><strong>24 words</strong> = 256 bits of entropy + 8-bit checksum</li>
+              <li>The last word is partially determined by the checksum of all previous words</li>
+              <li>The wordlist has exactly 2048 words (2<sup>11</sup>) - each word encodes 11 bits</li>
+            </ul>
+            <div class="learn-visual" style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <code style="display:block;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;">
+Entropy (128-256 bits)
+    |
+    v
+BIP39 Checksum (4-8 bits)
+    |
+    v
+Split into 11-bit chunks - each maps to a word from the 2048-word list
+    |
+    v
+Mnemonic phrase (12 or 24 words)
+    |
+    v
+PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
+              </code>
+            </div>
+            <div class="warning-box" style="margin-top:14px;">
+              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG. If you distrust software RNG, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab: roll dice or flip coins, and the SHA-256 hash of your rolls becomes the entropy instead.</p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="learn-content" data-step="2" style="display:none;">
+            <h3 class="learn-heading">2. From Seed to Master Key (BIP32)</h3>
+            <p class="hint">The 512-bit seed from PBKDF2 is split into two halves to create the master key pair.</p>
+            <ul class="list-plain" style="margin-top:12px;">
+              <li><strong>HMAC-SHA512</strong>(key="Bitcoin seed", message=seed) produces 512 bits</li>
+              <li><strong>Left 256 bits</strong> = master private key (the root secret)</li>
+              <li><strong>Right 256 bits</strong> = master chain code (entropy for child derivation)</li>
+              <li>Every child key in the tree derives from this master node</li>
+            </ul>
+            <div class="learn-visual" style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <code style="display:block;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;">
+512-bit seed (from PBKDF2)
+    |
+    v
+HMAC-SHA512(key="Bitcoin seed", data=seed)
+    |
+    +--- Left 256 bits: Master Private Key
+    |
+    +--- Right 256 bits: Master Chain Code
+    |
+    v
+Master Node (m) = private key + chain code
+    |
+    v
+Child keys: CKD(parent, index) - child private key + child chain code
+              </code>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="learn-content" data-step="3" style="display:none;">
+            <h3 class="learn-heading">3. The Derivation Path</h3>
+            <p class="hint">A derivation path navigates the HD key tree. Each level has a specific purpose.</p>
+            <div class="path-preview" style="text-align:center;margin:16px 0;">m / purpose' / coin_type' / account' / change / address_index</div>
+            <div style="margin-top:16px;">
+              <div class="learn-segment"><span class="learn-seg-label">purpose'</span> <span class="learn-seg-desc">Which BIP standard: 44 (legacy), 49 (wrapped segwit), 84 (native segwit), 86 (taproot)</span></div>
+              <div class="learn-segment"><span class="learn-seg-label">coin_type'</span> <span class="learn-seg-desc">SLIP-0044 coin index: 0=BTC, 60=ETH, 501=SOL, 195=TRX, 2=LTC, 3=DOGE, 118=COSMOS, 784=SUI, 637=APTOS</span></div>
+              <div class="learn-segment"><span class="learn-seg-label">account'</span> <span class="learn-seg-desc">Separates independent wallets from the same seed (account 0, 1, 2...)</span></div>
+              <div class="learn-segment"><span class="learn-seg-label">change</span> <span class="learn-seg-desc">0 for external (receiving) addresses, 1 for internal (change) addresses (UTXO only)</span></div>
+              <div class="learn-segment"><span class="learn-seg-label">index</span> <span class="learn-seg-desc">The nth address in this chain. Most wallets increment this for each new address</span></div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="learn-content" data-step="4" style="display:none;">
+            <h3 class="learn-heading">4. Hardened vs Normal Derivation</h3>
+            <p class="hint">The apostrophe (<code style="font-family:var(--mono)">'</code>) means <strong>hardened</strong> - the child key requires the parent <em>private</em> key, not just the public key.</p>
+            <div style="overflow-x:auto;margin-top:14px;">
+            <table class="guide-table">
+              <thead>
+                <tr><th>Type</th><th>Security / UX</th><th>Typical use</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Hardened</strong> (<code>'</code>)</td><td>Higher isolation; cannot derive from watch-only parent xpub</td><td>purpose, coin_type, account; Solana last segment</td></tr>
+                <tr><td><strong>Normal</strong></td><td>Derivable from xpub; useful for generating receiving addresses without the private key</td><td>change + index on Bitcoin-like chains</td></tr>
+              </tbody>
+            </table>
+          </div>
+            <p class="hint" style="margin-top:14px;"><strong>Why harden the first levels?</strong> If someone gets your xpub for account 0, they can derive all addresses in that account. But they cannot derive hardened children, so the master key and sibling accounts remain safe.</p>
+            <p class="hint" style="margin-top:10px;"><strong>Ed25519 chains are fully hardened.</strong> Solana, Sui, and Aptos use Ed25519 keys via SLIP-0010. SLIP-0010 requires <em>every</em> path segment to be hardened, not just the first few. This is why their paths look like <code style="font-family:var(--mono)">m/44'/501'/0'/0'</code> with no unhardened levels.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="learn-content" data-step="5" style="display:none;">
+            <h3 class="learn-heading">5. From Private Key to Address</h3>
+            <p class="hint">The private key produces a public key, which is then encoded into an address format specific to each blockchain.</p>
+            <div style="margin-top:14px;">
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <strong style="color:var(--accent);">Ethereum / EVM</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Private key - secp256k1 public key - Keccak-256 - last 20 bytes - <code>0x...</code></p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Bitcoin</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Private key - secp256k1 public key - SHA-256 - RIPEMD-160 - encode with version byte + checksum - address varies by purpose (P2PKH, P2SH, Bech32, Bech32m)</p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Solana</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Private key (Ed25519) - public key (32 bytes) - Base58 encode - address</p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Tron</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Same as Ethereum (Keccak-256 of public key) but encoded as Base58Check starting with <code>T</code></p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Cosmos</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Same secp256k1 curve as Bitcoin/Ethereum, but the address is Bech32 with the <code>cosmos</code> HRP over the raw 20-byte hash160 of the compressed public key (no witness version byte).</p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Sui</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). The address is simply <code>0x</code> + the 32-byte raw Ed25519 public key as lowercase hex. No hashing of the public key.</p>
+              </div>
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+                <strong style="color:var(--accent);">Aptos</strong>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). The address is <code>0x</code> + SHA3-256(32-byte public key || <code>0x00</code> scheme byte). Uses the browser Web Crypto API for SHA3-256 (ethers v5 has no SHA3).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="learn-nav">
+            <button type="button" class="btn-secondary" id="learnPrev" disabled>Previous</button>
+            <span class="learn-progress" id="learnProgress">1 / 5</span>
+            <button type="button" class="btn-secondary" id="learnNext">Next</button>
+          </div>
+        </div>
+
+        <!-- Reference: Understanding derivation paths -->
         <div class="card">
           <div class="card-title">Understanding derivation paths</div>
           <p class="hint" style="margin-bottom: 16px;">A path is a route through a tree of keys. The usual BIP44 layout:</p>
-          <div class="path-preview" style="text-align:center;">m / purpose′ / coin_type′ / account′ / change / address_index</div>
-          <p class="hint" style="margin-top:14px;"><strong>Solana in this tool:</strong> <code style="font-family:var(--mono)">m / purpose′ / 501′ / account′ / index′</code> — the extra hardened level replaces “change / index” so Phantom’s first account matches <code style="font-family:var(--mono)">account=0</code>, <code style="font-family:var(--mono)">index=0</code> in the form.</p>
+          <div class="path-preview" style="text-align:center;">m / purpose' / coin_type' / account' / change / address_index</div>
+          <p class="hint" style="margin-top:14px;"><strong>Solana in this tool:</strong> <code style="font-family:var(--mono)">m / purpose' / 501' / account' / index'</code> - the extra hardened level replaces change / index so Phantom first account matches <code style="font-family:var(--mono)">account=0</code>, <code style="font-family:var(--mono)">index=0</code> in the form.</p>
         </div>
+
+        <!-- Reference: Path structure breakdown -->
         <div class="card">
           <div class="card-title">Path structure breakdown</div>
+          <div style="overflow-x:auto;">
           <table class="guide-table">
             <thead>
               <tr><th>Level</th><th>Symbol</th><th>Meaning</th><th>Example values</th></tr>
             </thead>
             <tbody>
               <tr><td><strong>Master</strong></td><td><code>m</code></td><td>Root of the HD tree</td><td>Always <code>m</code></td></tr>
-              <tr><td><strong>Purpose</strong></td><td><code>44′</code></td><td>Which BIP “family”</td><td>44, 49, 84, 86…</td></tr>
-              <tr><td><strong>Coin type</strong></td><td><code>60′</code></td><td>Registered coin index (SLIP-0044)</td><td>0 BTC, 60 ETH, 501 SOL…</td></tr>
-              <tr><td><strong>Account</strong></td><td><code>0′</code></td><td>Separate accounts</td><td>0, 1, 2…</td></tr>
-              <tr><td><strong>Change</strong></td><td><code>0</code></td><td>External (0) vs internal change (1) for UTXO</td><td>0 or 1 — ignored for Solana in this UI</td></tr>
-              <tr><td><strong>Address index</strong></td><td><code>0</code></td><td>Nth address in that chain</td><td>0, 1, 2… — for SOL, this field is the last hardened index</td></tr>
+              <tr><td><strong>Purpose</strong></td><td><code>44'</code></td><td>Which BIP family</td><td>44, 49, 84, 86...</td></tr>
+              <tr><td><strong>Coin type</strong></td><td><code>60'</code></td><td>Registered coin index (SLIP-0044)</td><td>0 BTC, 60 ETH, 501 SOL...</td></tr>
+              <tr><td><strong>Account</strong></td><td><code>0'</code></td><td>Separate accounts</td><td>0, 1, 2...</td></tr>
+              <tr><td><strong>Change</strong></td><td><code>0</code></td><td>External (0) vs internal change (1) for UTXO</td><td>0 or 1 - ignored for Solana in this UI</td></tr>
+              <tr><td><strong>Address index</strong></td><td><code>0</code></td><td>Nth address in that chain</td><td>0, 1, 2... - for SOL, this field is the last hardened index</td></tr>
             </tbody>
           </table>
         </div>
+        </div>
+
+        <!-- Reference: Hardened vs normal -->
         <div class="card">
           <div class="card-title">Hardened vs normal derivation</div>
-          <p class="hint" style="margin-bottom: 12px;">The apostrophe (<code style="font-family:var(--mono)">′</code>) means <strong>hardened</strong>: child keys require the parent <em>private</em> key, not just an xpub.</p>
+          <p class="hint" style="margin-bottom: 12px;">The apostrophe (<code style="font-family:var(--mono)">'</code>) means <strong>hardened</strong>: child keys require the parent <em>private</em> key, not just an xpub.</p>
+          <div style="overflow-x:auto;">
           <table class="guide-table">
             <thead>
               <tr><th>Type</th><th>Security / UX</th><th>Typical use</th></tr>
             </thead>
             <tbody>
-              <tr><td><strong>Hardened</strong> (<code>′</code>)</td><td>Higher isolation; cannot derive from watch-only parent</td><td>purpose, coin_type, account — and Solana’s last segment here</td></tr>
-              <tr><td><strong>Normal</strong></td><td>Derivable from xpub — good for receiving addresses</td><td>change + index on Bitcoin-like chains</td></tr>
+              <tr><td><strong>Hardened</strong> (<code>'</code>)</td><td>Higher isolation; cannot derive from watch-only parent</td><td>purpose, coin_type, account; and Solana last segment</td></tr>
+              <tr><td><strong>Normal</strong></td><td>Derivable from xpub - good for receiving addresses</td><td>change + index on Bitcoin-like chains</td></tr>
             </tbody>
           </table>
         </div>
+        </div>
+
+        <!-- Reference: Common scenarios -->
         <div class="card">
           <div class="card-title">Common scenarios</div>
           <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
-            <strong style="color:var(--accent);">MetaMask “Account 1, 2, 3…”</strong>
+            <strong style="color:var(--accent);">MetaMask Account 1, 2, 3...</strong>
             <p class="hint" style="margin-top:8px;margin-bottom:0;">Often increments the final <strong>address_index</strong> (not account):</p>
             <code style="display:block;margin-top:10px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/0</code>
             <code style="display:block;margin-top:4px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/1</code>
             <code style="display:block;margin-top:4px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/2</code>
           </div>
           <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
-            <strong style="color:var(--accent);">Multiple “wallets” from one seed</strong>
+            <strong style="color:var(--accent);">Multiple wallets from one seed</strong>
             <p class="hint" style="margin-top:8px;margin-bottom:0;">Bump <strong>account</strong> for separation:</p>
             <code style="display:block;margin-top:10px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/0</code>
             <code style="display:block;margin-top:4px;font-family:var(--mono);color:var(--warning);">m/44'/60'/1'/0/0</code>
           </div>
           <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
             <strong style="color:var(--accent);">Same EVM address everywhere</strong>
-            <p class="hint" style="margin-top:8px;margin-bottom:0;">Because EVM chains use coin type 60, the same path gives the same <code style="font-family:var(--mono)">0x</code> address on many networks — but balances and contracts differ per chain.</p>
+            <p class="hint" style="margin-top:8px;margin-bottom:0;">Because EVM chains use coin type 60, the same path gives the same <code style="font-family:var(--mono)">0x</code> address on many networks, but balances and contracts differ per chain.</p>
           </div>
           <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:14px;">
             <strong style="color:var(--accent);">Tron uses the same curve, not the same display</strong>
             <p class="hint" style="margin-top:8px;margin-bottom:0;">Coin type <code style="font-family:var(--mono)">195</code> and path like <code style="font-family:var(--mono)">m/44'/195'/0'/0/0</code> give a secp256k1 key. The <strong>Keccak-256</strong> of the uncompressed public key (same idea as Ethereum) becomes the 20-byte payload, but Tron shows it as a <strong>Base58Check</strong> string starting with <code style="font-family:var(--mono)">T</code>, not <code style="font-family:var(--mono)">0x</code>.</p>
           </div>
         </div>
+
+        <!-- Reference: Important notes -->
         <div class="card">
           <div class="card-title">Important notes</div>
           <ul class="list-plain">
-            <li>Same seed + same path ⇒ same keys (deterministic).</li>
+            <li>Same seed + same path = same keys (deterministic).</li>
             <li>Losing the path can mean losing access even if you keep the words.</li>
             <li>Compare any result against a second tool or a test wallet before mainnet use.</li>
           </ul>
         </div>
+
+        <!-- HD Derivation Tree Inspector -->
+        <div class="card">
+          <div class="card-title">HD derivation tree inspector</div>
+          <p class="hint" style="margin-bottom:12px;">Step 1: click <strong>Build tree from current seed</strong> below (uses the mnemonic from the Derive tab). Step 2: the root and its first branches appear. Click any node to derive its keys; click a branch node again to expand or collapse its children.</p>
+          <div class="action-buttons" style="margin-bottom:12px;">
+            <button type="button" id="treeBuildBtn" class="btn-primary">Build tree from current seed</button>
+          </div>
+          <div id="treeError" class="error" style="display:none;"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">
+            <div id="treeContainer" class="tree-container" style="flex:1;min-width:280px;">
+              <p class="hint" style="text-align:center;padding:24px 0;color:var(--text-subtle);">No tree yet. Click "Build tree from current seed" above to start.</p>
+            </div>
+            <div id="treeInfo" style="flex:1;min-width:280px;">
+              <p class="hint" style="color:var(--text-subtle);">Click a tree node on the left to see its derived keys, extended key (xprv/xpub), and EVM address here.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Try it yourself -->
+        <div class="card">
+          <div class="card-title">Try it yourself</div>
+          <ul class="list-plain">
+            <li><strong style="color:var(--accent);">Visualize the tree</strong> - click "Build tree from current seed" above to see every derivation branch and click nodes to derive keys.</li>
+            <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Derive tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
+            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, open "Physical entropy lab" and roll dice to create a seed without trusting software RNG.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- EXPERIMENTS (alpha) -->
+      <div class="tab-content" data-content="experiments" role="tabpanel">
+        <div class="warning-box" style="margin-bottom:16px;">
+          <p><strong>Alpha features.</strong> These tools are experimental and may change. They use the mnemonic and BIP39 passphrase from the Derive tab (Step 1).</p>
+        </div>
+
+        <!-- Mnemonic diagnostics -->
+        <div class="card">
+          <div class="card-title">Recover a seed</div>
+          <p class="hint" style="margin-bottom:12px;">Find typos or the lost last word of an existing mnemonic. Type your mnemonic in the Derive tab Step 1, then use these tools.</p>
+          <div class="action-buttons" style="margin-top:6px;">
+            <button type="button" id="typoCheckBtn" class="btn-secondary">Check &amp; suggest fixes</button>
+            <button type="button" id="find12thBtn" class="btn-secondary">Find 12th word</button>
+            <button type="button" id="find24thBtn" class="btn-secondary">Find 24th word</button>
+          </div>
+          <div id="typoSuggestOut" style="margin-top:10px;display:none;"></div>
+          <div id="wordFinderOut" style="margin-top:10px;display:none;"></div>
+        </div>
+
+        <!-- Path Recovery Assistant -->
+        <div class="card">
+          <div class="card-title">Where are my funds? Path recovery</div>
+          <p class="hint" style="margin-bottom:12px;">Restored a seed in a new wallet and see no balance? Different wallets use different derivation paths. Paste the address you expect, and this scans ~15 common paths to find the match.</p>
+          <label for="recoveryTarget">Target address (the one you expect to hold funds)</label>
+          <input id="recoveryTarget" type="text" placeholder="0x... / bc1q... / T... / cosmos..." autocomplete="off" style="margin-top:6px;">
+          <p class="hint" style="margin-top:6px;">Uses the mnemonic and BIP39 passphrase from Step 1 (Derive tab).</p>
+          <div class="action-buttons" style="margin-top:10px;">
+            <button type="button" id="recoveryScanBtn" class="btn-secondary">Scan paths</button>
+          </div>
+          <div id="recoveryError" class="error" style="display:none;margin-top:8px;"></div>
+          <div id="recoveryOut" style="margin-top:12px;display:none;"></div>
+        </div>
+      </div>
       </div>
     </div>
+
+  <!-- Toast notification (copy feedback) -->
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <!-- Hidden paper wallet print template (only visible during window.print) -->
+  <div id="paperWalletPrint" class="paper-wallet-print" aria-hidden="true">
+    <div class="pw-title">KeySense Cold Backup</div>
+    <div class="pw-branding">
+      <div>KeySense - Web3 Key, Path &amp; Security Workbench</div>
+      <div class="pw-links">
+        <span>withkeshav.com</span> &nbsp;|&nbsp;
+        <span>github.com/withkeshav/KeySense</span>
+      </div>
+    </div>
+    <div class="pw-section">
+      <div class="pw-label">Address</div>
+      <div class="pw-mono" id="pwAddress"></div>
+    </div>
+    <div class="pw-row">
+      <div class="pw-section">
+        <div class="pw-label">Derivation path</div>
+        <div class="pw-mono" id="pwPath"></div>
+      </div>
+      <div class="pw-section">
+        <div class="pw-label">Network</div>
+        <div class="pw-mono" id="pwNetwork"></div>
+      </div>
+    </div>
+    <div class="pw-qr" id="pwQrHost"></div>
+    <div class="pw-section">
+      <div class="pw-label">Seed words (keep secret)</div>
+      <div id="pwWordGrid"></div>
+    </div>
+    <div class="pw-footer">Generated locally in your browser. No data transmitted. For testing and educational use only.</div>
   </div>
 
-  <!-- ─── Footer watermark ──────────────────────────────────────────────── -->
   <footer style="text-align:center;padding:28px 20px 20px;color:var(--text-subtle);font-size:12px;line-height:1.6;">
-    <p>HD Wallet Derivation Playground &nbsp;·&nbsp; Built by
-      <a href="https://www.linkedin.com/in/withkeshav" target="_blank" rel="noopener"
+    <p>KeySense &nbsp;·&nbsp; Built by
+      <a href="https://www.withkeshav.com" target="_blank" rel="noopener"
          style="color:var(--accent);text-decoration:none;font-weight:600;">Keshav Maheshwari</a>
       &nbsp;·&nbsp; Follow on X:
       <a href="https://www.x.com/withkeshav" target="_blank" rel="noopener"
@@ -503,18 +933,24 @@
     </p>
     <p style="margin-top:4px;">All derivation happens in your browser. No seeds or keys are ever transmitted.</p>
   </footer>
-  <!-- attribution: Keshav Maheshwari — withkeshav — linkedin.com/in/withkeshav -->
+  <!-- attribution: Keshav Maheshwari - withkeshav - withkeshav.com -->
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
   <!-- TweetNaCl: classic script = reliable global; avoids ESM "class without new" interop bugs with bundled tweetnacl -->
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+  <script src="./src/bip39-wordlists.js"></script>
   <script src="./src/constants.js"></script>
   <script src="./src/crypto-utils.js"></script>
   <script src="./src/hd-paths.js"></script>
   <script src="./src/vanity-service.js"></script>
   <script src="./src/address-service.js"></script>
   <script src="./src/brain-wallet-service.js"></script>
+  <script src="./src/bip39-helper.js"></script>
+  <script src="./src/entropy-generator.js"></script>
+  <script src="./src/path-recovery.js"></script>
+  <script src="./src/tree-inspector.js"></script>
+  <script src="./src/paper-wallet.js"></script>
   <script src="./src/ui.js"></script>
   <script src="./src/main.js"></script>
 

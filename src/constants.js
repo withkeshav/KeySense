@@ -11,3 +11,10 @@ const COIN_PARAMS = {
 };
 
 const HD_HARDENED = 0x80000000;
+
+/* Ed25519-based chains (use SLIP-0010 derivation, reusing the Solana pipeline). */
+const SUI_COIN_TYPE = 784;
+const APTOS_COIN_TYPE = 637;
+
+/* Cosmos-family chains (secp256k1 + Bech32 with chain-specific HRP). */
+const COSMOS_HRP = "cosmos";

@@ -154,6 +154,15 @@ function utxoP2WPKH(pubkeyHex, hrp) {
   return bech32Encode(hrp, data, false);
 }
 
+/** Cosmos / Tendermint style Bech32 address: bech32Encode(hrp, convertbits(hash160(pubkey), 8, 5, true), false).
+ *  Cosmos uses Bech32 with the "cosmos" HRP over the raw 20-byte hash160 of the compressed pubkey
+ *  (no witness version byte, unlike Bitcoin segwit). */
+function cosmosAddress(pubkeyHex, hrp) {
+  var h = Array.from(hash160(pubkeyHex));
+  var data = convertbits(h, 8, 5, true);
+  return bech32Encode(hrp, data, false);
+}
+
 /** Build address without any external library - pure ethers.js crypto. */
 function formatUtxoAddressPure(privHex, coinType, purpose) {
   var cp = COIN_PARAMS[coinType];

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — 2026-07-30
+## 1.0.0 - 2026-07-30
 
 ### Added
 - BIP86 Bitcoin Taproot preset (`m/86'/0'/0'/0/0`) with fallback address display
@@ -21,5 +21,5 @@
 - Brain wallet Solana derivation: 15s timeout guard to prevent indefinite hang
 
 ### Notes
-- BIP86 Taproot shows P2PKH (Legacy) address as fallback — full schnorr key tweak needs an ECC library
+- BIP86 Taproot shows P2PKH (Legacy) address as fallback - full schnorr key tweak needs an ECC library
 - Solana and Brain Wallet tabs require HTTPS (graceful error on file://)

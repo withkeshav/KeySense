@@ -48,6 +48,9 @@ function uiCoinTypeFromDevFmt(devFmt, coinType) {
   if (devFmt === "tron") return 195;
   if (devFmt === "sol") return 501;
   if (devFmt === "raw_sec256") return -1;
+  if (devFmt === "cosmos") return 118;
+  if (devFmt === "sui") return SUI_COIN_TYPE;
+  if (devFmt === "aptos") return APTOS_COIN_TYPE;
   if (devFmt.indexOf("btc_") === 0) return 0;
   if (devFmt.indexOf("ltc_") === 0) return 2;
   if (devFmt.indexOf("doge_") === 0) return 3;
@@ -71,13 +74,13 @@ function buildPathFromInputs() {
   var account = parseInt(accountEl.value, 10);
   var change = parseInt(changeEl.value, 10);
   var index = parseInt(indexEl.value, 10);
-  if (coinType === 501) {
+  if (coinType === 501 || coinType === SUI_COIN_TYPE || coinType === APTOS_COIN_TYPE) {
     return "m/" + purpose + "'/" + coinType + "'/" + account + "'/" + index + "'";
   }
   return "m/" + purpose + "'/" + coinType + "'/" + account + "'/" + change + "/" + index;
 }
 
-/** Convert every path segment to hardened — required for SLIP-0010 (Ed25519/Solana). */
+/** Convert every path segment to hardened - required for SLIP-0010 (Ed25519/Solana). */
 function hardenAllPathSegments(path) {
   var parts = path.replace(/^m\//i, "").split("/").filter(Boolean);
   var hardened = parts.map(function (seg) {
@@ -90,5 +93,5 @@ function updateSolanaUiHints() {
   var coinEl = document.getElementById("coinType");
   var note = document.getElementById("solanaPathNote");
   var ct = parseInt(coinEl.value, 10);
-  if (note) note.style.display = ct === 501 ? "block" : "none";
+  if (note) note.style.display = (ct === 501 || ct === SUI_COIN_TYPE || ct === APTOS_COIN_TYPE) ? "block" : "none";
 }

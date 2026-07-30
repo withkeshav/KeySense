@@ -4,17 +4,20 @@
 
 > Crypto key math is confusing, but KeySense makes it simple and understandable.
 
-Multi-chain HD derivation, vanity miner, brain wallet entropy lab. BIP39/32/44/49/84/86, extended keys, path discovery — all in your browser, 100% offline.
+Multi-chain HD derivation, vanity miner, brain wallet entropy lab. BIP39/32/44/49/84/86, extended keys, path discovery - all in your browser, 100% offline.
 
-Created by [Keshav Maheshwari](https://www.linkedin.com/in/withkeshav)
+Created by [Keshav Maheshwari](https://www.withkeshav.com)
 
 ## Features
 
-- **Derive Keys** — Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin
-- **Vanity Miner** — Offline EVM vanity address generator
-- **Brain Wallet** — SHA-256 passphrase → BIP39 mnemonic → deterministic wallet
-- **Learn Paths** — Visual explanation of BIP44/49/84/86 derivation structure
-- **Blockchain Guide** — Address format reference across chains
+- **Derive Keys** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
+- **Vanity Miner** - Offline EVM vanity address generator
+- **Brain Wallet** - SHA-256 passphrase -> BIP39 mnemonic -> deterministic wallet
+- **Learn Paths** - Visual explanation of BIP44/49/84/86 derivation structure
+- **Blockchain Guide** - Address format reference across chains
+- **Path Recovery** - Find which derivation path matches a known address
+- **Paper Wallet** - Print an air-gapped cold backup
+- **Entropy Lab** - Generate seeds from dice rolls or coin flips
 
 ## Quick Start (Local)
 
@@ -26,7 +29,7 @@ python3 -m http.server 8080
 
 Then open in a browser. The main Derive tab works from `file://` with no server.
 
-> **Note:** The Brain Wallet tab and Solana derivation require HTTPS — `crypto.subtle` and dynamic `import()` are blocked on `file://` and insecure origins. Use a local server for full functionality.
+> **Note:** The Brain Wallet tab, Solana/Sui/Aptos derivation, and the entropy lab require HTTPS - `crypto.subtle` and dynamic `import()` are blocked on `file://` and insecure origins. Use a local server for full functionality.
 
 ## Deploy on a VPS
 
@@ -55,17 +58,18 @@ For HTTPS (required for Brain Wallet), use nginx with certbot or Caddy.
 
 Zero framework, zero build step. Pure HTML, CSS, and vanilla JavaScript. Only CDN dependencies:
 
-- [ethers.js](https://cdn.jsdelivr.net/npm/ethers@5.7.2) — BIP39 mnemonic, BIP32 HD derivation, EVM addresses
-- [tweetnacl](https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3) — Ed25519 key pairs (Solana)
-- [ed25519-hd-key](https://cdn.jsdelivr.net/npm/ed25519-hd-key@1.3.0) — SLIP-0010 Ed25519 derivation (Solana)
+- [ethers.js](https://cdn.jsdelivr.net/npm/ethers@5.7.2) - BIP39 mnemonic, BIP32 HD derivation, EVM addresses
+- [tweetnacl](https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3) - Ed25519 key pairs (Solana, Sui, Aptos)
+- [ed25519-hd-key](https://cdn.jsdelivr.net/npm/ed25519-hd-key@1.3.0) - SLIP-0010 Ed25519 derivation; loaded as a lazy dynamic `import()` only when an Ed25519 chain is first derived (Solana, Sui, Aptos)
+- [qrcode](https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1) - QR code rendering for address display
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 ---
 
-**Disclaimer:** For testing and educational purposes only.
+**Disclaimer:** For testing and educational purposes only. If you want to use a local version, download it from [https://github.com/withkeshav/KeySense](https://github.com/withkeshav/KeySense).
 
 ---
 

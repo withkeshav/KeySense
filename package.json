@@ -7,6 +7,6 @@
     "dev": "npx serve .",
     "start": "npx serve ."
   },
-  "author": "Keshav Maheshwari (https://www.linkedin.com/in/withkeshav)",
+  "author": "Keshav Maheshwari (https://www.withkeshav.com)",
   "license": "MIT"
 }

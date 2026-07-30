@@ -1,6 +1,31 @@
 (function () {
       initUiBasics();
 
+      /* ── SEED BAR SYNC ────────────────────────────────────────────────
+       * The seed bar is a sticky, read-only display of the current mnemonic.
+       * It stays visible on scroll and tab change so the seed is always in view.
+       * No controls here - the Generate button lives only in the Derive tab Step 1. */
+      var seedBarValue = document.getElementById("seedBarValue");
+      function syncSeedBar() {
+        var mn = document.getElementById("mnemonic");
+        var v = (mn && mn.value.trim()) || "";
+        if (seedBarValue) {
+          if (v) {
+            seedBarValue.textContent = v.length > 64 ? v.slice(0, 61) + "..." : v;
+            seedBarValue.classList.remove("seed-bar-empty");
+          } else {
+            seedBarValue.textContent = "No seed generated - click Generate in the Derive tab";
+            seedBarValue.classList.add("seed-bar-empty");
+          }
+        }
+      }
+      var mnInput = document.getElementById("mnemonic");
+      if (mnInput) {
+        mnInput.addEventListener("input", syncSeedBar);
+        mnInput.addEventListener("change", syncSeedBar);
+      }
+      syncSeedBar();
+
       async function renderQr(hostEl, text) {
         if (!hostEl || !text) return;
         hostEl.innerHTML = "";
@@ -86,7 +111,10 @@
           tron: { purpose: 44, coinType: 195, account: 0, change: 0, index: 0 },
           polygon: { purpose: 44, coinType: 60, account: 0, change: 0, index: 0 },
           bsc: { purpose: 44, coinType: 60, account: 0, change: 0, index: 0 },
-          avalanche: { purpose: 44, coinType: 60, account: 0, change: 0, index: 0 }
+          avalanche: { purpose: 44, coinType: 60, account: 0, change: 0, index: 0 },
+          cosmos: { purpose: 44, coinType: 118, account: 0, change: 0, index: 0 },
+          sui: { purpose: 44, coinType: SUI_COIN_TYPE, account: 0, change: 0, index: 0 },
+          aptos: { purpose: 44, coinType: APTOS_COIN_TYPE, account: 0, change: 0, index: 0 }
         };
 
         document.querySelectorAll(".btn-preset").forEach(function (btn) {
@@ -250,6 +278,8 @@
             addressLabel.textContent = result.addressLabel;
             if (uiCoin === 501) {
               pkLabel.textContent = "Private key (32-byte Ed25519 seed, hex)";
+            } else if (uiCoin === SUI_COIN_TYPE || uiCoin === APTOS_COIN_TYPE) {
+              pkLabel.textContent = "Private key (32-byte Ed25519 seed, hex)";
             } else if (uiCoin === 195) {
               pkLabel.textContent = "Private key (secp256k1, hex)";
             } else if (uiCoin === 60) {
@@ -279,7 +309,7 @@
             }
 
             if (pubKeyLabel) {
-              if (uiCoin === 501) pubKeyLabel.textContent = "Public key (Ed25519, raw 32-byte hex)";
+              if (uiCoin === 501 || uiCoin === SUI_COIN_TYPE || uiCoin === APTOS_COIN_TYPE) pubKeyLabel.textContent = "Public key (Ed25519, raw 32-byte hex)";
               else pubKeyLabel.textContent = "Public key (compressed secp256k1, SEC1 hex)";
             }
             if (pubKeyCompressed) pubKeyCompressed.textContent = result.publicKeyHex || "—";
@@ -290,7 +320,7 @@
               pubKeyUncompressedWrap.style.display = "none";
             }
 
-            if (uiCoin === 501 && result.solanaSecret64Hex && solanaExtraWrap && solanaSecret64) {
+            if ((uiCoin === 501 || uiCoin === SUI_COIN_TYPE || uiCoin === APTOS_COIN_TYPE) && result.solanaSecret64Hex && solanaExtraWrap && solanaSecret64) {
               solanaExtraWrap.style.display = "block";
               solanaSecret64.textContent = result.solanaSecret64Hex;
               if (solanaKeyHint) solanaKeyHint.textContent = result.keyFormatNote || "";
@@ -305,13 +335,13 @@
             }
 
             if (devToggle && devToggle.checked) {
-              fillDevExtendedKeys(hdNode, path);   // reuse already-computed hdNode — no extra PBKDF2
+               fillDevExtendedKeys(hdNode, path);   // reuse already-computed hdNode - no extra PBKDF2
               fillDevUtxoAllFormats(secpPrivateHex, devFmt, coinType);
             }
 
             var displayPath = result.resolvedPath || path;
             successDiv.textContent = "Derived path: " + displayPath +
-              (result.pathNote ? "  —  " + result.pathNote : "");
+              (result.pathNote ? "  -  " + result.pathNote : "");
             successDiv.style.display = "block";
           } catch (e) {
             console.error(e);
@@ -328,13 +358,13 @@
           }
         }
 
-        var gen12 = document.getElementById("genMnemonic12");
-        var gen24 = document.getElementById("genMnemonic24");
-        if (gen12) gen12.addEventListener("click", function () { mnemonicInput.value = randomMnemonic(12); });
-        if (gen24) gen24.addEventListener("click", function () { mnemonicInput.value = randomMnemonic(24); });
-        if (mnemonicInput && !mnemonicInput.value.trim()) {
-          mnemonicInput.value = randomMnemonic(12);
-        }
+        var genBtn = document.getElementById("genMnemonic");
+        var wordCountSelect = document.getElementById("mnemonicWordCount");
+        var langSelect = document.getElementById("mnemonicLang");
+        if (genBtn) genBtn.addEventListener("click", function () {
+          mnemonicInput.value = randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value);
+          syncSeedBar();
+        });
 
         deriveBtn.addEventListener("click", deriveKeys);
 
@@ -480,7 +510,7 @@
                   lines.push("Private key: " + child.privateKey);
                   lines.push("EVM address: " + new ethers.Wallet(child.privateKey).address);
                 } else {
-                  lines.push("(XPUB only — no private key on this node)");
+                   lines.push("(XPUB only - no private key on this node)");
                   var pub = child.publicKey;
                   if (pub) {
                     try {
@@ -670,5 +700,500 @@
             }
           });
         }
+
+        /* ── TOAST + COPY FEEDBACK ───────────────────────────────────────── */
+        var toastEl = document.getElementById("toast");
+        var toastTimer = null;
+        function showToast(msg) {
+          if (!toastEl) return;
+          toastEl.textContent = msg;
+          toastEl.classList.add("show");
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2000);
+        }
+        /* Wrap clipboard writes with toast feedback where copy buttons exist.
+         * Kept minimal: any element with data-copy attribute gets a click handler. */
+        document.querySelectorAll("[data-copy]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var target = btn.getAttribute("data-copy");
+            var el = document.getElementById(target);
+            if (el && el.textContent && navigator.clipboard) {
+              navigator.clipboard.writeText(el.textContent).then(function () {
+                showToast("\u2713 Copied to clipboard");
+              }).catch(function () {});
+            }
+          });
+        });
+
+        /* ── EXPERT MODE TOGGLE + ENTROPY ACCORDION ──────────────────────── */
+        var expertModeToggle = document.getElementById("expertModeToggle");
+        var entropyAccord = document.getElementById("entropyAccord");
+        var entropyHeader = document.getElementById("entropyHeader");
+        var entropyBody = document.getElementById("entropyBody");
+
+        function setAccordion(headerEl, bodyEl, open) {
+          if (!headerEl || !bodyEl) return;
+          if (open) {
+            headerEl.classList.remove("acc-closed");
+            headerEl.classList.add("open");
+            headerEl.setAttribute("aria-expanded", "true");
+            bodyEl.classList.remove("acc-closed");
+          } else {
+            headerEl.classList.add("acc-closed");
+            headerEl.classList.remove("open");
+            headerEl.setAttribute("aria-expanded", "false");
+            bodyEl.classList.add("acc-closed");
+          }
+        }
+        function toggleAccordion(which) {
+          if (which === "entropy") {
+            var openEnt = entropyBody.classList.contains("acc-closed");
+            setAccordion(entropyHeader, entropyBody, openEnt);
+          }
+        }
+        if (expertModeToggle) {
+          expertModeToggle.addEventListener("change", function () {
+            if (entropyAccord) {
+              entropyAccord.style.display = expertModeToggle.checked ? "" : "none";
+              if (!expertModeToggle.checked) {
+                setAccordion(entropyHeader, entropyBody, false);
+              }
+            }
+          });
+        }
+        if (entropyHeader) {
+          entropyHeader.addEventListener("click", function () { toggleAccordion("entropy"); });
+          entropyHeader.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleAccordion("entropy"); }
+          });
+        }
+
+        /* ── BIP39 TYPO FIXER + 12TH WORD FINDER ─────────────────────────── */
+        var typoCheckBtn = document.getElementById("typoCheckBtn");
+        var find12thBtn = document.getElementById("find12thBtn");
+        var find24thBtn = document.getElementById("find24thBtn");
+        var typoSuggestOut = document.getElementById("typoSuggestOut");
+        var wordFinderOut = document.getElementById("wordFinderOut");
+
+        function currentLang() {
+          var ls = document.getElementById("mnemonicLang");
+          return ls ? ls.value : "en";
+        }
+
+        if (typoCheckBtn) typoCheckBtn.addEventListener("click", function () {
+          var mn = mnemonicInput.value.trim();
+          if (!mn) { if (typoSuggestOut) { typoSuggestOut.style.display = "block"; typoSuggestOut.innerHTML = '<p class="hint">Enter a mnemonic first.</p>'; } return; }
+          var res = suggestMnemonicFixes(mn, currentLang());
+          if (!typoSuggestOut) return;
+          typoSuggestOut.style.display = "block";
+          if (res.isValid) {
+            typoSuggestOut.innerHTML = '<p class="hint" style="color:var(--success);">Mnemonic is valid.</p>';
+            return;
+          }
+          if (res.checksumOnly) {
+            typoSuggestOut.innerHTML = '<p class="hint" style="color:var(--error);">All words are valid but the checksum failed. The word order may be wrong, or extra/missing words.</p>';
+            return;
+          }
+          var html = '<p class="hint" style="margin-bottom:8px;">Found ' + res.suggestions.length + ' word(s) not in the wordlist:</p>';
+          res.suggestions.forEach(function (s) {
+            html += '<div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);">';
+            html += '<div class="hint">Word #' + (s.index + 1) + ': <code style="font-family:var(--mono);color:var(--error);">' + s.original + '</code></div>';
+            html += '<div style="margin-top:4px;">';
+            s.candidates.forEach(function (c) {
+              html += '<button type="button" class="btn-secondary" data-fix-index="' + s.index + '" data-fix-word="' + c.word + '" style="margin:2px;font-size:12px;">' + c.word + ' (d=' + c.distance + ')</button>';
+            });
+            html += '</div></div>';
+          });
+          typoSuggestOut.innerHTML = html;
+          typoSuggestOut.querySelectorAll("[data-fix-index]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              var idx = parseInt(b.getAttribute("data-fix-index"), 10);
+              var w = b.getAttribute("data-fix-word");
+              var words = mnemonicInput.value.trim().split(/\s+/);
+              words[idx] = w;
+              mnemonicInput.value = words.join(" ");
+              showToast("Replaced word " + (idx + 1));
+            });
+          });
+        });
+
+        if (find12thBtn) find12thBtn.addEventListener("click", function () {
+          var mn = mnemonicInput.value.trim();
+          if (!wordFinderOut) return;
+          var words = mn.split(/\s+/);
+          if (words.length < 11) {
+            wordFinderOut.style.display = "block";
+            wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">Enter at least 11 words first.</p>';
+            return;
+          }
+          var first11 = words.slice(0, 11).join(" ");
+          wordFinderOut.style.display = "block";
+          wordFinderOut.innerHTML = '<p class="hint">Scanning all 2048 candidates...</p>';
+          setTimeout(function () {
+            var r = findValid12thWords(first11, currentLang());
+            if (r.error) { wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">' + r.error + '</p>'; return; }
+            var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 12th words:</p>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+            r.validWords.forEach(function (w) {
+              html += '<button type="button" class="btn-secondary" data-append-word="' + w + '" style="font-size:12px;">' + w + '</button>';
+            });
+            html += '</div>';
+            wordFinderOut.innerHTML = html;
+            wordFinderOut.querySelectorAll("[data-append-word]").forEach(function (b) {
+              b.addEventListener("click", function () {
+                var w = b.getAttribute("data-append-word");
+                var cur = mnemonicInput.value.trim().split(/\s+/);
+                cur[11] = w;
+                mnemonicInput.value = cur.slice(0, 12).join(" ");
+                showToast("12th word set");
+              });
+            });
+          }, 30);
+        });
+
+        if (find24thBtn) find24thBtn.addEventListener("click", function () {
+          var mn = mnemonicInput.value.trim();
+          if (!wordFinderOut) return;
+          var words = mn.split(/\s+/);
+          if (words.length < 23) {
+            wordFinderOut.style.display = "block";
+            wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">Enter at least 23 words first.</p>';
+            return;
+          }
+          var first23 = words.slice(0, 23).join(" ");
+          wordFinderOut.style.display = "block";
+          wordFinderOut.innerHTML = '<p class="hint">Scanning all 2048 candidates (24th word)...</p>';
+          setTimeout(function () {
+            var r = findValid24thWords(first23, currentLang());
+            if (r.error) { wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">' + r.error + '</p>'; return; }
+            var show = r.validWords.slice(0, 40);
+            var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 24th words (showing first ' + show.length + '):</p>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;">';
+            show.forEach(function (w) {
+              html += '<button type="button" class="btn-secondary" data-append-word24="' + w + '" style="font-size:11px;">' + w + '</button>';
+            });
+            html += '</div>';
+            wordFinderOut.innerHTML = html;
+            wordFinderOut.querySelectorAll("[data-append-word24]").forEach(function (b) {
+              b.addEventListener("click", function () {
+                var w = b.getAttribute("data-append-word24");
+                var cur = mnemonicInput.value.trim().split(/\s+/);
+                cur[23] = w;
+                mnemonicInput.value = cur.slice(0, 24).join(" ");
+                showToast("24th word set");
+              });
+            });
+          }, 30);
+        });
+
+        /* ── PHYSICAL ENTROPY GENERATOR ──────────────────────────────────── */
+        var diceInput = document.getElementById("diceInput");
+        var coinInput = document.getElementById("coinInput");
+        var entropyWordsSel = document.getElementById("entropyWords");
+        var entropyGenBtn = document.getElementById("entropyGenBtn");
+        var entropyProgress = document.getElementById("entropyProgress");
+        var entropyErrorEl = document.getElementById("entropyError");
+        var rollDiceBtn = document.getElementById("rollDiceBtn");
+        var flipCoinBtn = document.getElementById("flipCoinBtn");
+        var rollManyBtn = document.getElementById("rollManyBtn");
+        var clearEntropyBtn = document.getElementById("clearEntropyBtn");
+        var entropyStage = document.getElementById("entropyStage");
+        var diceFaceEl = document.getElementById("diceFace");
+        var coinFaceEl = document.getElementById("coinFace");
+        var entropyBar = document.getElementById("entropyBar");
+        var entropyMuted = false;
+
+        /* Web Audio sound engine - synthesized, no external files.
+         * A single lazy AudioContext created on first user gesture. */
+        var audioCtx = null;
+        function getAudio() {
+          if (audioCtx) return audioCtx;
+          try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) audioCtx = new AC();
+          } catch (e) { audioCtx = null; }
+          return audioCtx;
+        }
+        function playTone(freq, dur, type, vol) {
+          if (entropyMuted) return;
+          var ctx = getAudio();
+          if (!ctx) return;
+          try {
+            if (ctx.state === "suspended") ctx.resume();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = type || "sine";
+            osc.frequency.value = freq;
+            gain.gain.value = vol || 0.12;
+            gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + dur);
+          } catch (e) {}
+        }
+        function diceClack() {
+          playTone(180, 0.08, "square", 0.10);
+          setTimeout(function () { playTone(120, 0.06, "square", 0.08); }, 60);
+        }
+        function coinDing() {
+          playTone(880, 0.12, "triangle", 0.14);
+          setTimeout(function () { playTone(1320, 0.18, "triangle", 0.10); }, 80);
+        }
+        function successChime() {
+          playTone(523, 0.12, "sine", 0.12);
+          setTimeout(function () { playTone(659, 0.12, "sine", 0.12); }, 110);
+          setTimeout(function () { playTone(784, 0.22, "sine", 0.12); }, 220);
+        }
+
+        /* Render a dice face with the pip grid (3x3). val is 1-6. */
+        function renderDiceFace(val) {
+          if (!diceFaceEl) return;
+          diceFaceEl.hidden = false;
+          if (coinFaceEl) coinFaceEl.hidden = true;
+          diceFaceEl.setAttribute("data-val", String(val));
+          diceFaceEl.innerHTML =
+            '<div class="dice-pip pip-tl"></div><div class="dice-pip pip-tr"></div><div class="dice-pip pip-ml"></div>' +
+            '<div class="dice-pip pip-c"></div><div class="dice-pip pip-mr"></div>' +
+            '<div class="dice-pip pip-bl"></div><div class="dice-pip pip-br"></div>';
+          diceFaceEl.classList.remove("rolling");
+          void diceFaceEl.offsetWidth;  /* force reflow so animation restarts */
+          diceFaceEl.classList.add("rolling");
+        }
+        function renderCoinFace(val) {
+          if (!coinFaceEl) return;
+          coinFaceEl.hidden = false;
+          if (diceFaceEl) diceFaceEl.hidden = true;
+          coinFaceEl.textContent = val;
+          coinFaceEl.classList.remove("flipping");
+          void coinFaceEl.offsetWidth;
+          coinFaceEl.classList.add("flipping");
+        }
+        function clearStage() {
+          if (diceFaceEl) diceFaceEl.hidden = true;
+          if (coinFaceEl) coinFaceEl.hidden = true;
+        }
+
+        function updateEntropyProgress() {
+          if (!entropyProgress) return;
+          var wc = entropyWordsSel ? parseInt(entropyWordsSel.value, 10) : 12;
+          var needed = bitsNeededForWords(wc);
+          var rolls = diceInput ? diceInput.value.trim() : "";
+          var flips = coinInput ? coinInput.value.trim() : "";
+          var bits = 0;
+          if (rolls) bits += bitsCollectedFromDice(rolls);
+          if (flips) bits += bitsCollectedFromCoins(flips);
+          entropyProgress.textContent = entropyProgressHtml(bits, needed);
+          if (entropyBar) {
+            var pct = Math.min(100, Math.round((bits / needed) * 100));
+            entropyBar.style.width = pct + "%";
+            if (pct >= 100) entropyBar.classList.add("full");
+            else entropyBar.classList.remove("full");
+          }
+        }
+        if (diceInput) diceInput.addEventListener("input", updateEntropyProgress);
+        if (coinInput) coinInput.addEventListener("input", updateEntropyProgress);
+        if (entropyWordsSel) entropyWordsSel.addEventListener("change", updateEntropyProgress);
+        updateEntropyProgress();
+
+        /* Append one char to the active input and trigger the visual+sound. */
+        function appendRoll(mode, ch) {
+          if (mode === "dice") {
+            if (diceInput) {
+              diceInput.value += ch;
+              diceInput.dispatchEvent(new Event("input"));
+            }
+            renderDiceFace(parseInt(ch, 10));
+            diceClack();
+          } else {
+            if (coinInput) {
+              coinInput.value += ch;
+              coinInput.dispatchEvent(new Event("input"));
+            }
+            renderCoinFace(ch);
+            coinDing();
+          }
+        }
+
+        if (rollDiceBtn) rollDiceBtn.addEventListener("click", function () {
+          var r = 1 + Math.floor(Math.random() * 6);
+          appendRoll("dice", String(r));
+        });
+        if (flipCoinBtn) flipCoinBtn.addEventListener("click", function () {
+          var ch = Math.random() < 0.5 ? "H" : "T";
+          appendRoll("coin", ch);
+        });
+        if (rollManyBtn) rollManyBtn.addEventListener("click", function () {
+          /* Auto-roll 50 times with a small stagger so the animation is visible. */
+          var i = 0;
+          var total = 50;
+          var timer = setInterval(function () {
+            if (i >= total) { clearInterval(timer); successChime(); return; }
+            var mode = (i % 2 === 0) ? "dice" : "coin";
+            if (mode === "dice") appendRoll("dice", String(1 + Math.floor(Math.random() * 6)));
+            else appendRoll("coin", Math.random() < 0.5 ? "H" : "T");
+            i++;
+          }, 90);
+        });
+        if (clearEntropyBtn) clearEntropyBtn.addEventListener("click", function () {
+          if (diceInput) diceInput.value = "";
+          if (coinInput) coinInput.value = "";
+          clearStage();
+          updateEntropyProgress();
+        });
+
+        if (entropyGenBtn) entropyGenBtn.addEventListener("click", async function () {
+          clearFeatureError(entropyErrorEl);
+          var rolls = diceInput ? diceInput.value.trim() : "";
+          var flips = coinInput ? coinInput.value.trim() : "";
+          var wc = entropyWordsSel ? parseInt(entropyWordsSel.value, 10) : 12;
+          if (!rolls && !flips) {
+            showFeatureError(entropyErrorEl, "Entropy", "Roll dice or flip coins first.", { userInput: true });
+            return;
+          }
+          try {
+            /* Both sources feed one entropy pool. Changing either changes the seed. */
+            var r = await entropyToMnemonic(rolls, flips, wc, currentLang());
+            mnemonicInput.value = r.phrase;
+            showToast("Generated " + r.wordCount + "-word mnemonic from your rolls");
+            successChime();
+            updateEntropyProgress();
+            deriveKeys();
+            toggleAccordion("entropy");
+          } catch (e) {
+            /* On validation error, wipe stale results so the screen does not
+             * show an old address that no longer matches the current input. */
+            mnemonicInput.value = "";
+            addrSpan.textContent = "\u2014";
+            pkSpan.textContent = "\u2014";
+            showFeatureError(entropyErrorEl, "Entropy", e, { userInput: true });
+          }
+        });
+
+        /* ── LITE DERIVE FROM ROLLS (full pipeline in the entropy panel) ── */
+        var entropyChainSelect = document.getElementById("entropyChainSelect");
+        var entropyDeriveBtn = document.getElementById("entropyDeriveBtn");
+        if (entropyDeriveBtn) entropyDeriveBtn.addEventListener("click", async function () {
+          clearFeatureError(entropyErrorEl);
+          var rolls = diceInput ? diceInput.value.trim() : "";
+          var flips = coinInput ? coinInput.value.trim() : "";
+          var wc = entropyWordsSel ? parseInt(entropyWordsSel.value, 10) : 12;
+          if (!rolls && !flips) {
+            showFeatureError(entropyErrorEl, "Entropy", "Roll dice or flip coins first.", { userInput: true });
+            return;
+          }
+          try {
+            var r = await entropyToMnemonic(rolls, flips, wc, currentLang());
+            mnemonicInput.value = r.phrase;
+            /* Apply the selected chain preset (reuses the existing presets map). */
+            var presetName = entropyChainSelect ? entropyChainSelect.value : "eth";
+            var preset = presets[presetName];
+            if (preset) {
+              purposeInput.value = preset.purpose;
+              coinTypeInput.value = preset.coinType;
+              accountInput.value = preset.account;
+              changeInput.value = preset.change;
+              indexInput.value = preset.index;
+              var devToggle = document.getElementById("devModeToggle");
+              var devCp = document.getElementById("devCustomPath");
+              if (devToggle && devToggle.checked && devCp) devCp.value = "";
+              updatePathDisplay();
+              updateSolanaUiHints();
+            }
+            showToast("Derived " + (presetName) + " address from your rolls");
+            successChime();
+            updateEntropyProgress();
+            deriveKeys();
+            toggleAccordion("entropy");
+            /* Scroll the results into view so the user sees the address. */
+            var resultsCard = document.querySelector('[data-content="derive"] .card:nth-of-type(4)');
+            if (resultsCard) resultsCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          } catch (e) {
+            mnemonicInput.value = "";
+            addrSpan.textContent = "\u2014";
+            pkSpan.textContent = "\u2014";
+            showFeatureError(entropyErrorEl, "Entropy", e, { userInput: true });
+          }
+        });
+
+        /* ── PATH RECOVERY ASSISTANT ────────────────────────────────────── */
+        var recoveryTarget = document.getElementById("recoveryTarget");
+        var recoveryScanBtn = document.getElementById("recoveryScanBtn");
+        var recoveryOut = document.getElementById("recoveryOut");
+        var recoveryErrorEl = document.getElementById("recoveryError");
+
+        if (recoveryScanBtn) recoveryScanBtn.addEventListener("click", async function () {
+          clearFeatureError(recoveryErrorEl);
+          var mn = mnemonicInput.value.trim();
+          var target = recoveryTarget ? recoveryTarget.value.trim() : "";
+          if (!mn) { showFeatureError(recoveryErrorEl, "Recovery", "Enter a mnemonic in Step 1 first.", { userInput: true }); return; }
+          if (!target) { showFeatureError(recoveryErrorEl, "Recovery", "Enter the target address to match.", { userInput: true }); return; }
+          if (!ethers.utils.isValidMnemonic(mn)) { showFeatureError(recoveryErrorEl, "Recovery", "Mnemonic is invalid.", { userInput: true }); return; }
+          if (recoveryOut) { recoveryOut.style.display = "block"; recoveryOut.innerHTML = '<p class="hint">Scanning ' + WALLET_PATHS.length + ' paths...</p>'; }
+          var passEl = document.getElementById("bip39Pass");
+          var pass = passEl ? passEl.value : "";
+          try {
+            var res = await scanPathsForAddress(mn, pass, target);
+            if (recoveryOut) recoveryOut.innerHTML = matchesToHtml(res);
+          } catch (e) {
+            showFeatureError(recoveryErrorEl, "Recovery", e);
+          }
+        });
+
+        /* ── PAPER WALLET PRINT ─────────────────────────────────────────── */
+        var printWalletBtn = document.getElementById("printWalletBtn");
+        if (printWalletBtn) printWalletBtn.addEventListener("click", async function () {
+          var mn = mnemonicInput.value.trim();
+          if (!mn || !ethers.utils.isValidMnemonic(mn)) { showToast("Enter a valid mnemonic first"); return; }
+          var path = getEffectivePath();
+          var data = {
+            mnemonic: mn,
+            address: addrSpan ? addrSpan.textContent : "",
+            path: path,
+            network: addressLabel ? addressLabel.textContent : "",
+            privateKey: pkSpan ? pkSpan.textContent : ""
+          };
+          await printPaperWallet(data);
+        });
+
+        /* ── HD TREE INSPECTOR ──────────────────────────────────────────── */
+        var treeBuildBtn = document.getElementById("treeBuildBtn");
+        var treeContainer = document.getElementById("treeContainer");
+        var treeInfo = document.getElementById("treeInfo");
+        var treeErrorEl = document.getElementById("treeError");
+
+        if (treeBuildBtn) treeBuildBtn.addEventListener("click", function () {
+          clearFeatureError(treeErrorEl);
+          var mn = mnemonicInput.value.trim();
+          if (!mn || !ethers.utils.isValidMnemonic(mn)) {
+            showFeatureError(treeErrorEl, "Tree", "Enter a valid mnemonic in Step 1 first.", { userInput: true });
+            return;
+          }
+          var passEl = document.getElementById("bip39Pass");
+          var pass = passEl ? passEl.value : "";
+          var model = buildTreeModel(mn, pass);
+          renderTree(model, treeContainer, async function (path) {
+            if (!treeInfo) return;
+            treeInfo.innerHTML = '<p class="hint">Deriving ' + path + '...</p>';
+            try {
+              var info = await deriveNodeInfo(mn, path, pass);
+              treeInfo.innerHTML = nodeInfoToHtml(info);
+            } catch (e) {
+              treeInfo.innerHTML = '<p class="hint" style="color:var(--error);">' + (e.message || e) + '</p>';
+            }
+          });
+          if (treeInfo) treeInfo.innerHTML = '<p class="hint" style="color:var(--text-subtle);">Tree built. Click any node on the left to derive its keys (xprv, xpub, EVM address). Click a branch node again to expand or collapse its children.</p>';
+        });
+
+        /* ── LEARN -> ENTROPY CROSS-LINK ─────────────────────────────────── */
+        var learnOpenEntropy = document.getElementById("learnOpenEntropy");
+        if (learnOpenEntropy) learnOpenEntropy.addEventListener("click", function (e) {
+          e.preventDefault();
+          var deriveTab = document.querySelector('.tab[data-tab="derive"]');
+          if (deriveTab) deriveTab.click();
+          toggleAccordion("entropy");
+          if (entropyHeader) entropyHeader.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
       });
     })();

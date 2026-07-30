@@ -28,6 +28,36 @@ function loadSolanaDeps() {
   return solanaDepsPromise;
 }
 
+/* Shared Ed25519 (SLIP-0010) derivation used by Solana, Sui, and Aptos.
+ * Returns {seed32, publicKey32, secret64, seedHex, pubHex} from mnemonic+path. */
+async function deriveEd25519Key(mnemonic, path, passphrase) {
+  var deps = await loadSolanaDeps();
+  var naclGlobal =
+    (typeof globalThis !== "undefined" && globalThis.nacl) ||
+    (typeof window !== "undefined" && window.nacl) ||
+    null;
+  if (!naclGlobal || !naclGlobal.sign || typeof naclGlobal.sign.keyPair.fromSeed !== "function") {
+    throw new Error("TweetNaCl not loaded - ensure nacl-fast.min.js runs before this script.");
+  }
+  var seed512u8 = ethers.utils.arrayify(ethers.utils.mnemonicToSeed(mnemonic, passphrase || ""));
+  var seed512hex = toHex(seed512u8);
+  var d = deps.derivePath(path, seed512hex);
+  if (!d || !d.key) throw new Error("SLIP-0010 derivePath returned no key for " + path);
+  var seed32 = toSeed32Bytes(d.key);
+  var kp = naclGlobal.sign.keyPair.fromSeed(seed32);
+  var sk32hex;
+  if (kp.secretKey && kp.secretKey.length >= 32) {
+    sk32hex = toHex(new Uint8Array(kp.secretKey.subarray(0, 32)));
+  } else {
+    sk32hex = toHex(seed32);
+  }
+  var pubHex = "0x" + toHex(new Uint8Array(kp.publicKey));
+  var sec64hex = kp.secretKey && kp.secretKey.length >= 64
+    ? "0x" + toHex(new Uint8Array(kp.secretKey))
+    : null;
+  return { seed32: seed32, publicKey: kp.publicKey, secret64: kp.secretKey, seedHex: "0x" + sk32hex, pubHex: pubHex, sec64hex: sec64hex };
+}
+
 async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase) {
   if (coinType === 60) {
     var wallet = new ethers.Wallet(secpPrivateKeyHex);
@@ -57,45 +87,81 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
     };
   }
   if (coinType === 501) {
-    var deps = await loadSolanaDeps();
-    var naclGlobal =
-      (typeof globalThis !== "undefined" && globalThis.nacl) ||
-      (typeof window !== "undefined" && window.nacl) ||
-      null;
-    if (!naclGlobal || !naclGlobal.sign || typeof naclGlobal.sign.keyPair.fromSeed !== "function") {
-      throw new Error("TweetNaCl not loaded - ensure nacl-fast.min.js runs before this script.");
-    }
-    var seed512u8 = ethers.utils.arrayify(ethers.utils.mnemonicToSeed(mnemonic, passphrase || ""));
-    var seed512hex = toHex(seed512u8);
-    var d = deps.derivePath(path, seed512hex);
-    if (!d || !d.key) throw new Error("SLIP-0010 derivePath returned no key for " + path);
-    var seed32 = toSeed32Bytes(d.key);
-    var kp = naclGlobal.sign.keyPair.fromSeed(seed32);
-    var addr = base58Encode(kp.publicKey);
-    var sk32hex;
-    if (kp.secretKey && kp.secretKey.length >= 32) {
-      sk32hex = toHex(new Uint8Array(kp.secretKey.subarray(0, 32)));
-    } else {
-      sk32hex = toHex(seed32);
-    }
-    var pubSolHex = "0x" + toHex(new Uint8Array(kp.publicKey));
-    var sec64hex = kp.secretKey && kp.secretKey.length >= 64
-      ? "0x" + toHex(new Uint8Array(kp.secretKey))
-      : null;
+    var k = await deriveEd25519Key(mnemonic, path, passphrase);
+    var addr = base58Encode(k.publicKey);
     return {
       address: addr,
       wif: null,
       addressLabel: "Solana address",
-      privateHex: "0x" + sk32hex,
-      publicKeyHex: pubSolHex,
+      privateHex: k.seedHex,
+      publicKeyHex: k.pubHex,
       publicKeyUncompressedHex: null,
-      solanaSecret64Hex: sec64hex,
+      solanaSecret64Hex: k.sec64hex,
       keyFormatNote:
         "Solana: the Base58 string above is the address (= encoding of the 32-byte Ed25519 public key). The 32-byte hex labeled 'private key' is the Ed25519 seed (same bytes TweetNaCl uses in fromSeed). Many wallets also export a 64-byte secret (seed || public key) - see below."
     };
   }
+  if (coinType === SUI_COIN_TYPE) {
+    var suiK = await deriveEd25519Key(mnemonic, path, passphrase);
+    /* Sui address = 0x + lowercase hex of the 32-byte Ed25519 public key. */
+    var suiAddr = suiK.pubHex.toLowerCase();
+    return {
+      address: suiAddr,
+      wif: null,
+      addressLabel: "Sui address",
+      privateHex: suiK.seedHex,
+      publicKeyHex: suiK.pubHex,
+      publicKeyUncompressedHex: null,
+      solanaSecret64Hex: suiK.sec64hex,
+      keyFormatNote:
+        "Sui: address is 0x + the 32-byte Ed25519 public key hex. The 32-byte hex labeled 'private key' is the Ed25519 seed. Derivation uses SLIP-0010 (all path segments hardened)."
+    };
+  }
+  if (coinType === APTOS_COIN_TYPE) {
+    var aptK = await deriveEd25519Key(mnemonic, path, passphrase);
+    /* Aptos single-sig Ed25519 address = 0x + sha3-256(pubkey || 0x00).
+     * ethers v5 has no SHA3, so this uses the browser Web Crypto API (requires HTTPS). */
+    var aptAddr;
+    if (typeof crypto !== "undefined" && crypto.subtle && crypto.subtle.digest) {
+      try {
+        var pubBytes = ethers.utils.arrayify(aptK.pubHex);
+        var withScheme = new Uint8Array(pubBytes.length + 1);
+        withScheme.set(pubBytes, 0);
+        withScheme[pubBytes.length] = 0x00;
+        var hashBuf = await crypto.subtle.digest("SHA3-256", withScheme);
+        aptAddr = "0x" + toHex(new Uint8Array(hashBuf));
+      } catch (sha3e) {
+        aptAddr = "SHA3-256 unsupported in this browser - public key: " + aptK.pubHex;
+      }
+    } else {
+      aptAddr = "SHA3-256 needs HTTPS/crypto.subtle - public key: " + aptK.pubHex;
+    }
+    return {
+      address: aptAddr,
+      wif: null,
+      addressLabel: "Aptos address",
+      privateHex: aptK.seedHex,
+      publicKeyHex: aptK.pubHex,
+      publicKeyUncompressedHex: null,
+      solanaSecret64Hex: aptK.sec64hex,
+      keyFormatNote:
+        "Aptos: address is 0x + SHA3-256(public key || 0x00 scheme byte). ethers v5 lacks SHA3, so this uses the browser Web Crypto API (requires HTTPS). Derivation uses SLIP-0010 (all path segments hardened)."
+    };
+  }
   if (coinType === 0 || coinType === 2 || coinType === 3) {
     return formatUtxoAddressPure(secpPrivateKeyHex, coinType, purpose);
+  }
+  if (coinType === 118) {
+    var cosPubC = ethers.utils.computePublicKey(secpPrivateKeyHex, true);
+    var cosPubU = ethers.utils.computePublicKey(secpPrivateKeyHex, false);
+    return {
+      address: cosmosAddress(cosPubC, COSMOS_HRP),
+      wif: null,
+      addressLabel: "Cosmos address",
+      privateHex: secpPrivateKeyHex,
+      publicKeyHex: cosPubC,
+      publicKeyUncompressedHex: cosPubU
+    };
   }
   var fallback = new ethers.Wallet(secpPrivateKeyHex);
   return {
@@ -129,6 +195,27 @@ async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHe
   if (devOverride === "tron") {
     return formatAddress(mnemonic, path, 44, 195, secpPrivateKeyHex, passphrase);
   }
+  if (devOverride === "cosmos") {
+    return formatAddress(mnemonic, path, 44, 118, secpPrivateKeyHex, passphrase);
+  }
+  if (devOverride === "sui") {
+    var suiPath = hardenAllPathSegments(path);
+    var suiResult = await formatAddress(mnemonic, suiPath, 44, SUI_COIN_TYPE, secpPrivateKeyHex, passphrase);
+    if (suiPath !== path) {
+      suiResult.resolvedPath = suiPath;
+      suiResult.pathNote = "Path auto-hardened for SLIP-0010 (Ed25519): " + suiPath;
+    }
+    return suiResult;
+  }
+  if (devOverride === "aptos") {
+    var aptPath = hardenAllPathSegments(path);
+    var aptResult = await formatAddress(mnemonic, aptPath, 44, APTOS_COIN_TYPE, secpPrivateKeyHex, passphrase);
+    if (aptPath !== path) {
+      aptResult.resolvedPath = aptPath;
+      aptResult.pathNote = "Path auto-hardened for SLIP-0010 (Ed25519): " + aptPath;
+    }
+    return aptResult;
+  }
   if (devOverride === "sol") {
     var solPath = hardenAllPathSegments(path);
     var solResult = await formatAddress(mnemonic, solPath, purpose, 501, secpPrivateKeyHex, passphrase);
@@ -149,8 +236,9 @@ async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHe
   return formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase);
 }
 
-function randomMnemonic(words) {
-  var entropyBytes = words === 24 ? 32 : 16;
+function randomMnemonic(words, lang) {
+  var entropyBytes = {12:16, 15:20, 18:24, 21:28, 24:32}[words] || 16;
   var ent = ethers.utils.randomBytes(entropyBytes);
-  return ethers.utils.entropyToMnemonic(ent);
+  var wordlist = ethers.wordlists[lang] || ethers.wordlists.en;
+  return ethers.utils.entropyToMnemonic(ent, wordlist);
 }
