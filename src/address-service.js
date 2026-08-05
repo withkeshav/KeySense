@@ -133,7 +133,7 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
       publicKeyUncompressedHex: null,
       solanaSecret64Hex: aptK.sec64hex,
       keyFormatNote:
-        "Aptos: address is 0x + SHA3-256(public key || 0x00 scheme byte). Note this is SHA3-256, not Keccak-256; the two differ in padding and give different results. Derivation uses SLIP-0010 (all path segments hardened)."
+        "Aptos: this is the legacy Ed25519 address, 0x + SHA3-256(public key || 0x00 scheme byte), which is the SDK and wallet default. Aptos also has a SingleKey (unified) account type from the same seed with a different address (scheme byte 0x02). Note this is SHA3-256, not Keccak-256; the two differ in padding and give different results. Derivation uses SLIP-0010 (all path segments hardened)."
     };
   }
   if (coinType === 0 || coinType === 2 || coinType === 3) {

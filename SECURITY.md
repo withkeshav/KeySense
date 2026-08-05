@@ -62,6 +62,12 @@ The **physical entropy lab** is there for people who would rather not depend on 
 
 If you find a security issue, please open an issue on GitHub rather than emailing; this is an educational tool and issues are tracked publicly.
 
+## Address format evidence
+
+Chain addresses are pinned in `test/vectors.js` to either a published BIP/SLIP, or to fixtures from the chain maintainers' own repositories (Sui SDK, Aptos TS SDK, CosmJS), each with a file path and commit hash in a comment. Run `npm test` to re-check the shipped code against those values. Rows tagged `crosstool-locked` or `no-official-vector` are regression locks only; see `audit/AUDIT.md` section 5 for what is still open (notably Tron).
+
+Nothing about this changes how the page runs: still zero network calls after load, still no runtime dependencies beyond the vendored libraries listed above.
+
 ## For Testing and Educational Purposes Only
 
 KeySense is intended for learning, experimentation, and educational use. Do not use it to generate wallets that hold significant value without independent verification. Always test derived addresses against known-good tools before relying on them.

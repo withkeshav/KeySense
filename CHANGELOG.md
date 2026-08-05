@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed, evidence only (no address changed)
+
+- **No derived address, key, or encoding changed.** This entry only strengthens how those values are proven. Official maintainer fixtures for Sui, Aptos, and Cosmos are pinned in `test/vectors.js` with repository path and commit hash. Litecoin and Dogecoin encoding constants are cited from each chain's `chainparams.cpp`. Aptos UI copy now notes the legacy vs SingleKey dual-scheme so a user with a SingleKey wallet is not left guessing. Vector source tags distinguish ground truth (`sui-sdk`, `aptos-sdk`, `cosmjs`, BIP/SLIP) from regression locks (`crosstool-locked`, `no-official-vector`). `npm test` is now 99 vectors (was 92). `audit/AUDIT.md` and `SECURITY.md` updated to match. Tron remains without a citable official mnemonic-to-address fixture. SDK depth sweep against `@mysten/sui@2.23.1`, `@aptos-labs/ts-sdk@7.2.0`, and `@solana/web3.js@1.98.4` reported zero mismatches over 1001 paths (run outside the repo; nothing committed from it).
+
 ### Fixed, wrong addresses
 
 - **Sui addresses were wrong, and funds sent to them are unrecoverable.** The tool displayed the raw 32-byte Ed25519 public key where the address belongs. A Sui address is `BLAKE2b-256(0x00 || publicKey)`. Both values are 32 bytes and both render as a plausible `0x` string, so there was no visual tell, and the tool's own explanation text confidently described the wrong rule in three places. Anyone who sent SUI to an address this tool displayed sent it somewhere no private key can open. For the standard `abandon ... about` test mnemonic at `m/44'/784'/0'/0'/0'`, the tool showed `0x900b4d81...` where the correct address is `0x5e93a736...`.

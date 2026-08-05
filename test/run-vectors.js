@@ -76,6 +76,17 @@ function runAllVectors() {
           return applyDevOutputFormat(mn, v.path, pass, priv, v.purpose, v.coinType, "auto");
         }).then(function (r) {
           record("address", v.id, v.expected, r && r.address, { source: v.source, path: v.path });
+          /* Official Aptos (and similar) fixtures publish seed and public key
+           * alongside the address. Checking them catches a derivation bug
+           * directly instead of only at the final hash. */
+          if (v.expectedSeed) {
+            record("address", v.id + "-seed", v.expectedSeed, r && r.privateHex,
+              { source: v.source, path: v.path });
+          }
+          if (v.expectedPublicKey) {
+            record("address", v.id + "-pub", v.expectedPublicKey, r && r.publicKeyHex,
+              { source: v.source, path: v.path });
+          }
         }, function (e) { fail("address", v.id, e); });
       });
     });

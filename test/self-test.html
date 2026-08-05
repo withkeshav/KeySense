@@ -16,10 +16,13 @@
       <div class="card-title">KeySense self test</div>
       <p class="hint">
         Runs every vector in <code style="font-family:var(--mono)">test/vectors.js</code> against the
-        same <code style="font-family:var(--mono)">src/*.js</code> files the app loads. Published
-        specification vectors are marked; anything marked
-        <code style="font-family:var(--mono)">crosstool</code> came from an independent
-        implementation rather than a spec, so treat it as a regression lock.
+        same <code style="font-family:var(--mono)">src/*.js</code> files the app loads. Spec and
+        official SDK sources (<code style="font-family:var(--mono)">bip*</code>,
+        <code style="font-family:var(--mono)">sui-sdk</code>,
+        <code style="font-family:var(--mono)">aptos-sdk</code>,
+        <code style="font-family:var(--mono)">cosmjs</code>) are ground truth.
+        Tags like <code style="font-family:var(--mono)">crosstool-locked</code> or
+        <code style="font-family:var(--mono)">no-official-vector</code> are regression locks only.
       </p>
       <p class="hint">The identical suite runs in a terminal with <code style="font-family:var(--mono)">npm test</code>.</p>
       <div id="summary" style="margin-top:16px;font-size:18px;font-weight:700;">Running...</div>

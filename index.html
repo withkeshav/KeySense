@@ -576,7 +576,7 @@
               <tr><td><strong>Cardano</strong></td><td><code>m/1852'/1815'/0'/0/0</code></td><td>1815</td><td>CIP-1852; different from BIP44-only wallets</td></tr>
               <tr class="guide-row" data-preset="cosmos" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
               <tr class="guide-row" data-preset="sui" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + BLAKE2b-256(0x00 || pubkey), not the pubkey itself</td></tr>
-              <tr class="guide-row" data-preset="aptos" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); address = 0x + SHA3-256(pubkey || 0x00). SHA3-256, not Keccak-256</td></tr>
+              <tr class="guide-row" data-preset="aptos" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); legacy address (SDK default) = 0x + SHA3-256(pubkey || 0x00). SingleKey accounts from the same seed use a different address. SHA3-256, not Keccak-256</td></tr>
             </tbody>
           </table>
         </div>
@@ -586,7 +586,7 @@
             <li><strong style="color:var(--accent);">All EVM chains</strong> share <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">coin_type = 60</code> - the same key yields the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> address on Ethereum, Polygon, BSC, etc. (you still pay gas on the chain you use).</li>
             <li><strong style="color:var(--accent);">Bitcoin</strong> changes the <em>purpose</em> number (44 / 49 / 84 / 86) to pick address type, not just coin type.</li>
             <li><strong style="color:var(--accent);">Solana</strong> uses Ed25519 derivation (SLIP-0010). You cannot get a Solana address by plugging the same path into a raw secp256k1-only helper.</li>
-            <li><strong style="color:var(--accent);">Ed25519 chains (Solana, Sui, Aptos)</strong> share the SLIP-0010 derivation pipeline. Every path segment must be hardened; there are no normal (unhardened) children. Sui hashes the public key with BLAKE2b-256 after a 0x00 scheme byte; Aptos hashes it with SHA3-256 followed by a 0x00 scheme byte. Neither address is the public key itself, even though a Sui address is the same 32-byte length.</li>
+            <li><strong style="color:var(--accent);">Ed25519 chains (Solana, Sui, Aptos)</strong> share the SLIP-0010 derivation pipeline. Every path segment must be hardened; there are no normal (unhardened) children. Sui hashes the public key with BLAKE2b-256 after a 0x00 scheme byte; Aptos hashes it with SHA3-256 followed by a 0x00 scheme byte for the legacy (default) account type, and has a separate SingleKey address scheme from the same key. Neither address is the public key itself, even though a Sui address is the same 32-byte length.</li>
             <li><strong style="color:var(--accent);">Cosmos</strong> uses the same secp256k1 curve as Bitcoin/Ethereum, but its address is Bech32 with the <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">cosmos</code> HRP over a raw 20-byte hash160 - not a Bitcoin-style witness version.</li>
             <li><strong style="color:var(--accent);">Non-standard paths</strong> are valid mathematically but wallets may not scan them - backup risk.</li>
             <li><strong style="color:var(--accent);">Why every EVM chain shares coin type 60:</strong> the address is derived from the key alone, and nothing in it names a chain. Ethereum, Polygon, BSC, Arbitrum, Optimism and Avalanche C-Chain all read the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> as yours. The chain is chosen by the network you broadcast to, not by the address, which is why funds sent on the wrong network still land at "your" address but need that network's gas to move.</li>
@@ -770,11 +770,11 @@ Child keys: CKD(parent, index) - child private key + child chain code
               </div>
               <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
                 <strong style="color:var(--accent);">Sui</strong>
-                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). The address is simply <code>0x</code> + the 32-byte raw Ed25519 public key as lowercase hex. No hashing of the public key.</p>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). The address is <code>0x</code> + BLAKE2b-256(<code>0x00</code> scheme flag || 32-byte public key). It is not the public key itself, even though both are 32 bytes.</p>
               </div>
               <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
                 <strong style="color:var(--accent);">Aptos</strong>
-                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). The address is <code>0x</code> + SHA3-256(32-byte public key || <code>0x00</code> scheme byte). Uses the browser Web Crypto API for SHA3-256 (ethers v5 has no SHA3).</p>
+                <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). This tool shows the legacy address: <code>0x</code> + SHA3-256(32-byte public key || <code>0x00</code> scheme byte), which is the SDK and wallet default. Aptos also has SingleKey (unified) accounts from the same seed with a different address. SHA3-256 is not Keccak-256. Hashing uses a vendored SHA3-256 (Web Crypto has no SHA3).</p>
               </div>
             </div>
           </div>

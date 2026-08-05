@@ -7,6 +7,10 @@ const BECH32M_CONST = 0x2bc830a3;
 const COIN_PARAMS = {
   0: { name: "Bitcoin", p2pkh: 0x00, p2sh: 0x05, wif: 0x80, bech32: "bc" },
   2: { name: "Litecoin", p2pkh: 0x30, p2sh: 0x32, wif: 0xb0, bech32: "ltc" },
+  /* Dogecoin has no SegWit and no Taproot. The bech32 HRP below is unreachable:
+   * formatUtxoAddressPure special-cases coin type 3 for purposes 84 and 86 and
+   * falls back to P2PKH with an explicit label. Do not "fix" this into emitting
+   * doge1... addresses; they would be unspendable. */
   3: { name: "Dogecoin", p2pkh: 0x1e, p2sh: 0x16, wif: 0x9e, bech32: "doge" },
 };
 

@@ -8,16 +8,31 @@
  *
  * "source" tells you how much each expectation is worth:
  *   bip32/bip39/bip44/bip49/bip84/bip86/slip10 = published in the spec itself
- *   crosstool = produced by an independent implementation written from the spec
- *               (audit/reference/reference.py) and confirmed against this code.
- *               Not a published vector. Treat as a regression lock, not proof.
+ *   sui-sdk / aptos-sdk / cosmjs = published by the chain's own maintainers
+ *               (repository, file path, and pinned commit in the comment above
+ *               each block). These are ground truth, not our second opinion.
+ *   crosstool-locked = regression lock on a value this tool already produces.
+ *               For Litecoin/Dogecoin the encoding constants are cited from the
+ *               chain's own chainparams.cpp; derivation maths is already proven
+ *               by the Bitcoin BIP vectors. Not a published mnemonic-to-address
+ *               fixture. Treat as drift detection, not proof.
+ *   no-official-vector = no citable official mnemonic-to-address fixture was
+ *               found. Regression lock only. See audit/AUDIT.md section 5.
  */
 
 var KEYSENSE_VECTORS = {
   schema: "keysense-vectors-1",
 
   mnemonics: {
-    abandon12: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+    abandon12: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+    /* Official Sui SDK 24-word cases (see addresses block comments). */
+    suiFilm: "film crazy soon outside stand loop subway crumble thrive popular green nuclear struggle pistol arm wife phrase warfare march wheat nephew ask sunny firm",
+    suiRequire: "require decline left thought grid priority false tiny gasp angle royal system attack beef setup reward aunt skill wasp tray vital bounce inflict level",
+    suiOrgan: "organ crash swim stick traffic remember army arctic mesh slice swear summer police vast chaos cradle squirrel hood useless evidence pet hub soap lake",
+    /* Official Aptos TS SDK wallet fixture. */
+    aptosShoot: "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    /* CosmJS DirectSecp256k1HdWallet default fixture. */
+    cosmosSpecial: "special sign fit simple patrol salute grocery chicken wheat radar tonight ceiling"
   },
 
   /* Full derivation, mnemonic to displayed address. */
@@ -44,33 +59,101 @@ var KEYSENSE_VECTORS = {
     { id: "btc-taproot-change-0", mnemonic: "abandon12", path: "m/86'/0'/0'/1/0", purpose: 86, coinType: 0,
       expected: "bc1p3qkhfews2uk44qtvauqyr2ttdsw7svhkl9nkm9s9c3x4ax5h60wqwruhk7", source: "bip86" },
 
+    /* Litecoin / Dogecoin: BIP32 derivation is already proven by the Bitcoin
+     * BIP44/49/84/86 vectors above (identical maths). What differs is only the
+     * address-encoding constants, taken from each project's chainparams.cpp:
+     *
+     * Litecoin (litecoin-project/litecoin, src/chainparams.cpp, mainnet block,
+     * commit b250b016a9166928c0e702d48ecd037a57a489a4):
+     *   PUBKEY_ADDRESS = 48 (0x30), SCRIPT_ADDRESS = 5 (legacy),
+     *   SCRIPT_ADDRESS2 = 50 (0x32, current P2SH), SECRET_KEY = 176 (0xb0),
+     *   bech32_hrp = "ltc".
+     * We use SCRIPT_ADDRESS2 (50). Litecoin has two P2SH prefixes; 50 yields
+     * M-addresses, 5 yields 3-addresses. Modern wallets expect 50.
+     *
+     * Dogecoin (dogecoin/dogecoin, src/chainparams.cpp, mainnet block,
+     * commit 7237da74b8c356568644cbe4fba19d994704355b):
+     *   PUBKEY_ADDRESS = 30 (0x1e), SCRIPT_ADDRESS = 22 (0x16),
+     *   SECRET_KEY = 158 (0x9e). No SegWit / no bech32.
+     *
+     * No official mnemonic-to-address fixture was published for either chain,
+     * so these rows are regression locks against those cited constants. */
     { id: "ltc-legacy-0", mnemonic: "abandon12", path: "m/44'/2'/0'/0/0", purpose: 44, coinType: 2,
-      expected: "LUWPbpM43E2p7ZSh8cyTBEkvpHmr3cB8Ez", source: "crosstool" },
+      expected: "LUWPbpM43E2p7ZSh8cyTBEkvpHmr3cB8Ez", source: "crosstool-locked" },
     { id: "ltc-native-0", mnemonic: "abandon12", path: "m/84'/2'/0'/0/0", purpose: 84, coinType: 2,
-      expected: "ltc1qjmxnz78nmc8nq77wuxh25n2es7rzm5c2rkk4wh", source: "crosstool" },
+      expected: "ltc1qjmxnz78nmc8nq77wuxh25n2es7rzm5c2rkk4wh", source: "crosstool-locked" },
     { id: "ltc-taproot-0", mnemonic: "abandon12", path: "m/86'/2'/0'/0/0", purpose: 86, coinType: 2,
-      expected: "ltc1puht8rk95c53q3u9w3pf9h3jfcutcrl9lxc7rqsdthjrse4k6sn7q9tuqm9", source: "crosstool" },
+      expected: "ltc1puht8rk95c53q3u9w3pf9h3jfcutcrl9lxc7rqsdthjrse4k6sn7q9tuqm9", source: "crosstool-locked" },
     { id: "doge-legacy-0", mnemonic: "abandon12", path: "m/44'/3'/0'/0/0", purpose: 44, coinType: 3,
-      expected: "DBus3bamQjgJULBJtYXpEzDWQRwF5iwxgC", source: "crosstool" },
+      expected: "DBus3bamQjgJULBJtYXpEzDWQRwF5iwxgC", source: "crosstool-locked" },
 
+    /* Tron: encoding is base58check(0x41 || keccak256(uncompressed_pubkey[1:])[-20:]).
+     * No citable official mnemonic-to-address vector was found in java-tron or
+     * Tron developer docs at the time of this entry. See audit/AUDIT.md §5. */
     { id: "tron-0", mnemonic: "abandon12", path: "m/44'/195'/0'/0/0", purpose: 44, coinType: 195,
-      expected: "TUEZSdKsoDHQMeZwihtdoBiN46zxhGWYdH", source: "crosstool" },
-    { id: "cosmos-0", mnemonic: "abandon12", path: "m/44'/118'/0'/0/0", purpose: 44, coinType: 118,
-      expected: "cosmos19rl4cm2hmr8afy4kldpxz3fka4jguq0auqdal4", source: "crosstool" },
+      expected: "TUEZSdKsoDHQMeZwihtdoBiN46zxhGWYdH", source: "no-official-vector" },
 
+    /* Cosmos abandon regression lock. Official CosmJS vector is
+     * cosmos-official-0 below. */
+    { id: "cosmos-0", mnemonic: "abandon12", path: "m/44'/118'/0'/0/0", purpose: 44, coinType: 118,
+      expected: "cosmos19rl4cm2hmr8afy4kldpxz3fka4jguq0auqdal4", source: "crosstool-locked" },
+
+    /* CosmJS official fixture.
+     * Repo: cosmos/cosmjs
+     * File: packages/proto-signing/src/directsecp256k1hdwallet.spec.ts
+     * Commit: fcaa08011c343b350b7fc260e6681924a5f66f62
+     * Comment in source: m/44'/118'/0'/0/0, pubkey 02baa4ef... */
+    { id: "cosmos-official-0", mnemonic: "cosmosSpecial", path: "m/44'/118'/0'/0/0", purpose: 44, coinType: 118,
+      expected: "cosmos1jhg0e7s6gn44tfc5k37kr04sznyhedtc9rzys5", source: "cosmjs" },
+
+    /* Solana: address is base58 of the raw Ed25519 public key, so derivation is
+     * the whole risk surface. Locked here; Phase E SDK sweep covers depth. */
     { id: "solana-0", mnemonic: "abandon12", path: "m/44'/501'/0'/0'", purpose: 44, coinType: 501,
-      expected: "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk", source: "crosstool" },
+      expected: "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk", source: "crosstool-locked" },
     { id: "solana-1", mnemonic: "abandon12", path: "m/44'/501'/1'/0'", purpose: 44, coinType: 501,
-      expected: "Hh8QwFUA6MtVu1qAoq12ucvFHNwCcVTV7hpWjeY1Hztb", source: "crosstool" },
+      expected: "Hh8QwFUA6MtVu1qAoq12ucvFHNwCcVTV7hpWjeY1Hztb", source: "crosstool-locked" },
 
     /* Sui address is BLAKE2b-256(0x00 || pubkey), NOT the public key. The tool
-     * displayed the public key until this was fixed; see CHANGELOG. */
+     * displayed the public key until this was fixed; see CHANGELOG.
+     * abandon12 row is a regression lock; official SDK rows follow. */
     { id: "sui-0", mnemonic: "abandon12", path: "m/44'/784'/0'/0'/0'", purpose: 44, coinType: 784,
-      expected: "0x5e93a736d04fbb25737aa40bee40171ef79f65fae833749e3c089fe7cc2161f1", source: "crosstool" },
+      expected: "0x5e93a736d04fbb25737aa40bee40171ef79f65fae833749e3c089fe7cc2161f1", source: "crosstool-locked" },
 
-    /* Aptos address is SHA3-256(pubkey || 0x00). SHA3-256, not Keccak-256. */
+    /* Official Sui SDK vectors (TEST_CASES).
+     * Repo: MystenLabs/ts-sdks
+     * File: packages/sui/test/unit/cryptography/ed25519-keypair.test.ts
+     * Commit: 013ea22520d668ec8259c8c4535f3b344b82ce66
+     * Generated against the Rust keytool CLI:
+     *   MystenLabs/sui crates/sui/src/unit_tests/keytool_tests.rs
+     *   at commit edd2cd31e0b05d336b1b03b6e79a67d8dd00d06b
+     * Default path m/44'/784'/0'/0'/0'. Double-sourced (TS SDK + Rust node). */
+    { id: "sui-sdk-film", mnemonic: "suiFilm", path: "m/44'/784'/0'/0'/0'", purpose: 44, coinType: 784,
+      expected: "0xa2d14fad60c56049ecf75246a481934691214ce413e6a8ae2fe6834c173a6133", source: "sui-sdk" },
+    { id: "sui-sdk-require", mnemonic: "suiRequire", path: "m/44'/784'/0'/0'/0'", purpose: 44, coinType: 784,
+      expected: "0x1ada6e6f3f3e4055096f606c746690f1108fcc2ca479055cc434a3e1d3f758aa", source: "sui-sdk" },
+    { id: "sui-sdk-organ", mnemonic: "suiOrgan", path: "m/44'/784'/0'/0'/0'", purpose: 44, coinType: 784,
+      expected: "0xe69e896ca10f5a77732769803cc2b5707f0ab9d4407afb5e4b4464b89769af14", source: "sui-sdk" },
+
+    /* Aptos address is SHA3-256(pubkey || 0x00). SHA3-256, not Keccak-256.
+     * abandon12 row is a regression lock; official SDK row asserts seed, pub,
+     * and address together. */
     { id: "aptos-0", mnemonic: "abandon12", path: "m/44'/637'/0'/0'/0'", purpose: 44, coinType: 637,
-      expected: "0xeb663b681209e7087d681c5d3eed12aaa8e1915e7c87794542c3f96e94b3d3bf", source: "crosstool" }
+      expected: "0xeb663b681209e7087d681c5d3eed12aaa8e1915e7c87794542c3f96e94b3d3bf", source: "crosstool-locked" },
+
+    /* Official Aptos TS SDK wallet fixture (legacy Ed25519 scheme, SDK default).
+     * Repo: aptos-labs/aptos-ts-sdk
+     * File: tests/unit/helper.ts  (exported const wallet)
+     * Commit: 9451281f85f828cf7fa8562a07b4099fcd15965b
+     * Path m/44'/637'/0'/0'/0'. expectedSeed / expectedPublicKey are the
+     * published intermediates so a derivation bug cannot hide behind a hash
+     * collision. Note: the same file also defines Ed25519WalletTestObject with
+     * the same key but a SingleKey address (scheme 0x02). We produce the legacy
+     * address, which is the SDK default (legacy: true). See audit/AUDIT.md. */
+    { id: "aptos-sdk-shoot", mnemonic: "aptosShoot", path: "m/44'/637'/0'/0'/0'", purpose: 44, coinType: 637,
+      expected: "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30",
+      expectedSeed: "0x5d996aa76b3212142792d9130796cd2e11e3c445a93118c08414df4f66bc60ec",
+      expectedPublicKey: "0xea526ba1710343d953461ff68641f1b7df5f23b9042ffa2d2a798d3adb3f3d6c",
+      source: "aptos-sdk" }
   ],
 
   /* Non-address outputs that are just as easy to break. */

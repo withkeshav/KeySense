@@ -77,7 +77,7 @@ Stated rather than left implied, because a reader should know where the line is:
 
 ## 3. Where to start
 
-1. `npm test` — 92 vectors against the shipped files. Green on arrival.
+1. `npm test` — vectors against the shipped files (count is printed at the end of the run). Green on arrival.
 2. `test/self-test.html` — the same suite in a browser, under the same CSP as the app.
 3. `bash tools/build-crypto.sh --check` — proves the one generated file matches its pinned inputs.
 4. `src/address-service.js` — chain dispatch and every address format.
@@ -85,6 +85,7 @@ Stated rather than left implied, because a reader should know where the line is:
 6. `src/slip10-ed25519.js` — Ed25519 hierarchical derivation, about 40 lines.
 7. `src/entropy-generator.js` — the entropy pool, the mixing, and the minimum gate.
 8. `audit/reference/` — noble sources unbuilt, for reading against the bundle.
+9. `test/vectors.js` — every official-source vector carries a repository path and pinned commit.
 
 ---
 
@@ -138,11 +139,24 @@ thought about.
   size, which a long invented phrase can push above the 128-bit baseline. That is flagged in the
   UI as a ceiling rather than a measurement, and the flag is covered by tests, but the framing
   is a judgement call and worth a second opinion.
-- **Sui and Aptos address formats were wrong until 2026-08-05.** Both are now verified against
-  independent implementations, but neither has yet been confirmed against an official SDK or
-  block explorer. That check is outstanding and would be a good early target.
+- **Sui and Aptos address formats were wrong until 2026-08-05.** Both are now pinned to official
+  SDK fixtures in `test/vectors.js` (`source: "sui-sdk"` and `source: "aptos-sdk"`, with
+  repository, file path, and commit hash in the comments). Sui cases are double-sourced: the
+  Mysten TypeScript SDK and the Rust `keytool` CLI. Aptos asserts seed, public key, and address
+  together against `aptos-labs/aptos-ts-sdk` `tests/unit/helper.ts`.
+- **Aptos has two addresses for one key.** The SDK default is legacy Ed25519
+  (`SHA3-256(pubkey || 0x00)`), which this tool shows. A SingleKey / unified account from the
+  same seed uses scheme byte `0x02` and a different address. Same private key controls both.
+  Nothing is wrong with the derivation; the UI now states that both types exist so a mismatch
+  with a SingleKey wallet is explained rather than silent.
+- **Tron has no citable official mnemonic-to-address fixture** found in java-tron or Tron
+  developer docs at the time of this note. The `tron-0` vector is tagged
+  `no-official-vector` and is a regression lock only. Encoding is
+  `base58check(0x41 || keccak256(uncompressed_pubkey[1:])[-20:])`.
 - **`purpose` 86 on altcoins.** Litecoin Taproot is derived by the same code path as Bitcoin.
-  The BIP86 vectors cover Bitcoin only; the Litecoin value is cross-tool, not from a spec.
+  The BIP86 vectors cover Bitcoin only. Litecoin and Dogecoin address-encoding constants are
+  cited from each project's `chainparams.cpp` (see comments in `test/vectors.js`); the
+  mnemonic-to-address rows themselves remain regression locks, not published fixtures.
 
 ---
 
@@ -150,15 +164,37 @@ thought about.
 
 So that effort is not duplicated.
 
-- **Derivation was checked against an independent implementation.** BIP39, BIP32, secp256k1,
-  Base58Check, Bech32 and Keccak-256 were rewritten from the specifications in Python using only
-  `hashlib` and `hmac`, sharing no code with the app, and compared. That comparison is what
-  found the Sui bug; testing the app against its own libraries would not have.
-- **Published vectors pass:** BIP39, BIP32, BIP44/49/84, all three BIP86 vectors, and both
+- **Official maintainer vectors are pinned in the suite.** Someone who does not trust us can open
+  `test/vectors.js`, follow the URL and commit hash to the chain maintainers' repository, and run
+  `npm test`. Sources currently pinned:
+  - Sui: `MystenLabs/ts-sdks` `packages/sui/test/unit/cryptography/ed25519-keypair.test.ts`
+    at `013ea22520d668ec8259c8c4535f3b344b82ce66` (Rust keytool cross-check at
+    `edd2cd31e0b05d336b1b03b6e79a67d8dd00d06b`).
+  - Aptos: `aptos-labs/aptos-ts-sdk` `tests/unit/helper.ts` at
+    `9451281f85f828cf7fa8562a07b4099fcd15965b` (legacy Ed25519 default; seed + pubkey + address).
+  - Cosmos: `cosmos/cosmjs` `packages/proto-signing/src/directsecp256k1hdwallet.spec.ts` at
+    `fcaa08011c343b350b7fc260e6681924a5f66f62`.
+  - Litecoin / Dogecoin encoding constants: each project's `src/chainparams.cpp` (commits cited
+    in `test/vectors.js`).
+- **Published spec vectors pass:** BIP39, BIP32, BIP44/49/84, all three BIP86 vectors, and both
   SLIP-0010 ed25519 vectors at every level.
 - **The SLIP-0010 replacement was diffed against the library it replaced** across 1500 paths
   (5 mnemonics x 2 passphrases x 3 coin types x 50 indices) before that library was deleted.
   Zero mismatches.
+- **SDK differential sweep (depth, not only index 0).** Run once outside the repository in
+  `/tmp` with `npm install --ignore-scripts`, loading the same shipped `src/*.js` the Node harness
+  loads. Two test mnemonics only (`abandon...about` and BIP39 `legal winner...`). Sandbox deleted
+  after. Nothing added to this repo's `package.json`. Result: **zero mismatches**.
+
+  | Chain | Package | Resolved version | Paths compared | Result |
+  |---|---|---|---|---|
+  | Sui | `@mysten/sui` | 2.23.1 | 400 (accounts 0-4, change 0-1, indices 0-19, x2 mnemonics) | match |
+  | Aptos | `@aptos-labs/ts-sdk` | 7.2.0 | 400 (same grid, legacy Ed25519 default) | match |
+  | Solana | `@solana/web3.js` + `ed25519-hd-key` | 1.98.4 / 2.0.0 | 200 (`m/44'/501'/account'/index'`, accounts 0-4, indices 0-19, x2) | match |
+  | SLIP-0010 deep | `ed25519-hd-key` | 2.0.0 | 1 (`m/0'/1'/2'/2'/1000000000'`, seed bytes) | match |
+
+  Total 1001 comparisons. If a future re-run finds a mismatch, treat it as a correctness bug in
+  this tool until proven otherwise.
 - **The CSP is enforced, not merely present.** Verified by attempting a blocked cross-origin
   `fetch` and an inline `<script>` injection, both refused.
 - **Zero off-origin requests**, confirmed through `performance.getEntriesByType("resource")`.
@@ -167,6 +203,10 @@ So that effort is not duplicated.
 - **The simulated dice are unbiased.** 360,000 draws, six independent runs, chi-square 5.21,
   7.45, 2.91, 7.51, 9.13 and 6.84 against a 0.05 critical value of 11.07 at five degrees of
   freedom. Rejection sampling discards bytes at or above 252, since 256 is not a multiple of 6.
+
+This project is pure HTML and JavaScript at runtime. There is no second-language reference
+implementation to load or ship. Audit evidence lives in comments, this document, and the
+vector suite, not in a parallel Python (or other) codebase.
 
 ---
 
