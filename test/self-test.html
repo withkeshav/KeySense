@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <!-- Same policy as index.html on purpose. If a change to the app needs a
+       looser CSP, this page should fail too rather than quietly passing under
+       rules the real page does not have. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>KeySense self test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../src/styles.css">
+</head>
+<body>
+  <div class="container" style="max-width:1000px;margin:0 auto;padding:24px 16px;">
+    <div class="card">
+      <div class="card-title">KeySense self test</div>
+      <p class="hint">
+        Runs every vector in <code style="font-family:var(--mono)">test/vectors.js</code> against the
+        same <code style="font-family:var(--mono)">src/*.js</code> files the app loads. Published
+        specification vectors are marked; anything marked
+        <code style="font-family:var(--mono)">crosstool</code> came from an independent
+        implementation rather than a spec, so treat it as a regression lock.
+      </p>
+      <p class="hint">The identical suite runs in a terminal with <code style="font-family:var(--mono)">npm test</code>.</p>
+      <div id="summary" style="margin-top:16px;font-size:18px;font-weight:700;">Running...</div>
+      <div id="results" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- Same load order as index.html. main.js, ui.js and paper-wallet.js are the
+       only files that touch the DOM at load, so they are the only ones left out.
+       node-harness.js enforces that this list does not drift. -->
+  <script src="../src/vendor/ethers-5.7.2.umd.min.js"></script>
+  <script src="../src/vendor/qrcode-1.5.1.min.js"></script>
+  <script src="../src/vendor/tweetnacl-1.0.3-nacl-fast.min.js"></script>
+  <script src="../src/vendor/keysense-hashes.js"></script>
+  <script src="../src/bip39-wordlists.js"></script>
+  <script src="../src/constants.js"></script>
+  <script src="../src/html-escape.js"></script>
+  <script src="../src/secure-random.js"></script>
+  <script src="../src/crypto-utils.js"></script>
+  <script src="../src/slip10-ed25519.js"></script>
+  <script src="../src/hd-paths.js"></script>
+  <script src="../src/vanity-service.js"></script>
+  <script src="../src/address-service.js"></script>
+  <script src="../src/brain-wallet-service.js"></script>
+  <script src="../src/bip39-helper.js"></script>
+  <script src="../src/entropy-generator.js"></script>
+  <script src="../src/entropy-compare.js"></script>
+  <script src="../src/path-recovery.js"></script>
+  <script src="../src/tree-inspector.js"></script>
+
+  <script src="./vectors.js"></script>
+  <script src="./run-vectors.js"></script>
+  <script src="./report.js"></script>
+</body>
+</html>

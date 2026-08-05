@@ -26,6 +26,21 @@
       }
       syncSeedBar();
 
+      /* Always set the mnemonic through this, never by assigning .value.
+       *
+       * The listeners above only fire for typing and paste, not for
+       * programmatic assignment, so every code path that set .value directly
+       * left the sticky seed bar stale. The worst case was a failed entropy
+       * generation: the results area cleared to em dashes while the bar kept
+       * showing the previous seed, which is the one thing on screen a user is
+       * most likely to copy. */
+      function setMnemonic(value) {
+        var el = document.getElementById("mnemonic");
+        if (!el) return;
+        el.value = value;
+        syncSeedBar();
+      }
+
       async function renderQr(hostEl, text) {
         if (!hostEl || !text) return;
         hostEl.innerHTML = "";
@@ -165,24 +180,57 @@
           if (uo) uo.innerHTML = "";
         }
 
+        /* One label/value row, built as DOM nodes so the value is always text.
+         * Paths come from the free-text custom path field and library error
+         * messages quote their offending input, so neither is safe to concatenate
+         * into an HTML string. */
+        function devOutRow(label, value) {
+          var row = document.createElement("div");
+          row.className = "dev-out-row";
+          var l = document.createElement("span");
+          l.textContent = label;
+          var v = document.createElement("span");
+          v.textContent = value;
+          row.appendChild(l);
+          row.appendChild(v);
+          return row;
+        }
+
+        /* Replace an element's contents with a single hint paragraph. Used for
+         * messages that quote user input back, such as "Invalid word at position
+         * 3: <whatever they typed>". */
+        function setHintMessage(el, text, color) {
+          if (!el) return;
+          el.textContent = "";
+          var p = document.createElement("p");
+          p.className = "hint";
+          if (color) p.style.color = color;
+          p.textContent = text;
+          el.appendChild(p);
+        }
+
         function fillDevExtendedKeys(hdRoot, path) {
           var block = document.getElementById("devXpubBlock");
           var out = document.getElementById("devExtKeyOut");
           if (!block || !out) return;
           block.style.display = "block";
+          out.textContent = "";
           try {
             var branchP = branchPathDropLastTwo(path);
             var branchN = hdRoot.derivePath(branchP);
             var leafN = hdRoot.derivePath(path);
-            out.innerHTML =
-              '<div class="dev-out-row"><span>Branch path</span><span>' + branchP + "</span></div>" +
-              '<div class="dev-out-row"><span>Branch XPRV</span><span>' + branchN.extendedKey + "</span></div>" +
-              '<div class="dev-out-row"><span>Branch XPUB</span><span>' + branchN.neuter().extendedKey + "</span></div>" +
-              '<div class="dev-out-row"><span>Leaf path</span><span>' + path + "</span></div>" +
-              '<div class="dev-out-row"><span>Leaf XPRV</span><span>' + leafN.extendedKey + "</span></div>" +
-              '<div class="dev-out-row"><span>Leaf XPUB</span><span>' + leafN.neuter().extendedKey + "</span></div>";
+            out.appendChild(devOutRow("Branch path", branchP));
+            out.appendChild(devOutRow("Branch XPRV", branchN.extendedKey));
+            out.appendChild(devOutRow("Branch XPUB", branchN.neuter().extendedKey));
+            out.appendChild(devOutRow("Leaf path", path));
+            out.appendChild(devOutRow("Leaf XPRV", leafN.extendedKey));
+            out.appendChild(devOutRow("Leaf XPUB", leafN.neuter().extendedKey));
           } catch (err) {
-            out.innerHTML = '<span style="color:var(--error)">' + (err && err.message ? err.message : err) + "</span>";
+            out.textContent = "";
+            var e = document.createElement("span");
+            e.style.color = "var(--error)";
+            e.textContent = (err && err.message ? err.message : String(err));
+            out.appendChild(e);
           }
         }
 
@@ -199,11 +247,11 @@
           var L = formatUtxoAddressPure(secpPrivateKeyHex, c, 44);
           var W = formatUtxoAddressPure(secpPrivateKeyHex, c, 49);
           var N = formatUtxoAddressPure(secpPrivateKeyHex, c, 84);
-          out.innerHTML =
-            '<div class="dev-out-row"><span>Legacy</span><span>' + L.address + "</span></div>" +
-            '<div class="dev-out-row"><span>P2SH SegWit</span><span>' + W.address + "</span></div>" +
-            '<div class="dev-out-row"><span>Native SegWit</span><span>' + N.address + "</span></div>" +
-            '<div class="dev-out-row"><span>WIF</span><span>' + L.wif + "</span></div>";
+          out.textContent = "";
+          out.appendChild(devOutRow("Legacy", L.address));
+          out.appendChild(devOutRow("P2SH SegWit", W.address));
+          out.appendChild(devOutRow("Native SegWit", N.address));
+          out.appendChild(devOutRow("WIF", L.wif));
         }
 
         async function deriveKeys() {
@@ -362,7 +410,7 @@
         var wordCountSelect = document.getElementById("mnemonicWordCount");
         var langSelect = document.getElementById("mnemonicLang");
         if (genBtn) genBtn.addEventListener("click", function () {
-          mnemonicInput.value = randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value);
+          setMnemonic(randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value));
           syncSeedBar();
         });
 
@@ -477,7 +525,12 @@
                   var tr = document.createElement("tr");
                   var addrDisp = res.rawOnly ? "—" : res.address;
                   var displayPath = res.resolvedPath || bp;
-                  tr.innerHTML = "<td>" + bi + "</td><td>" + displayPath + "</td><td>" + addrDisp + "</td><td>" + res.privateHex + "</td>";
+                  var cells = [String(bi), displayPath, addrDisp, res.privateHex];
+                  for (var ci = 0; ci < cells.length; ci++) {
+                    var td = document.createElement("td");
+                    td.textContent = cells[ci];
+                    tr.appendChild(td);
+                  }
                   tbody.appendChild(tr);
                 }
                 wrap.style.display = "block";
@@ -625,8 +678,7 @@
         var brainTrx        = document.getElementById("brainTrx");
         var brainSol        = document.getElementById("brainSol");
         var brainStrengthWrap = document.getElementById("brainStrengthWrap");
-        var brainStrengthBar  = document.getElementById("brainStrengthBar");
-        var brainStrengthLabel = document.getElementById("brainStrengthLabel");
+        var brainCompareHost = document.getElementById("brainCompareHost");
         var brainComputeRequestId = 0;
 
         if (brainPass) {
@@ -634,9 +686,28 @@
             var t = brainPass.value;
             if (!t) { if (brainStrengthWrap) brainStrengthWrap.style.display = "none"; return; }
             if (brainStrengthWrap) brainStrengthWrap.style.display = "block";
-            var info = brainStrengthInfo(t);
-            if (brainStrengthBar)   { brainStrengthBar.style.width = info.pct + "%"; brainStrengthBar.style.background = info.color; }
-            if (brainStrengthLabel) { brainStrengthLabel.textContent = info.label; brainStrengthLabel.style.color = info.color; }
+
+            /* Two rows only: the baseline, and what you typed. Shown side by
+             * side rather than as a score, because a score implies there is a
+             * mark to reach and here there is not. */
+            var est = estimatePassphraseBits(t);
+            renderEntropyComparison(brainCompareHost, [
+              { label: "Generate button, 12 words", bits: 128, kind: "baseline" },
+              {
+                label: est.known ? "Your phrase (a known one)" : "Your phrase, at best",
+                bits: est.bits,
+                kind: "you"
+              }
+            ], {
+              axisNote: "A full bar is 128 bits, what one click of Generate produces. Search times " +
+                "assume 100 trillion guesses a second, which is realistic against the single " +
+                "unsalted SHA-256 a brain wallet uses.",
+              footnote: est.known
+                ? "This exact phrase appears in every password cracking wordlist, so its real " +
+                  "strength is zero no matter how long it is. Bitcoin brain wallets built on it " +
+                  "were emptied years ago."
+                : est.ceiling ? ENTROPY_CEILING_NOTE : null
+            });
           });
         }
 
@@ -794,24 +865,59 @@
             typoSuggestOut.innerHTML = '<p class="hint" style="color:var(--error);">All words are valid but the checksum failed. The word order may be wrong, or extra/missing words.</p>';
             return;
           }
-          var html = '<p class="hint" style="margin-bottom:8px;">Found ' + res.suggestions.length + ' word(s) not in the wordlist:</p>';
+          /* Built with DOM nodes rather than an HTML string. s.original is a word
+           * the user typed that is NOT in the wordlist, so it is arbitrary text and
+           * must never be parsed as markup. This panel is the one place a mnemonic
+           * reaches the DOM without passing isValidMnemonic first, because finding
+           * typos is the whole point of it. */
+          typoSuggestOut.textContent = "";
+          var intro = document.createElement("p");
+          intro.className = "hint";
+          intro.style.marginBottom = "8px";
+          intro.textContent = "Found " + res.suggestions.length + " word(s) not in the wordlist:";
+          typoSuggestOut.appendChild(intro);
+
           res.suggestions.forEach(function (s) {
-            html += '<div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);">';
-            html += '<div class="hint">Word #' + (s.index + 1) + ': <code style="font-family:var(--mono);color:var(--error);">' + s.original + '</code></div>';
-            html += '<div style="margin-top:4px;">';
+            var box = document.createElement("div");
+            box.style.marginBottom = "8px";
+            box.style.padding = "8px";
+            box.style.border = "1px solid var(--border)";
+            box.style.borderRadius = "var(--radius-sm)";
+
+            var label = document.createElement("div");
+            label.className = "hint";
+            label.appendChild(document.createTextNode("Word #" + (s.index + 1) + ": "));
+            var code = document.createElement("code");
+            code.style.fontFamily = "var(--mono)";
+            code.style.color = "var(--error)";
+            code.textContent = s.original;
+            label.appendChild(code);
+            box.appendChild(label);
+
+            var row = document.createElement("div");
+            row.style.marginTop = "4px";
             s.candidates.forEach(function (c) {
-              html += '<button type="button" class="btn-secondary" data-fix-index="' + s.index + '" data-fix-word="' + c.word + '" style="margin:2px;font-size:12px;">' + c.word + ' (d=' + c.distance + ')</button>';
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "btn-secondary";
+              btn.setAttribute("data-fix-index", s.index);
+              btn.setAttribute("data-fix-word", c.word);
+              btn.style.margin = "2px";
+              btn.style.fontSize = "12px";
+              btn.textContent = c.word + " (d=" + c.distance + ")";
+              row.appendChild(btn);
             });
-            html += '</div></div>';
+            box.appendChild(row);
+            typoSuggestOut.appendChild(box);
           });
-          typoSuggestOut.innerHTML = html;
+
           typoSuggestOut.querySelectorAll("[data-fix-index]").forEach(function (b) {
             b.addEventListener("click", function () {
               var idx = parseInt(b.getAttribute("data-fix-index"), 10);
               var w = b.getAttribute("data-fix-word");
               var words = mnemonicInput.value.trim().split(/\s+/);
               words[idx] = w;
-              mnemonicInput.value = words.join(" ");
+              setMnemonic(words.join(" "));
               showToast("Replaced word " + (idx + 1));
             });
           });
@@ -831,7 +937,7 @@
           wordFinderOut.innerHTML = '<p class="hint">Scanning all 2048 candidates...</p>';
           setTimeout(function () {
             var r = findValid12thWords(first11, currentLang());
-            if (r.error) { wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">' + r.error + '</p>'; return; }
+            if (r.error) { setHintMessage(wordFinderOut, r.error, "var(--error)"); return; }
             var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 12th words:</p>';
             html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
             r.validWords.forEach(function (w) {
@@ -844,7 +950,7 @@
                 var w = b.getAttribute("data-append-word");
                 var cur = mnemonicInput.value.trim().split(/\s+/);
                 cur[11] = w;
-                mnemonicInput.value = cur.slice(0, 12).join(" ");
+                setMnemonic(cur.slice(0, 12).join(" "));
                 showToast("12th word set");
               });
             });
@@ -865,7 +971,7 @@
           wordFinderOut.innerHTML = '<p class="hint">Scanning all 2048 candidates (24th word)...</p>';
           setTimeout(function () {
             var r = findValid24thWords(first23, currentLang());
-            if (r.error) { wordFinderOut.innerHTML = '<p class="hint" style="color:var(--error);">' + r.error + '</p>'; return; }
+            if (r.error) { setHintMessage(wordFinderOut, r.error, "var(--error)"); return; }
             var show = r.validWords.slice(0, 40);
             var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 24th words (showing first ' + show.length + '):</p>';
             html += '<div style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;">';
@@ -879,7 +985,7 @@
                 var w = b.getAttribute("data-append-word24");
                 var cur = mnemonicInput.value.trim().split(/\s+/);
                 cur[23] = w;
-                mnemonicInput.value = cur.slice(0, 24).join(" ");
+                setMnemonic(cur.slice(0, 24).join(" "));
                 showToast("24th word set");
               });
             });
@@ -975,15 +1081,27 @@
           if (coinFaceEl) coinFaceEl.hidden = true;
         }
 
+        var entropyNeedHint = document.getElementById("entropyNeedHint");
+        var entropyReproducible = document.getElementById("entropyReproducible");
+        var entropyLowOverride = document.getElementById("entropyLowOverride");
+        var entropySaltWrap = document.getElementById("entropySaltWrap");
+        var entropySalt = document.getElementById("entropySalt");
+
+        /* True when the user has asked for a seed built from their rolls alone. */
+        function entropyIsReproducible() {
+          return !!(entropyReproducible && entropyReproducible.checked);
+        }
+        function entropyAllowsLow() {
+          return !!(entropyLowOverride && entropyLowOverride.checked);
+        }
+
         function updateEntropyProgress() {
           if (!entropyProgress) return;
           var wc = entropyWordsSel ? parseInt(entropyWordsSel.value, 10) : 12;
           var needed = bitsNeededForWords(wc);
           var rolls = diceInput ? diceInput.value.trim() : "";
           var flips = coinInput ? coinInput.value.trim() : "";
-          var bits = 0;
-          if (rolls) bits += bitsCollectedFromDice(rolls);
-          if (flips) bits += bitsCollectedFromCoins(flips);
+          var bits = entropyBitsCollected(rolls, flips);
           entropyProgress.textContent = entropyProgressHtml(bits, needed);
           if (entropyBar) {
             var pct = Math.min(100, Math.round((bits / needed) * 100));
@@ -991,11 +1109,48 @@
             if (pct >= 100) entropyBar.classList.add("full");
             else entropyBar.classList.remove("full");
           }
+
+          /* Gate both generate buttons until the input carries enough randomness.
+           * entropyDeriveBtn is looked up here rather than captured, because it
+           * is not assigned until further down the file and this function runs
+           * once before that happens. Capturing it would leave the derive button
+           * ungated on first paint. */
+          var shortfall = (rolls || flips) ? entropyShortfallMessage(rolls, flips, wc) : null;
+          var blocked = !!shortfall && !entropyAllowsLow();
+          var deriveBtnEl = document.getElementById("entropyDeriveBtn");
+          if (entropyGenBtn) entropyGenBtn.disabled = blocked;
+          if (deriveBtnEl) deriveBtnEl.disabled = blocked;
+          if (entropyNeedHint) {
+            entropyNeedHint.textContent = shortfall || "";
+            entropyNeedHint.style.display = shortfall ? "block" : "none";
+          }
         }
         if (diceInput) diceInput.addEventListener("input", updateEntropyProgress);
         if (coinInput) coinInput.addEventListener("input", updateEntropyProgress);
         if (entropyWordsSel) entropyWordsSel.addEventListener("change", updateEntropyProgress);
+        if (entropyLowOverride) entropyLowOverride.addEventListener("change", updateEntropyProgress);
         updateEntropyProgress();
+
+        /* Show the CSPRNG salt after a mixed-mode generate, or hide it in
+         * reproducible mode where there is no salt to show. */
+        function showEntropySalt(saltHex) {
+          if (!entropySaltWrap || !entropySalt) return;
+          if (saltHex) {
+            entropySalt.textContent = "0x" + saltHex;
+            entropySaltWrap.style.display = "block";
+          } else {
+            entropySalt.textContent = "";
+            entropySaltWrap.style.display = "none";
+          }
+        }
+
+        /* Shared options for both generate buttons, so the two paths cannot drift. */
+        function entropyOptions() {
+          return {
+            deterministic: entropyIsReproducible(),
+            allowLowEntropy: entropyAllowsLow()
+          };
+        }
 
         /* Append one char to the active input and trigger the visual+sound. */
         function appendRoll(mode, ch) {
@@ -1016,13 +1171,28 @@
           }
         }
 
+        /* These buttons simulate throws using the browser CSPRNG, the same source
+         * Simple mode uses. They are here to show the pipeline working. Randomness
+         * that does not depend on this machine has to be typed in by hand. */
+        if (!secureRandomAvailable()) {
+          if (rollDiceBtn) { rollDiceBtn.disabled = true; rollDiceBtn.title = SECURE_RANDOM_UNAVAILABLE_MSG; }
+          if (flipCoinBtn) { flipCoinBtn.disabled = true; flipCoinBtn.title = SECURE_RANDOM_UNAVAILABLE_MSG; }
+          if (rollManyBtn) { rollManyBtn.disabled = true; rollManyBtn.title = SECURE_RANDOM_UNAVAILABLE_MSG; }
+        }
+
         if (rollDiceBtn) rollDiceBtn.addEventListener("click", function () {
-          var r = 1 + Math.floor(Math.random() * 6);
-          appendRoll("dice", String(r));
+          try {
+            appendRoll("dice", secureDieFace());
+          } catch (e) {
+            showFeatureError(entropyErrorEl, "Entropy", e);
+          }
         });
         if (flipCoinBtn) flipCoinBtn.addEventListener("click", function () {
-          var ch = Math.random() < 0.5 ? "H" : "T";
-          appendRoll("coin", ch);
+          try {
+            appendRoll("coin", secureCoinFace());
+          } catch (e) {
+            showFeatureError(entropyErrorEl, "Entropy", e);
+          }
         });
         if (rollManyBtn) rollManyBtn.addEventListener("click", function () {
           /* Auto-roll 50 times with a small stagger so the animation is visible. */
@@ -1030,9 +1200,14 @@
           var total = 50;
           var timer = setInterval(function () {
             if (i >= total) { clearInterval(timer); successChime(); return; }
-            var mode = (i % 2 === 0) ? "dice" : "coin";
-            if (mode === "dice") appendRoll("dice", String(1 + Math.floor(Math.random() * 6)));
-            else appendRoll("coin", Math.random() < 0.5 ? "H" : "T");
+            try {
+              if (i % 2 === 0) appendRoll("dice", secureDieFace());
+              else appendRoll("coin", secureCoinFace());
+            } catch (e) {
+              clearInterval(timer);
+              showFeatureError(entropyErrorEl, "Entropy", e);
+              return;
+            }
             i++;
           }, 90);
         });
@@ -1040,6 +1215,7 @@
           if (diceInput) diceInput.value = "";
           if (coinInput) coinInput.value = "";
           clearStage();
+          showEntropySalt(null);
           updateEntropyProgress();
         });
 
@@ -1053,10 +1229,14 @@
             return;
           }
           try {
-            /* Both sources feed one entropy pool. Changing either changes the seed. */
-            var r = await entropyToMnemonic(rolls, flips, wc, currentLang());
-            mnemonicInput.value = r.phrase;
-            showToast("Generated " + r.wordCount + "-word mnemonic from your rolls");
+            /* Both sources feed one entropy pool, plus the browser CSPRNG unless
+             * reproducible mode is ticked. Changing any of them changes the seed. */
+            var r = entropyToMnemonic(rolls, flips, wc, currentLang(), entropyOptions());
+            setMnemonic(r.phrase);
+            showEntropySalt(r.saltHex);
+            showToast(r.lowEntropy
+              ? "Demo phrase generated. Not enough randomness for real use."
+              : "Generated " + r.wordCount + "-word mnemonic from your rolls");
             successChime();
             updateEntropyProgress();
             deriveKeys();
@@ -1064,7 +1244,7 @@
           } catch (e) {
             /* On validation error, wipe stale results so the screen does not
              * show an old address that no longer matches the current input. */
-            mnemonicInput.value = "";
+            setMnemonic("");
             addrSpan.textContent = "\u2014";
             pkSpan.textContent = "\u2014";
             showFeatureError(entropyErrorEl, "Entropy", e, { userInput: true });
@@ -1084,8 +1264,9 @@
             return;
           }
           try {
-            var r = await entropyToMnemonic(rolls, flips, wc, currentLang());
-            mnemonicInput.value = r.phrase;
+            var r = entropyToMnemonic(rolls, flips, wc, currentLang(), entropyOptions());
+            setMnemonic(r.phrase);
+            showEntropySalt(r.saltHex);
             /* Apply the selected chain preset (reuses the existing presets map). */
             var presetName = entropyChainSelect ? entropyChainSelect.value : "eth";
             var preset = presets[presetName];
@@ -1110,7 +1291,7 @@
             var resultsCard = document.querySelector('[data-content="derive"] .card:nth-of-type(4)');
             if (resultsCard) resultsCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
           } catch (e) {
-            mnemonicInput.value = "";
+            setMnemonic("");
             addrSpan.textContent = "\u2014";
             pkSpan.textContent = "\u2014";
             showFeatureError(entropyErrorEl, "Entropy", e, { userInput: true });
@@ -1184,13 +1365,81 @@
               var info = await deriveNodeInfo(mn, path, pass);
               treeInfo.innerHTML = nodeInfoToHtml(info);
             } catch (e) {
-              treeInfo.innerHTML = '<p class="hint" style="color:var(--error);">' + (e.message || e) + '</p>';
+              setHintMessage(treeInfo, String(e.message || e), "var(--error)");
             }
           });
           if (treeInfo) treeInfo.innerHTML = '<p class="hint" style="color:var(--text-subtle);">Tree built. Click any node on the left to derive its keys (xprv, xpub, EVM address). Click a branch node again to expand or collapse its children.</p>';
         });
 
         /* ── LEARN -> ENTROPY CROSS-LINK ─────────────────────────────────── */
+        /* ── BLOCKCHAIN GUIDE: rows load their preset ───────────────────────
+         * Turns the reference table from something you read into something you
+         * can run, using the same presets map the buttons on the Derive tab
+         * already use. */
+        function applyGuidePreset(presetName) {
+          var preset = presets[presetName];
+          if (!preset) return;
+          purposeInput.value = preset.purpose;
+          coinTypeInput.value = preset.coinType;
+          accountInput.value = preset.account;
+          changeInput.value = preset.change;
+          indexInput.value = preset.index;
+          var devToggle = document.getElementById("devModeToggle");
+          var devCp = document.getElementById("devCustomPath");
+          if (devToggle && devToggle.checked && devCp) devCp.value = "";
+          var deriveTab = document.querySelector('.tab[data-tab="derive"]');
+          if (deriveTab) deriveTab.click();
+          updatePathDisplay();
+          updateSolanaUiHints();
+          deriveKeys();
+          showToast("Loaded the " + presetName + " preset");
+          if (pathSpan) pathSpan.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        document.querySelectorAll("tr.guide-row").forEach(function (row) {
+          var presetName = row.getAttribute("data-preset");
+          row.addEventListener("click", function () { applyGuidePreset(presetName); });
+          /* role="button" without keyboard support is a trap for anyone not
+           * using a mouse, so wire Enter and Space the way a button behaves. */
+          row.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+              e.preventDefault();
+              applyGuidePreset(presetName);
+            }
+          });
+        });
+
+        /* ── ENTROPY COMPARISON (Learn step 1) ──────────────────────────── */
+        var learnCompareHost = document.getElementById("learnCompareHost");
+        var compareInput = document.getElementById("compareInput");
+
+        function renderLearnCompare() {
+          if (!learnCompareHost) return;
+          var rows = entropyReferenceRows();
+          var typed = compareInput ? compareInput.value : "";
+          if (typed) {
+            var est = estimatePassphraseBits(typed);
+            rows.push({
+              label: est.known ? "Your phrase (a known one)" : "Your phrase, at best",
+              bits: est.bits,
+              kind: "you"
+            });
+            /* Keep the list ordered strongest first so the reader's own entry
+             * lands visually where it belongs rather than always at the bottom. */
+            rows.sort(function (a, b) { return b.bits - a.bits; });
+          }
+          var typedEst = typed ? estimatePassphraseBits(typed) : null;
+          renderEntropyComparison(learnCompareHost, rows, {
+            footnote: !typedEst ? null
+              : typedEst.known
+                ? "That exact phrase is in every cracking wordlist, so its real strength is zero " +
+                  "regardless of length."
+                : typedEst.ceiling ? ENTROPY_CEILING_NOTE : null
+          });
+        }
+        if (compareInput) compareInput.addEventListener("input", renderLearnCompare);
+        renderLearnCompare();
+
         var learnOpenEntropy = document.getElementById("learnOpenEntropy");
         if (learnOpenEntropy) learnOpenEntropy.addEventListener("click", function (e) {
           e.preventDefault();
@@ -1202,6 +1451,24 @@
           }
           toggleAccordion("entropy");
           if (entropyHeader) entropyHeader.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+
+        /* Reverse of the link above: from the entropy lab's bit counter across to
+         * the comparison that explains what a bit count is worth. */
+        var entropyOpenCompare = document.getElementById("entropyOpenCompare");
+        if (entropyOpenCompare) entropyOpenCompare.addEventListener("click", function (e) {
+          e.preventDefault();
+          var learnTab = document.querySelector('.tab[data-tab="learn"]');
+          if (learnTab) learnTab.click();
+          /* The comparison sits inside walkthrough step 1, so switching tabs is
+           * not enough: if the reader left the stepper on another step it would
+           * still be hidden. showStep lives in a closure in ui.js with no
+           * external handle, but the step dots are clickable, so clicking the
+           * first one is the supported way to drive it from out here. */
+          var firstStep = document.querySelector('.learn-step[data-step="1"]');
+          if (firstStep) firstStep.click();
+          var host = document.getElementById("learnCompareHost");
+          if (host) host.scrollIntoView({ behavior: "smooth", block: "center" });
         });
       });
     })();

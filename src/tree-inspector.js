@@ -200,15 +200,7 @@ function infoRow(label, value) {
   return '<div class="info-row"><span class="info-label">' + escapeHtml(label) + '</span> <span style="font-family:var(--mono);font-size:11px;word-break:break-all" title="' + escapeAttr(value) + '">' + escapeHtml(truncated) + '</span></div>';
 }
 
-function escapeHtml(s) {
-  if (s === null || s === undefined) return "";
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapeAttr(s) {
-  return escapeHtml(s).replace(/'/g, "&#39;");
-}
+/* escapeHtml and escapeAttr now live in src/html-escape.js, which loads before
+ * this file. There used to be a second escapeHtml here that did not escape
+ * apostrophes; because classic scripts share one scope and this file loads
+ * later, that weaker copy was silently winning for path-recovery.js too. */

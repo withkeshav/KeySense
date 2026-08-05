@@ -111,12 +111,4 @@ function matchesToHtml(scanResult) {
   return html;
 }
 
-function escapeHtml(str) {
-  if (str === null || str === undefined) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+/* escapeHtml lives in src/html-escape.js, which loads before this file. */

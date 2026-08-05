@@ -4,7 +4,7 @@
 
 > Crypto key math is confusing, but KeySense makes it simple and understandable.
 
-Multi-chain HD derivation, vanity miner, brain wallet entropy lab. BIP39/32/44/49/84/86, extended keys, path discovery - all in your browser, 100% offline.
+Multi-chain HD derivation, vanity miner, brain wallet entropy lab. BIP39/32/44/49/84/86, extended keys, path discovery - all in your browser. No CDN, no third-party requests, and no seed, key, or address ever leaves your device.
 
 Created by [Keshav Maheshwari](https://www.withkeshav.com)
 
@@ -27,9 +27,7 @@ npx serve .
 python3 -m http.server 8080
 ```
 
-Then open in a browser. The main Derive tab works from `file://` with no server.
-
-> **Note:** The Brain Wallet tab, Solana/Sui/Aptos derivation, and the entropy lab require HTTPS - `crypto.subtle` and dynamic `import()` are blocked on `file://` and insecure origins. Use a local server for full functionality.
+Then open in a browser. The whole tool, every tab and every chain, also works straight from `file://` with no server and no network at all. Open `index.html` from a USB stick on an air-gapped machine and it works.
 
 ## Deploy on a VPS
 
@@ -56,12 +54,37 @@ For HTTPS (required for Brain Wallet), use nginx with certbot or Caddy.
 
 ## Tech Stack
 
-Zero framework, zero build step. Pure HTML, CSS, and vanilla JavaScript. Only CDN dependencies:
+Zero framework, zero build step. Pure HTML, CSS, and vanilla JavaScript.
 
-- [ethers.js](https://cdn.jsdelivr.net/npm/ethers@5.7.2) - BIP39 mnemonic, BIP32 HD derivation, EVM addresses
-- [tweetnacl](https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3) - Ed25519 key pairs (Solana, Sui, Aptos)
-- [ed25519-hd-key](https://cdn.jsdelivr.net/npm/ed25519-hd-key@1.3.0) - SLIP-0010 Ed25519 derivation; loaded as a lazy dynamic `import()` only when an Ed25519 chain is first derived (Solana, Sui, Aptos)
-- [qrcode](https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1) - QR code rendering for address display
+**No CDN.** Every dependency is vendored into `src/vendor/` and served from the same origin as the page. A tool that generates spendable private keys should not let a third party ship code into it, and pinning a version in a CDN URL does not prevent that. Serving them locally also means the page works with the network switched off, and that you can diff what a server sends you against this repository.
+
+- [ethers.js](https://github.com/ethers-io/ethers.js) 5.7.2 - BIP39 mnemonic, BIP32 HD derivation, EVM addresses
+- [tweetnacl](https://github.com/dchest/tweetnacl-js) 1.0.3 - Ed25519 key pairs (Solana, Sui, Aptos)
+- [qrcode](https://github.com/soldair/node-qrcode) 1.5.1 - QR code rendering for address display
+- [@noble/hashes](https://github.com/paulmillr/noble-hashes) 1.5.0 - `blake2b` (Sui addresses) and `sha3_256` (Aptos addresses), the only two primitives neither ethers nor tweetnacl provides and no browser exposes through Web Crypto
+
+SLIP-0010 Ed25519 derivation (Solana, Sui, Aptos) is implemented directly in `src/slip10-ed25519.js` on top of `ethers.utils.computeHmac("sha512", ...)`. It previously used `ed25519-hd-key`, whose module graph pulled in 10 Node shim packages carrying a Buffer polyfill purely to reach an HMAC ethers already had. Removing it also removed the last dynamic `import()`, which is what stopped those three chains working from `file://`.
+
+### The one build step
+
+Everything ships as plain files except `src/vendor/keysense-hashes.js`, which is generated. There is no build step to run, serve, or deploy this; there is one optional reproducible step to regenerate that single file:
+
+```bash
+bash tools/build-crypto.sh --check
+```
+
+That rebuilds it from pinned inputs and diffs against the committed copy, so anyone can confirm the artifact matches its sources without trusting whoever built it.
+
+See [SECURITY.md](SECURITY.md) for the upstream URLs and SHA-384 hashes, so you can verify the vendored copies yourself.
+
+### Deploy note
+
+`frame-ancestors` cannot be set from a `<meta>` tag, so the in-page CSP does not cover clickjacking. Add a header at the web server too:
+
+```nginx
+add_header X-Frame-Options "DENY" always;
+add_header Referrer-Policy "no-referrer" always;
+```
 
 ## License
 

@@ -1,37 +1,14 @@
 
 
-function toSeed32Bytes(keyMaterial) {
-  if (!keyMaterial) throw new Error("Solana derivation returned empty key.");
-  var u8;
-  if (keyMaterial instanceof Uint8Array) {
-    u8 = keyMaterial;
-  } else {
-    var len = keyMaterial.length || keyMaterial.byteLength || 0;
-    u8 = new Uint8Array(len);
-    for (var i = 0; i < len; i++) u8[i] = keyMaterial[i];
-  }
-  if (u8.length < 32) throw new Error("Solana SLIP-0010 key must be >= 32 bytes.");
-  return u8.subarray(0, 32);
-}
-
-var solanaDepsPromise = null;
-
-function loadSolanaDeps() {
-  if (!solanaDepsPromise) {
-    solanaDepsPromise = import("https://cdn.jsdelivr.net/npm/ed25519-hd-key@1.3.0/+esm").then(function (ed) {
-      var edObj = ed && (ed.default || ed);
-      var derivePath = (ed && ed.derivePath) || (edObj && edObj.derivePath);
-      if (typeof derivePath !== "function") throw new Error("ed25519-hd-key derivePath missing");
-      return { derivePath: derivePath };
-    });
-  }
-  return solanaDepsPromise;
-}
-
-/* Shared Ed25519 (SLIP-0010) derivation used by Solana, Sui, and Aptos.
- * Returns {seed32, publicKey32, secret64, seedHex, pubHex} from mnemonic+path. */
-async function deriveEd25519Key(mnemonic, path, passphrase) {
-  var deps = await loadSolanaDeps();
+/* Shared Ed25519 (SLIP-0010) derivation used by Solana, Sui and Aptos.
+ * Returns {seed32, publicKey, secret64, seedHex, pubHex, sec64hex}.
+ *
+ * Synchronous. This used to load ed25519-hd-key through a dynamic import(),
+ * which meant these three chains did not work from a file:// origin because
+ * module loading is blocked there. The derivation now lives in
+ * src/slip10-ed25519.js on top of ethers' own HMAC-SHA512, proven byte
+ * identical to ed25519-hd-key@1.3.0 across 1500 paths before the swap. */
+function deriveEd25519Key(mnemonic, path, passphrase) {
   var naclGlobal =
     (typeof globalThis !== "undefined" && globalThis.nacl) ||
     (typeof window !== "undefined" && window.nacl) ||
@@ -39,23 +16,22 @@ async function deriveEd25519Key(mnemonic, path, passphrase) {
   if (!naclGlobal || !naclGlobal.sign || typeof naclGlobal.sign.keyPair.fromSeed !== "function") {
     throw new Error("TweetNaCl not loaded - ensure nacl-fast.min.js runs before this script.");
   }
-  var seed512u8 = ethers.utils.arrayify(ethers.utils.mnemonicToSeed(mnemonic, passphrase || ""));
-  var seed512hex = toHex(seed512u8);
-  var d = deps.derivePath(path, seed512hex);
-  if (!d || !d.key) throw new Error("SLIP-0010 derivePath returned no key for " + path);
-  var seed32 = toSeed32Bytes(d.key);
+  var seed512 = ethers.utils.arrayify(ethers.utils.mnemonicToSeed(mnemonic, passphrase || ""));
+  var seed32 = slip10DeriveEd25519(seed512, path).key;
   var kp = naclGlobal.sign.keyPair.fromSeed(seed32);
-  var sk32hex;
-  if (kp.secretKey && kp.secretKey.length >= 32) {
-    sk32hex = toHex(new Uint8Array(kp.secretKey.subarray(0, 32)));
-  } else {
-    sk32hex = toHex(seed32);
-  }
-  var pubHex = "0x" + toHex(new Uint8Array(kp.publicKey));
+  /* The first 32 bytes of an ed25519 expanded secret key are the seed itself,
+   * so this is the same value either way. */
   var sec64hex = kp.secretKey && kp.secretKey.length >= 64
     ? "0x" + toHex(new Uint8Array(kp.secretKey))
     : null;
-  return { seed32: seed32, publicKey: kp.publicKey, secret64: kp.secretKey, seedHex: "0x" + sk32hex, pubHex: pubHex, sec64hex: sec64hex };
+  return {
+    seed32: seed32,
+    publicKey: kp.publicKey,
+    secret64: kp.secretKey,
+    seedHex: "0x" + toHex(seed32),
+    pubHex: "0x" + toHex(new Uint8Array(kp.publicKey)),
+    sec64hex: sec64hex
+  };
 }
 
 async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHex, passphrase) {
@@ -87,7 +63,7 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
     };
   }
   if (coinType === 501) {
-    var k = await deriveEd25519Key(mnemonic, path, passphrase);
+    var k = deriveEd25519Key(mnemonic, path, passphrase);
     var addr = base58Encode(k.publicKey);
     return {
       address: addr,
@@ -102,9 +78,23 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
     };
   }
   if (coinType === SUI_COIN_TYPE) {
-    var suiK = await deriveEd25519Key(mnemonic, path, passphrase);
-    /* Sui address = 0x + lowercase hex of the 32-byte Ed25519 public key. */
-    var suiAddr = suiK.pubHex.toLowerCase();
+    var suiK = deriveEd25519Key(mnemonic, path, passphrase);
+    /* Sui address = BLAKE2b-256(flag || pubkey), where flag is the signature
+     * scheme byte: 0x00 Ed25519, 0x01 secp256k1, 0x02 secp256r1.
+     *
+     * The address is NOT the public key. This tool displayed the raw public key
+     * here until 2026-08-05. Both are 32 bytes and both render as a plausible
+     * 0x string, which is exactly why the bug survived so long. Anything sent
+     * to the old value is unspendable.
+     *
+     * dkLen must be passed explicitly. BLAKE2b-256 is not a truncation of
+     * BLAKE2b-512; the digest length is mixed into the parameter block, so the
+     * wrong dkLen silently produces a different and wrong address. */
+    var suiPub = ethers.utils.arrayify(suiK.pubHex);
+    var suiPre = new Uint8Array(1 + suiPub.length);
+    suiPre[0] = 0x00;
+    suiPre.set(suiPub, 1);
+    var suiAddr = "0x" + toHex(KeySenseHashes.blake2b(suiPre, { dkLen: 32 }));
     return {
       address: suiAddr,
       wif: null,
@@ -114,28 +104,26 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
       publicKeyUncompressedHex: null,
       solanaSecret64Hex: suiK.sec64hex,
       keyFormatNote:
-        "Sui: address is 0x + the 32-byte Ed25519 public key hex. The 32-byte hex labeled 'private key' is the Ed25519 seed. Derivation uses SLIP-0010 (all path segments hardened)."
+        "Sui: address is 0x + BLAKE2b-256(0x00 || public key), where 0x00 is the Ed25519 signature scheme flag. It is not the public key itself, even though both are 32 bytes. The 32-byte hex labeled 'private key' is the Ed25519 seed. Derivation uses SLIP-0010 (all path segments hardened)."
     };
   }
   if (coinType === APTOS_COIN_TYPE) {
-    var aptK = await deriveEd25519Key(mnemonic, path, passphrase);
-    /* Aptos single-sig Ed25519 address = 0x + sha3-256(pubkey || 0x00).
-     * ethers v5 has no SHA3, so this uses the browser Web Crypto API (requires HTTPS). */
-    var aptAddr;
-    if (typeof crypto !== "undefined" && crypto.subtle && crypto.subtle.digest) {
-      try {
-        var pubBytes = ethers.utils.arrayify(aptK.pubHex);
-        var withScheme = new Uint8Array(pubBytes.length + 1);
-        withScheme.set(pubBytes, 0);
-        withScheme[pubBytes.length] = 0x00;
-        var hashBuf = await crypto.subtle.digest("SHA3-256", withScheme);
-        aptAddr = "0x" + toHex(new Uint8Array(hashBuf));
-      } catch (sha3e) {
-        aptAddr = "SHA3-256 unsupported in this browser - public key: " + aptK.pubHex;
-      }
-    } else {
-      aptAddr = "SHA3-256 needs HTTPS/crypto.subtle - public key: " + aptK.pubHex;
-    }
+    var aptK = deriveEd25519Key(mnemonic, path, passphrase);
+    /* Aptos single-signer Ed25519 account address = SHA3-256(pubkey || 0x00).
+     *
+     * This used to call crypto.subtle.digest("SHA3-256", ...), which always
+     * threw: Web Crypto implements only SHA-1, SHA-256, SHA-384 and SHA-512, so
+     * no browser has ever supported SHA3 there. The chain therefore never
+     * produced an address at all, it only ever printed the fallback message.
+     * The old comment blamed HTTPS, which was never the problem.
+     *
+     * SHA3-256 is not Keccak-256. They differ in padding, so ethers'
+     * keccak256 cannot be substituted here. */
+    var aptPub = ethers.utils.arrayify(aptK.pubHex);
+    var aptIn = new Uint8Array(aptPub.length + 1);
+    aptIn.set(aptPub, 0);
+    aptIn[aptPub.length] = 0x00;
+    var aptAddr = "0x" + toHex(KeySenseHashes.sha3_256(aptIn));
     return {
       address: aptAddr,
       wif: null,
@@ -145,7 +133,7 @@ async function formatAddress(mnemonic, path, purpose, coinType, secpPrivateKeyHe
       publicKeyUncompressedHex: null,
       solanaSecret64Hex: aptK.sec64hex,
       keyFormatNote:
-        "Aptos: address is 0x + SHA3-256(public key || 0x00 scheme byte). ethers v5 lacks SHA3, so this uses the browser Web Crypto API (requires HTTPS). Derivation uses SLIP-0010 (all path segments hardened)."
+        "Aptos: address is 0x + SHA3-256(public key || 0x00 scheme byte). Note this is SHA3-256, not Keccak-256; the two differ in padding and give different results. Derivation uses SLIP-0010 (all path segments hardened)."
     };
   }
   if (coinType === 0 || coinType === 2 || coinType === 3) {

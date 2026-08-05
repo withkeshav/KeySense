@@ -163,6 +163,51 @@ function cosmosAddress(pubkeyHex, hrp) {
   return bech32Encode(hrp, data, false);
 }
 
+/** secp256k1 group order. */
+var SECP256K1_N = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141";
+
+/** BIP340 tagged hash: SHA256(SHA256(tag) || SHA256(tag) || msg). */
+function taggedHash(tag, msg) {
+  var t = ethers.utils.sha256(ethers.utils.toUtf8Bytes(tag));
+  return ethers.utils.sha256(ethers.utils.concat([t, t, ethers.utils.arrayify(msg)]));
+}
+
+/** BIP86 P2TR: bech32m over witness version 1 and the 32-byte x-only output key.
+ *
+ * Key path spend only, with no script tree, so BIP341 gives
+ *   t = TaggedHash("TapTweak", x(P)),  Q = P + tG
+ *
+ * We hold the private key here, so this is scalar arithmetic rather than
+ * elliptic curve point addition, which means no extra library: ethers already
+ * computes dG. BIP340 x-only keys always denote the even-Y point, so if dG has
+ * odd Y we negate d first, which leaves x(dG) unchanged.
+ *
+ * Verified against all three published BIP86 test vectors. */
+function utxoP2TR(privHex, hrp) {
+  var n = BigInt(SECP256K1_N);
+  var d = BigInt(ethers.utils.hexlify(privHex));
+  if (d <= BigInt(0) || d >= n) throw new Error("Private key out of range for Taproot.");
+
+  var internalPub = ethers.utils.computePublicKey(privHex, true);
+  if (internalPub.slice(2, 4) === "03") d = n - d;   /* odd Y, negate to get even Y */
+  var internalXOnly = "0x" + internalPub.slice(4);
+
+  var t = BigInt(taggedHash("TapTweak", internalXOnly));
+  if (t >= n) throw new Error("TapTweak scalar out of range.");
+  var tweaked = (d + t) % n;
+  if (tweaked === BigInt(0)) throw new Error("Tweaked key is zero.");
+
+  /* hexZeroPad is required, not defensive. Roughly one derivation in 256 gives
+   * a scalar with a leading zero byte, which hexlify would render as 62 hex
+   * characters and computePublicKey would then reject. Measured at 12 of 3000. */
+  var tweakedHex = ethers.utils.hexZeroPad(ethers.utils.hexlify(tweaked), 32);
+  var outputPub = ethers.utils.computePublicKey(tweakedHex, true);
+  var outputXOnly = ethers.utils.arrayify("0x" + outputPub.slice(4));
+
+  var data = [1].concat(convertbits(Array.from(outputXOnly), 8, 5, true));
+  return bech32Encode(hrp, data, true);   /* bech32m for witness v1 */
+}
+
 /** Build address without any external library - pure ethers.js crypto. */
 function formatUtxoAddressPure(privHex, coinType, purpose) {
   var cp = COIN_PARAMS[coinType];
@@ -183,8 +228,14 @@ function formatUtxoAddressPure(privHex, coinType, purpose) {
     address = utxoP2SHP2WPKH(pubkeyHex, cp.p2sh);
     label = cp.name + " (P2SH-SegWit)";
   } else if (purpose === 86) {
-    address = utxoP2PKH(pubkeyHex, cp.p2pkh);
-    label = cp.name + " (Taproot key-tweak requires an ECC lib - showing Legacy instead)";
+    if (coinType === 3) {
+      /* Dogecoin has no Taproot. Same handling as purpose 84 above. */
+      address = utxoP2PKH(pubkeyHex, cp.p2pkh);
+      label = cp.name + " (Legacy - DOGE has no Taproot)";
+    } else {
+      address = utxoP2TR(privHex, cp.bech32);
+      label = cp.name + " (Taproot - " + cp.bech32 + "1p...)";
+    }
   } else {
     address = utxoP2PKH(pubkeyHex, cp.p2pkh);
     label = cp.name + " (Legacy)";

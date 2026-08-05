@@ -4,6 +4,16 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
+  <!-- A meta CSP only governs content parsed after it, so this stays near the top.
+       connect-src 'none' is the important one: the app makes no network calls of
+       its own, so blocking them outright means a script injected through any
+       future bug still cannot send a seed or private key anywhere.
+       style-src needs 'unsafe-inline' because the page uses inline style
+       attributes throughout. script-src does not, since there are no inline
+       script blocks, no on* handlers, and no eval in the app or its libraries.
+       Note: frame-ancestors is ignored in a meta tag. Set X-Frame-Options: DENY
+       at the web server as well. See the deploy notes in README.md. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
   <meta name="author" content="Keshav Maheshwari - https://www.withkeshav.com">
   <meta name="description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab.">
   <title>KeySense - Web3 Key, Path and Security Workbench</title>
@@ -32,7 +42,7 @@
         <div class="creator">Created by <strong><a href="https://www.withkeshav.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" title="Keshav Maheshwari">Keshav Maheshwari</a></strong></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
-        <div class="offline-badge" title="All derivation runs in your browser. No seeds or keys ever leave your device.">● 100% Offline</div>
+        <div class="offline-badge" title="All derivation runs in your browser. Every library is served from this site, so there are no third-party requests and the page works with the network off. No seed, key, or address is ever transmitted.">● 100% Offline</div>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light and dark theme">
           <span class="thumb" aria-hidden="true"></span>
           <span id="themeLabel">Dark</span>
@@ -62,7 +72,7 @@
           <div class="card-title">
             <span>Step 1: Seed phrase</span>
             <span class="badge">BIP39</span>
-            <label class="dev-mode-toggle" title="Simple: browser CSPRNG. Expert: bring your own randomness (dice/coins).">
+            <label class="dev-mode-toggle" title="Simple: the browser CSPRNG picks the seed. Expert: add your own dice rolls or coin flips to the pool.">
               <input type="checkbox" id="expertModeToggle" aria-label="Expert mode"> Expert mode
             </label>
           </div>
@@ -105,16 +115,16 @@
           <div class="warning-box" style="margin-top:12px;">
             <p><strong>Security:</strong> This page runs entirely in your browser. No data is ever sent to any server. For production wallets, always generate and sign on a trusted offline (air-gapped) machine.</p>
           </div>
-          <p class="hint" style="margin-top:12px;">Off: seeds use the browser CSPRNG. On: roll dice or flip coins and the hash becomes your seed.</p>
+          <p class="hint" style="margin-top:12px;">Off: seeds use the browser CSPRNG. On: type your own dice rolls or coin flips and their hash becomes your seed.</p>
 
           <!-- Accordion: Physical entropy lab (your own randomness) - hidden unless Expert mode is on -->
           <div class="acc-wrap" id="entropyAccord" style="display:none;">
             <div class="acc-header acc-closed" id="entropyHeader" role="button" tabindex="0" aria-expanded="false" aria-controls="entropyBody">
               <span class="acc-chevron">&#9654;</span>
-              <span class="acc-title">Bring your own randomness. Roll dice or flip coins; the hash becomes your seed instead of the browser's RNG.</span>
+              <span class="acc-title">Bring your own randomness. Type real dice rolls or coin flips and their hash becomes your seed instead of the browser's RNG.</span>
             </div>
             <div class="acc-body acc-closed" id="entropyBody">
-              <p class="hint" style="margin-top:10px;margin-bottom:10px;">Roll dice or flip coins. Your rolls are hashed into a seed. No software RNG. Needs HTTPS.</p>
+              <p class="hint" style="margin-top:10px;margin-bottom:10px;">Type your own dice rolls or coin flips into the boxes below and they get hashed into a seed. Use this if you want randomness that does not depend on your computer. Needs HTTPS.</p>
 
               <!-- Visual stage: shows the last roll animating -->
               <div id="entropyStage" class="entropy-stage" aria-hidden="true">
@@ -124,11 +134,12 @@
 
               <!-- Interactive roll buttons -->
               <div class="action-buttons" style="margin-top:8px;">
-                <button type="button" id="rollDiceBtn" class="btn-secondary">Roll dice</button>
-                <button type="button" id="flipCoinBtn" class="btn-secondary">Flip coin</button>
-                <button type="button" id="rollManyBtn" class="btn-secondary">Auto-roll 50</button>
+                <button type="button" id="rollDiceBtn" class="btn-secondary">Simulate a roll</button>
+                <button type="button" id="flipCoinBtn" class="btn-secondary">Simulate a flip</button>
+                <button type="button" id="rollManyBtn" class="btn-secondary">Simulate 50</button>
                 <button type="button" id="clearEntropyBtn" class="btn-secondary">Clear</button>
               </div>
+              <p class="hint" style="margin-top:6px;">The simulate buttons draw from the browser CSPRNG, the same source Simple mode uses, so they are here to show the pipeline working rather than to add anything. For randomness that does not depend on this machine, throw real dice and type the results into the boxes below.</p>
 
               <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:12px;">
                 <div style="flex:1;min-width:200px;">
@@ -153,11 +164,31 @@
                 <div id="entropyBar" class="entropy-bar"></div>
               </div>
               <div id="entropyProgress" class="hint" style="margin-top:6px;"></div>
+              <div id="entropyNeedHint" class="hint" style="margin-top:6px;display:none;color:var(--warning);"></div>
+              <p class="hint" style="margin-top:4px;margin-bottom:0;">Not sure what these numbers mean? <a href="#" id="entropyOpenCompare" style="color:var(--accent);font-weight:600;">See how they compare</a> to a generated seed and to a passphrase you might invent.</p>
+
+              <label class="hint" style="display:flex;align-items:flex-start;gap:8px;margin-top:12px;cursor:pointer;">
+                <input type="checkbox" id="entropyReproducible" style="margin-top:3px;flex-shrink:0;">
+                <span><strong>Reproducible mode.</strong> Your rolls alone decide the seed, so typing the same rolls always rebuilds the same wallet and you can check the maths by hand. Leave this off for a wallet you intend to use: with it off, the browser's own randomness is mixed in as well, so a biased die cannot weaken the result.</span>
+              </label>
+
+              <label class="hint" style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;cursor:pointer;">
+                <input type="checkbox" id="entropyLowOverride" style="margin-top:3px;flex-shrink:0;">
+                <span><strong>Demo mode.</strong> Generate from fewer rolls than the phrase claims, so you can see what a weak seed looks like. For learning only. Never put funds in one.</span>
+              </label>
 
               <div class="action-buttons" style="margin-top:10px;">
                 <button type="button" id="entropyGenBtn" class="btn-primary">Generate seed from rolls</button>
               </div>
               <div id="entropyError" class="error" style="display:none;margin-top:8px;"></div>
+
+              <!-- Shown after a mixed-mode generate. The salt is the other half of
+                   the input, so rolls alone will not rebuild the seed without it. -->
+              <div id="entropySaltWrap" style="display:none;margin-top:12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);">
+                <div class="output-label" style="margin-bottom:6px;">Browser randomness that was mixed in</div>
+                <div id="entropySalt" class="output-value" style="font-size:11px;word-break:break-all;"></div>
+                <p class="hint" style="margin-top:8px;margin-bottom:0;">Your seed came from your rolls <em>plus</em> this value. Writing down only the rolls will not bring the wallet back. Save the words, which is what every wallet recovers from. Keep this only if you want to prove later that the two together rebuild the same seed.</p>
+              </div>
 
               <!-- Lite derive strip: rolls -> address in one flow -->
               <div class="entropy-lite" style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--border);">
@@ -359,7 +390,7 @@
             <div class="output-value" id="solanaSecret64">—</div>
             <p class="hint" id="solanaKeyHint" style="margin-top: 8px;"></p>
           </div>
-            <p class="hint"><strong>How encoding works here:</strong> All BIP32 keys via <code style="font-family:var(--mono);font-size:0.92em;">ethers.js</code> (loaded once as UMD). <strong>EVM / Tron:</strong> ethers Wallet + Keccak-256. <strong>Bitcoin-family (0/2/3):</strong> pure JS using only ethers primitives - <code style="font-family:var(--mono)">sha256</code>, <code style="font-family:var(--mono)">ripemd160</code>, <code style="font-family:var(--mono)">computePublicKey</code> + inline Bech32 - no bitcoinjs-lib, no CDN class bugs. <strong>Solana (501):</strong> SLIP-0010 via <code style="font-family:var(--mono)">ed25519-hd-key</code> + TweetNaCl global. <strong>Brain Wallet</strong> uses <code style="font-family:var(--mono)">crypto.subtle</code>, which requires an HTTPS server (blocks on <code style="font-family:var(--mono)">file://</code>). Use a local server for full functionality.</p>
+            <p class="hint"><strong>How encoding works here:</strong> All BIP32 keys via <code style="font-family:var(--mono);font-size:0.92em;">ethers.js</code> (loaded once as UMD). <strong>EVM / Tron:</strong> ethers Wallet + Keccak-256. <strong>Bitcoin-family (0/2/3):</strong> pure JS using only ethers primitives - <code style="font-family:var(--mono)">sha256</code>, <code style="font-family:var(--mono)">ripemd160</code>, <code style="font-family:var(--mono)">computePublicKey</code> + inline Bech32 - no bitcoinjs-lib, no CDN class bugs. <strong>Ed25519 chains (501/784/637):</strong> SLIP-0010 implemented inline on ethers' HMAC-SHA512, plus the TweetNaCl global. Nothing here needs a secure context or a server, so every tab works from <code style="font-family:var(--mono)">file://</code> with the network off.</p>
           <div class="action-buttons" style="margin-top:14px;">
             <button type="button" id="printWalletBtn" class="btn-secondary">Print cold backup</button>
           </div>
@@ -437,16 +468,13 @@
           <label for="brainPass">Source passphrase <span class="label-chip">hashed with SHA-256 to produce entropy</span></label>
           <textarea id="brainPass" placeholder="Type something memorable - e.g. a poem, quote, or any string. Do NOT use for real funds." style="margin-top:6px;min-height:80px;"></textarea>
 
-          <!-- Entropy strength meter -->
-          <div id="brainStrengthWrap" style="margin-top:8px;display:none;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <span class="hint" style="margin:0;">Passphrase length / complexity</span>
-              <span id="brainStrengthLabel" style="font-size:12px;font-weight:600;color:var(--error);">Very Weak</span>
-            </div>
-            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
-              <div id="brainStrengthBar" style="height:100%;width:0%;background:var(--error);border-radius:2px;transition:width 0.3s,background 0.3s;"></div>
-            </div>
-            <p class="hint" style="margin-top:4px;margin-bottom:0;">SHA-256 always produces 256 bits of output - but the <em>effective</em> entropy is limited by how guessable your phrase is. Longer &amp; more random ≠ safe for real funds.</p>
+          <!-- How your phrase compares to what Generate gives you.
+               Deliberately a comparison, never a score: there is no pass mark
+               here, because no typed passphrase reaches one. -->
+          <div id="brainStrengthWrap" style="margin-top:12px;display:none;">
+            <div class="output-label" style="margin-bottom:8px;">Your passphrase against a generated seed</div>
+            <div id="brainCompareHost"></div>
+            <p class="hint" style="margin-top:10px;margin-bottom:0;">SHA-256 always emits 256 bits, but hashing cannot create randomness that was not in the input. The number above is the <strong>largest</strong> it could be, counting every string of that length in that alphabet. Real attacks never do that: they start from wordlists, substitution rules and previous breaches, so a phrase you can remember is worth far less than this in practice.</p>
           </div>
 
           <div style="margin-top:14px;">
@@ -517,11 +545,12 @@
       <div class="tab-content" data-content="guide" role="tabpanel">
         <div class="card">
           <div class="card-title">What this toolkit does</div>
-          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Libraries load from CDN on first visit, then everything runs in your browser. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Derive tab also has a <strong>Physical entropy lab</strong> (roll dice / flip coins to create a seed without software RNG, enable Expert mode to see it), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Learn Paths tab. The Experiments tab has a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word) and a <strong>Path recovery</strong> scanner (match a known address to its derivation path). The current seed also shows in the sticky bar above the tabs. The entropy lab, brain wallet, and Solana/Sui/Aptos derivation require an HTTPS server (not available on <code style="font-family:var(--mono);font-size:0.92em;">file://</code>).</p>
-          <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">ed25519-hd-key</code> + <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; browser <code style="font-family:var(--mono);font-size:0.92em;">crypto.subtle</code> (SHA-256 for the entropy lab + brain wallet, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. Download button saves the full page for offline or air-gapped use.</p>
+          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Every library is served from this site rather than a CDN, so the page makes no third-party requests and works with the network switched off. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Derive tab also has a <strong>Physical entropy lab</strong> (type your own dice rolls or coin flips so the seed does not depend on your computer alone, enable Expert mode to see it), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Learn Paths tab. The Experiments tab has a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word) and a <strong>Path recovery</strong> scanner (match a known address to its derivation path). The current seed also shows in the sticky bar above the tabs. Solana, Sui, and Aptos derivation needs the page served over <code style="font-family:var(--mono);font-size:0.92em;">http://</code> or <code style="font-family:var(--mono);font-size:0.92em;">https://</code>, because ES module loading is blocked from a <code style="font-family:var(--mono);font-size:0.92em;">file://</code> origin. Everything else, including the entropy lab and brain wallet, works from <code style="font-family:var(--mono);font-size:0.92em;">file://</code>.</p>
+          <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> + inline SLIP-0010 (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; <code style="font-family:var(--mono);font-size:0.92em;">@noble/hashes</code> (BLAKE2b for Sui, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. All libraries live in <code style="font-family:var(--mono);font-size:0.92em;">src/vendor/</code> and are served from this site, so nothing is fetched from a third party. To run it air-gapped, clone the repository and open the page with any local server.</p>
         </div>
         <div class="card">
           <div class="card-title">Blockchain derivation reference</div>
+          <p class="hint" style="margin-bottom:12px;">Click any row to load that preset into the Derive tab and see the real address for the seed you have loaded.</p>
           <p class="hint" style="margin-bottom: 16px;">Each row is a common convention. Your wallet might use a different path for recovery - always check its docs.</p>
           <div style="overflow-x:auto;">
           <table class="guide-table">
@@ -529,25 +558,25 @@
               <tr><th>Blockchain</th><th>Derivation path</th><th>Coin type</th><th>Notes</th></tr>
             </thead>
             <tbody>
-              <tr><td><strong>Ethereum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>MetaMask, Trust Wallet, most EVM “account 0”</td></tr>
-              <tr><td><strong>Bitcoin (Native SegWit)</strong></td><td><code>m/84'/0'/0'/0/0</code></td><td>0</td><td><code>bc1q…</code> addresses (BIP84)</td></tr>
-              <tr><td><strong>Bitcoin (Wrapped SegWit)</strong></td><td><code>m/49'/0'/0'/0/0</code></td><td>0</td><td><code>3…</code> nested SegWit (BIP49)</td></tr>
-              <tr><td><strong>Bitcoin (Legacy)</strong></td><td><code>m/44'/0'/0'/0/0</code></td><td>0</td><td><code>1…</code> P2PKH (BIP44)</td></tr>
-              <tr><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) - experimental on some altcoins</td></tr>
-              <tr><td><strong>Solana</strong></td><td><code>m/44'/501'/0'/0'</code></td><td>501</td><td>Phantom / Solflare-style; Ed25519 not secp256k1</td></tr>
-              <tr><td><strong>Polygon</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr><td><strong>BSC</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr><td><strong>Avalanche C-Chain</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr><td><strong>Tron</strong></td><td><code>m/44'/195'/0'/0/0</code></td><td>195</td><td>TronLink-style; secp256k1, Base58 <code>T…</code> address</td></tr>
+              <tr class="guide-row" data-preset="eth" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Ethereum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>MetaMask, Trust Wallet, most EVM “account 0”</td></tr>
+              <tr class="guide-row" data-preset="btc-native" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Bitcoin (Native SegWit)</strong></td><td><code>m/84'/0'/0'/0/0</code></td><td>0</td><td><code>bc1q…</code> addresses (BIP84)</td></tr>
+              <tr class="guide-row" data-preset="btc-segwit" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Bitcoin (Wrapped SegWit)</strong></td><td><code>m/49'/0'/0'/0/0</code></td><td>0</td><td><code>3…</code> nested SegWit (BIP49)</td></tr>
+              <tr class="guide-row" data-preset="btc-legacy" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Bitcoin (Legacy)</strong></td><td><code>m/44'/0'/0'/0/0</code></td><td>0</td><td><code>1…</code> P2PKH (BIP44)</td></tr>
+              <tr class="guide-row" data-preset="btc-taproot" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) - experimental on some altcoins</td></tr>
+              <tr class="guide-row" data-preset="solana" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Solana</strong></td><td><code>m/44'/501'/0'/0'</code></td><td>501</td><td>Phantom / Solflare-style; Ed25519 not secp256k1</td></tr>
+              <tr class="guide-row" data-preset="polygon" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Polygon</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="bsc" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>BSC</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="avalanche" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Avalanche C-Chain</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="tron" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Tron</strong></td><td><code>m/44'/195'/0'/0/0</code></td><td>195</td><td>TronLink-style; secp256k1, Base58 <code>T…</code> address</td></tr>
               <tr><td><strong>Arbitrum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
               <tr><td><strong>Optimism</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr><td><strong>Litecoin</strong></td><td><code>m/44'/2'/0'/0/0</code></td><td>2</td><td>Legacy; use purpose 84/49 for SegWit-style LTC</td></tr>
-              <tr><td><strong>Dogecoin</strong></td><td><code>m/44'/3'/0'/0/0</code></td><td>3</td><td>Legacy-style; SegWit less universal on DOGE</td></tr>
+              <tr class="guide-row" data-preset="ltc" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Litecoin</strong></td><td><code>m/44'/2'/0'/0/0</code></td><td>2</td><td>Legacy; use purpose 84/49 for SegWit-style LTC</td></tr>
+              <tr class="guide-row" data-preset="doge" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Dogecoin</strong></td><td><code>m/44'/3'/0'/0/0</code></td><td>3</td><td>Legacy-style; SegWit less universal on DOGE</td></tr>
               <tr><td><strong>Bitcoin Cash</strong></td><td><code>m/44'/145'/0'/0/0</code></td><td>145</td><td>Not modeled in this tool - would need BCH params</td></tr>
               <tr><td><strong>Cardano</strong></td><td><code>m/1852'/1815'/0'/0/0</code></td><td>1815</td><td>CIP-1852; different from BIP44-only wallets</td></tr>
-              <tr><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
-              <tr><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + 32-byte pubkey hex</td></tr>
-              <tr><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); address = 0x + SHA3-256(pubkey)</td></tr>
+              <tr class="guide-row" data-preset="cosmos" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
+              <tr class="guide-row" data-preset="sui" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + BLAKE2b-256(0x00 || pubkey), not the pubkey itself</td></tr>
+              <tr class="guide-row" data-preset="aptos" tabindex="0" role="button" title="Load this preset in the Derive tab"><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); address = 0x + SHA3-256(pubkey || 0x00). SHA3-256, not Keccak-256</td></tr>
             </tbody>
           </table>
         </div>
@@ -557,9 +586,13 @@
             <li><strong style="color:var(--accent);">All EVM chains</strong> share <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">coin_type = 60</code> - the same key yields the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> address on Ethereum, Polygon, BSC, etc. (you still pay gas on the chain you use).</li>
             <li><strong style="color:var(--accent);">Bitcoin</strong> changes the <em>purpose</em> number (44 / 49 / 84 / 86) to pick address type, not just coin type.</li>
             <li><strong style="color:var(--accent);">Solana</strong> uses Ed25519 derivation (SLIP-0010). You cannot get a Solana address by plugging the same path into a raw secp256k1-only helper.</li>
-            <li><strong style="color:var(--accent);">Ed25519 chains (Solana, Sui, Aptos)</strong> share the SLIP-0010 derivation pipeline. Every path segment must be hardened; there are no normal (unhardened) children. Sui's address is the raw 32-byte Ed25519 public key as hex; Aptos hashes it with SHA3-256.</li>
+            <li><strong style="color:var(--accent);">Ed25519 chains (Solana, Sui, Aptos)</strong> share the SLIP-0010 derivation pipeline. Every path segment must be hardened; there are no normal (unhardened) children. Sui hashes the public key with BLAKE2b-256 after a 0x00 scheme byte; Aptos hashes it with SHA3-256 followed by a 0x00 scheme byte. Neither address is the public key itself, even though a Sui address is the same 32-byte length.</li>
             <li><strong style="color:var(--accent);">Cosmos</strong> uses the same secp256k1 curve as Bitcoin/Ethereum, but its address is Bech32 with the <code style="font-family:var(--mono);font-size:0.88em;background:var(--code-bg);padding:2px 6px;border-radius:4px;">cosmos</code> HRP over a raw 20-byte hash160 - not a Bitcoin-style witness version.</li>
             <li><strong style="color:var(--accent);">Non-standard paths</strong> are valid mathematically but wallets may not scan them - backup risk.</li>
+            <li><strong style="color:var(--accent);">Why every EVM chain shares coin type 60:</strong> the address is derived from the key alone, and nothing in it names a chain. Ethereum, Polygon, BSC, Arbitrum, Optimism and Avalanche C-Chain all read the same <code style="font-family:var(--mono);font-size:0.88em;">0x…</code> as yours. The chain is chosen by the network you broadcast to, not by the address, which is why funds sent on the wrong network still land at "your" address but need that network's gas to move.</li>
+            <li><strong style="color:var(--accent);">Why Bitcoin changes <em>purpose</em> rather than coin type:</strong> it is one currency with several address encodings. 44, 49, 84 and 86 all derive from the same seed on coin type 0, but produce <code style="font-family:var(--mono);font-size:0.88em;">1…</code>, <code style="font-family:var(--mono);font-size:0.88em;">3…</code>, <code style="font-family:var(--mono);font-size:0.88em;">bc1q…</code> and <code style="font-family:var(--mono);font-size:0.88em;">bc1p…</code>. Restoring a seed in a wallet that only scans one purpose is the usual reason coins look missing: they are at a different purpose on the same seed.</li>
+            <li><strong style="color:var(--accent);">Why Ed25519 chains have no watch-only xpub:</strong> an xpub works because a parent public key can derive child public keys without the private key. SLIP-0010 on Ed25519 defines only hardened derivation, and hardened steps feed the private key into the hash, so there is nothing a public key alone can extend. That is a property of the curve's use here, not a missing feature.</li>
+            <li><strong style="color:var(--accent);">What an xpub actually leaks:</strong> on its own it exposes every address in that branch, so all your balances and history, but not the ability to spend. Combine it with any <em>one</em> unhardened child private key, though, and the parent private key can be reconstructed, which hands over the whole branch. That is exactly why the standard paths harden purpose, coin type and account.</li>
           </ul>
         </div>
       </div>
@@ -628,7 +661,22 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               </code>
             </div>
             <div class="warning-box" style="margin-top:14px;">
-              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG. If you distrust software RNG, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode): roll dice or flip coins, and the SHA-256 hash of your rolls becomes the entropy instead.</p>
+              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG, which is not a plain software RNG. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as the CPU's on-die thermal-noise generator and interrupt timing. If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode) and type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy instead. The value of real dice is not that they are more random than the CPU, it is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what matter.</p>
+            </div>
+
+            <!-- How much randomness is actually behind each way of making a seed. -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">How much randomness is really in there?</h3>
+              <p class="hint" style="margin-bottom:12px;">Every one of these produces a valid seed phrase that looks exactly as convincing as the others. What differs is how many guesses stand between an attacker and your coins. Type a passphrase to see where your own idea would land.</p>
+
+              <label for="compareInput" style="font-size:11px;">Try a passphrase you might have invented</label>
+              <input id="compareInput" type="text" autocomplete="off" spellcheck="false" placeholder="Tr0ub4dor&amp;3" style="margin-top:6px;margin-bottom:14px;font-family:var(--mono);font-size:13px;">
+
+              <div id="learnCompareHost"></div>
+
+              <div class="warning-box" style="margin-top:16px;">
+                <p>To reach 128 bits using random words you could actually memorise, you need <strong>ten</strong> Diceware words: 7776<sup>10</sup> is about 2<sup>129</sup>. But if you can memorise ten random words, you can memorise a twelve word BIP39 phrase, which is the same strength, carries a checksum that catches typos, and is restorable in every wallet. That is the whole argument against inventing your own: it is not merely riskier, it is worse at the one job it was supposed to do.</p>
+              </div>
             </div>
           </div>
 
@@ -843,7 +891,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <ul class="list-plain">
             <li><strong style="color:var(--accent);">Visualize the tree</strong> - click "Build tree from current seed" above to see every derivation branch and click nodes to derive keys.</li>
             <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Experiments tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
-            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, enable Expert mode to open "Physical entropy lab" and roll dice to create a seed without trusting software RNG.</li>
+            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, enable Expert mode to open "Physical entropy lab" and type your own dice rolls so the seed does not depend on your computer alone.</li>
           </ul>
         </div>
       </div>
@@ -947,19 +995,30 @@ Child keys: CKD(parent, index) - child private key + child chain code
   </footer>
   <!-- attribution: Keshav Maheshwari - withkeshav - withkeshav.com -->
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
+  <!-- Libraries are served from this site, not a CDN. That keeps the number of
+       parties who can alter key generation down to one, makes the page work with
+       no network at all, and lets a reader diff what this server sends against
+       the GitHub source. See SECURITY.md for the upstream URLs and hashes. -->
+  <script src="./src/vendor/ethers-5.7.2.umd.min.js"></script>
+  <script src="./src/vendor/qrcode-1.5.1.min.js"></script>
   <!-- TweetNaCl: classic script = reliable global; avoids ESM "class without new" interop bugs with bundled tweetnacl -->
-  <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+  <script src="./src/vendor/tweetnacl-1.0.3-nacl-fast.min.js"></script>
+  <!-- blake2b (Sui) + sha3_256 (Aptos). The only generated file here; rebuild and
+       verify with: bash tools/build-crypto.sh --check -->
+  <script src="./src/vendor/keysense-hashes.js"></script>
   <script src="./src/bip39-wordlists.js"></script>
   <script src="./src/constants.js"></script>
+  <script src="./src/html-escape.js"></script>
+  <script src="./src/secure-random.js"></script>
   <script src="./src/crypto-utils.js"></script>
+  <script src="./src/slip10-ed25519.js"></script>
   <script src="./src/hd-paths.js"></script>
   <script src="./src/vanity-service.js"></script>
   <script src="./src/address-service.js"></script>
   <script src="./src/brain-wallet-service.js"></script>
   <script src="./src/bip39-helper.js"></script>
   <script src="./src/entropy-generator.js"></script>
+  <script src="./src/entropy-compare.js"></script>
   <script src="./src/path-recovery.js"></script>
   <script src="./src/tree-inspector.js"></script>
   <script src="./src/paper-wallet.js"></script>

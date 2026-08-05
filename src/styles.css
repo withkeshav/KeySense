@@ -1352,3 +1352,18 @@
       transition: max-height var(--transition-slow);
     }
     .acc-body.acc-closed { display: none; }
+
+/* Clickable rows in the Blockchain guide table. The row loads that preset into
+   the Derive tab, so it needs to look and behave like a control. */
+.guide-table tbody tr.guide-row {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.guide-table tbody tr.guide-row:hover,
+.guide-table tbody tr.guide-row:focus-visible {
+  background: var(--accent-soft);
+  outline: none;
+}
+.guide-table tbody tr.guide-row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}

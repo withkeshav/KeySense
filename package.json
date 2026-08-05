@@ -5,7 +5,9 @@
   "description": "Crypto key math is confusing, but we make it simple and understandable.",
   "scripts": {
     "dev": "npx serve .",
-    "start": "npx serve ."
+    "start": "npx serve .",
+    "test": "node test/node-harness.js",
+    "test:build": "bash tools/build-crypto.sh --check"
   },
   "author": "Keshav Maheshwari (https://www.withkeshav.com)",
   "license": "SEE LICENSE IN LICENSE"
