@@ -60,7 +60,8 @@ ethers". That is correct and expected.
 | Supply chain attack on a dependency | Exact version pins, npm tarball integrity hash for the one built file, SHA-384 for each copied file. |
 | DOM XSS through mnemonic, passphrase, or custom path input | CSP `script-src 'self'` with no `'unsafe-inline'` and no `'unsafe-eval'`. Sinks that take user input build DOM nodes rather than HTML strings. `escapeHtml` in `src/html-escape.js` for the remaining string-built HTML. |
 | Exfiltration after any script execution | CSP `connect-src 'none'`. The app makes no legitimate network calls, so this costs nothing and makes exfiltration structurally impossible rather than merely unlikely. |
-| Weak or predictable entropy | `crypto.getRandomValues` only. `Math.random` appears nowhere near key material. Rejection sampling for the simulated dice, so no modulo bias. The entropy lab refuses to mint a phrase claiming more bits than the input supplied. |
+| Weak or predictable entropy | `crypto.getRandomValues` only. `Math.random` appears nowhere near key material. Rejection sampling for the simulated dice, so no modulo bias. The entropy lab refuses to mint a phrase claiming more bits than the input supplied. A one-time runtime canary (`src/secure-random.js`) checks that `crypto.getRandomValues` is not returning degenerate output before anything trusts it. |
+| A malicious browser extension patching `window.crypto.getRandomValues` before this page's own scripts run | Distinct from the DOM-access threat below: this needs no DOM read access at all, only to run first and silently substitute a weak or deterministic generator behind the same-looking API. This is the closest real analog to the July 2026 Coldcard firmware entropy failure (see `SECURITY-AUDIT.md` in `.progress/` for the full case study), a silent substitution producing normal-looking output. The runtime canary above is a partial mitigation: it would catch an obviously degenerate substitute (constant or repeating output) but cannot prove a subtly weakened one is strong. Not fully mitigated, named here rather than left out. |
 | A user talked into pasting a hostile "seed phrase" | The mnemonic typo checker deliberately runs on *invalid* input, so it is the one place a mnemonic reaches the DOM without validation. It builds nodes, never markup. This was a live XSS before 2026-08-04 and is worth re-checking. |
 
 ### Explicitly out of scope
@@ -68,7 +69,11 @@ ethers". That is correct and expected.
 Stated rather than left implied, because a reader should know where the line is:
 
 - Malware, keyloggers, or a compromised OS on the user's machine.
-- Malicious browser extensions. A content script can read the DOM and defeats everything here.
+- A malicious extension's **content script reading the DOM** after the page has rendered. It
+  already has everything on screen; nothing in this app can defend against that. The narrower
+  case of an extension **patching `window.crypto` before load** is different enough to get its
+  own line in the adversaries table above, since it needs no DOM access and has a partial
+  mitigation.
 - Screen capture, camera over the shoulder, or a photographed paper wallet.
 - Printer firmware, print spool residue, and anything downstream of `window.print()`.
 - The trustworthiness of the host serving the page. See section 5.

@@ -26,6 +26,18 @@ The vendored copies were downloaded from the upstream sources below. To check th
 curl -sL <upstream-url> | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
+Or run all three at once:
+
+```bash
+bash tools/verify-vendor.sh
+```
+
+**Do this before every release, not just once.** A hash checked once is only proof for the moment
+it was checked; it says nothing about whether the file still matches upstream a year later. That
+gap, code being open and checkable but nobody actually re-checking it on a schedule, is exactly
+what let a real hardware wallet's firmware RNG bug go unnoticed for five years in July 2026. See
+`.progress/SECURITY-AUDIT.md`'s Coldcard case study for the full incident this guards against.
+
 ### The one generated file
 
 `src/vendor/keysense-hashes.js` is the only file here that is built rather than copied. It contains `blake2b` (Sui addresses) and `sha3_256` (Aptos addresses) from `@noble/hashes`, the two primitives neither ethers nor tweetnacl provides and no browser exposes through Web Crypto. It is not minified, so it can be read directly.
@@ -55,6 +67,13 @@ If you would rather not run a build at all, `audit/reference/noble-hashes-1.5.0/
 Seeds from the **Generate** button come from `crypto.getRandomValues`, by way of `ethers.utils.randomBytes`. That is not a plain software RNG. It is a thin browser wrapper over the operating system CSPRNG, which is seeded from hardware sources: on-die thermal-noise generators (`RDSEED` on x86), interrupt timing, and device driver events. The same source backs the vanity miner and the simulated dice in the entropy lab.
 
 `Math.random` is not used anywhere that touches key material.
+
+**A one-time runtime canary** checks, on every page load, that `crypto.getRandomValues` is not
+silently returning degenerate output (identical draws, all-zero, or a single repeated byte)
+before anything trusts it for key material. It cannot prove the source is strong, only catch the
+specific way a broken or substituted one tends to fail. If it ever fails, a warning appears at the
+top of the page and nothing should be generated until it is understood. See `src/secure-random.js`
+and the Coldcard case study in `.progress/SECURITY-AUDIT.md` for why this exists.
 
 The **physical entropy lab** is there for people who would rather not depend on that. Type real dice rolls or coin flips and they are hashed into the entropy, together with 32 fresh CSPRNG bytes unless you tick reproducible mode. Mixing means the result is never weaker than the better of your dice and the browser: if any one input is unpredictable, the digest is unpredictable, even if an attacker chose all the others. The lab also refuses to mint a phrase claiming more bits than you actually supplied, which takes 50 dice rolls for 12 words and 100 for 24. The point of real dice is not that they are more random than a hardware RNG. It is that they do not depend on your machine, so malware on it cannot predict them. The **Simulate** buttons in that panel draw from the browser CSPRNG, so they show the pipeline working rather than replacing it.
 

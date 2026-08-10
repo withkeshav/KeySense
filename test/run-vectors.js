@@ -286,6 +286,117 @@ function runAllVectors() {
     return Promise.resolve();
   }
 
+  /* ---- 5c. Learn Paths live values (L1/L2) ----
+   * Pure computation only; the DOM-render half of learn-live.js is exercised
+   * by hand in the browser, not here. Values checked against the standard
+   * abandon...about test vector so they can be verified independently. The
+   * EVM and BTC pipeline outputs are cross-checked against the eth-0 and
+   * btc-native-0 address vectors above: same seed, same paths, same
+   * addresses, computed through a completely different code path in this
+   * file. Agreement there is a second confirmation, not just a frozen value. */
+  function checkLearnLive() {
+    if (typeof learnEntropyBreakdown !== "function") return Promise.resolve();
+    try {
+      var MN = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+
+      record("learn", "checksum-bits-12-words", 4, learnChecksumBitCount(12));
+      record("learn", "checksum-bits-24-words", 8, learnChecksumBitCount(24));
+
+      var bd = learnEntropyBreakdown(MN, "en");
+      record("learn", "breakdown-valid", true, bd.valid);
+      record("learn", "breakdown-not-fallback", false, bd.usedFallback);
+      record("learn", "breakdown-entropy-hex", "0x00000000000000000000000000000000", bd.entropyHex);
+      record("learn", "breakdown-word-count", 12, bd.wordCount);
+      record("learn", "breakdown-entropy-bits", 128, bd.entropyBits);
+      record("learn", "breakdown-checksum-bits", 4, bd.checksumBits);
+      record("learn", "breakdown-first-word-index", 0, bd.words[0].index);
+      record("learn", "breakdown-first-word-binary", "00000000000", bd.words[0].binary);
+      record("learn", "breakdown-last-word", "about", bd.words[11].word);
+      record("learn", "breakdown-last-word-checksum-bits", 4, bd.words[11].checksumBitCount);
+
+      /* Empty input must fall back rather than throw or go blank. */
+      var bdEmpty = learnEntropyBreakdown("", "en");
+      record("learn", "breakdown-empty-uses-fallback", true, bdEmpty.valid && bdEmpty.usedFallback);
+
+      var mk = learnMasterKeyBreakdown(MN, "");
+      record("learn", "master-key-seed-hex",
+        "0x5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4",
+        mk.seedHex);
+      record("learn", "master-key-private",
+        "0x1837c1be8e2995ec11cda2b066151be2cfb48adf9e47b151d46adab3a21cdf67", mk.masterPrivateKeyHex);
+      record("learn", "master-key-chain-code",
+        "0x7923408dadd3c7b56eed15567707ae5e5dca089de972e07f3b860450e2a3b70e", mk.chainCodeHex);
+
+      var seg5 = learnPathSegments("m/44'/60'/0'/0/0");
+      record("learn", "segments-5-count", 5, seg5.length);
+      record("learn", "segments-5-labels", "purpose,coin_type,account,change,address_index",
+        seg5.map(function (s) { return s.label; }).join(","));
+      record("learn", "segments-5-hardened-flags", "true,true,true,false,false",
+        seg5.map(function (s) { return s.hardened; }).join(","));
+
+      var seg4 = learnPathSegments("m/44'/501'/0'/0'");
+      record("learn", "segments-4-count", 4, seg4.length);
+      record("learn", "segments-4-labels", "purpose,coin_type,account,address_index",
+        seg4.map(function (s) { return s.label; }).join(","));
+      record("learn", "segments-4-all-hardened", true, seg4.every(function (s) { return s.hardened; }));
+
+      var hc = learnHardenedComparison(MN, "", "m/44'/0'/0'", 0);
+      record("learn", "hardened-cmp-paths-differ", true, hc.normal.path !== hc.hardened.path);
+      record("learn", "hardened-cmp-keys-differ", true, hc.normal.privateKeyHex !== hc.hardened.privateKeyHex);
+      record("learn", "hardened-cmp-normal-key",
+        "0x83bda5c7add17ef9bbc1f03391913fe6cc947aa18c4a343607724e815c83eeb7", hc.normal.privateKeyHex);
+      record("learn", "hardened-cmp-hardened-key",
+        "0xebb3082a71cf4b29239175619eb3e78a6316b6987ae2581c729706e1eae25ce4", hc.hardened.privateKeyHex);
+
+      /* Cross-check against the published eth-0 / btc-native-0 vectors above:
+       * same mnemonic, same fixed paths this step always uses, so the final
+       * address here must equal the one BIP44/BIP84 already proved correct. */
+      var eth0 = (V.addresses || []).filter(function (v) { return v.id === "eth-0"; })[0];
+      var btcNative0 = (V.addresses || []).filter(function (v) { return v.id === "btc-native-0"; })[0];
+      var pipe = learnAddressPipeline(MN, "");
+      record("learn", "pipeline-evm-matches-eth-0-vector", eth0 ? eth0.expected : null, pipe.evm.address);
+      record("learn", "pipeline-btc-matches-btc-native-0-vector", btcNative0 ? btcNative0.expected : null, pipe.btc.address);
+
+      /* Round 2 additions: E1 provenance tagging, W1 chain grid path building,
+       * W2 the xpub/child-key exercise (the BIP32 CKD-priv inversion, the one
+       * piece of new maths in this pass), W3 the purpose mismatch demo. */
+      var prov = entropyProvenanceParts("123", "HTH", "aa".repeat(32));
+      record("learn", "provenance-three-parts", 3, prov.length);
+      record("learn", "provenance-dice-tag", "D", prov[0].tag);
+      record("learn", "provenance-coins-tag", "C", prov[1].tag);
+      record("learn", "provenance-salt-tag", "R", prov[2].tag);
+      record("learn", "provenance-empty-when-nothing-given", 0, entropyProvenanceParts("", "", "").length);
+
+      var mismatch = learnWalletMismatchDemo(MN, "");
+      record("learn", "mismatch-legacy-matches-btc-legacy-0-vector",
+        (V.addresses || []).filter(function (v) { return v.id === "btc-legacy-0"; })[0].expected,
+        mismatch.legacy.address);
+      record("learn", "mismatch-native-matches-btc-native-0-vector", btcNative0 ? btcNative0.expected : null,
+        mismatch.native.address);
+      record("learn", "mismatch-addresses-differ", true, mismatch.legacy.address !== mismatch.native.address);
+
+      var xpubDemo = learnXpubOnlyDemo(MN, "", "m/44'/60'/0'");
+      record("learn", "xpub-only-no-private-keys", false,
+        xpubDemo.addresses.some(function (a) { return a.hasPrivateKey; }));
+      record("learn", "xpub-only-first-address-matches-eth-0", eth0 ? eth0.expected : null,
+        xpubDemo.addresses[0].address);
+
+      /* The one piece of new cryptography this pass ships: recovering a
+       * parent's private key from its xpub plus one normal (non-hardened)
+       * child's private key. matchesRealParent is the function's own
+       * internal check against the real parent, computed the ordinary way;
+       * this vector additionally locks the exact recovered value so a future
+       * change to the formula cannot silently start recovering the wrong
+       * key while still reporting "matches". */
+      var recovery = learnParentKeyRecovery(MN, "", "m/44'/0'/0'", 0);
+      record("learn", "recovery-matches-real-parent", true, recovery.matchesRealParent);
+      record("learn", "recovery-recovered-key",
+        "0xfe64af825b5b78554c33a28b23085fc082f691b3c712cc1d4e66e133297da87a",
+        recovery.recoveredParentPrivateKeyHex);
+    } catch (e) { fail("learn", "learn-live", e); }
+    return Promise.resolve();
+  }
+
   /* ---- 6. Brain wallet, locking the demo in place ---- */
   function checkBrain() {
     if (typeof deriveBrainWalletData !== "function") return Promise.resolve();
@@ -308,6 +419,7 @@ function runAllVectors() {
     .then(checkNegative)
     .then(checkEntropy)
     .then(checkCompare)
+    .then(checkLearnLive)
     .then(checkBrain)
     .then(function () { return results; });
 }

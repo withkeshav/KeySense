@@ -30,6 +30,7 @@ const APP_FILES = [
   "src/bip39-helper.js",
   "src/entropy-generator.js",
   "src/entropy-compare.js",
+  "src/learn-live.js",
   "src/path-recovery.js",
   "src/tree-inspector.js"
 ];

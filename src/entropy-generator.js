@@ -122,6 +122,8 @@ function entropyToMnemonic(diceInput, coinInput, wordCount, lang, opts) {
   if (coins) parts.push("C" + coins);
   if (saltHex) parts.push("R" + saltHex);
   var poolStr = parts.join("|");
+  /* entropyProvenanceParts below mirrors this exact construction for display.
+   * If the tagging here ever changes, that function needs to change with it. */
 
   /* ethers.utils.sha256 rather than crypto.subtle.digest: same algorithm, but
    * synchronous and with no secure-context requirement, so the entropy lab now
@@ -149,6 +151,21 @@ function entropyToMnemonic(diceInput, coinInput, wordCount, lang, opts) {
     deterministic: !!opts.deterministic,
     lowEntropy: !!shortfall
   };
+}
+
+/* Same tagged construction entropyToMnemonic hashes together, broken out for
+ * display. "Mixed mode" is otherwise just a checkbox description; this makes
+ * the D/C/R input map to SHA-256 visible rather than asserted. Not a
+ * decomposition of the hash OUTPUT, which would be meaningless: SHA-256 is
+ * one-way, so no output byte can be attributed back to a specific source. */
+function entropyProvenanceParts(dice, coins, saltHex) {
+  var out = [];
+  dice = String(dice || "").replace(/\s+/g, "");
+  coins = String(coins || "").replace(/\s+/g, "").toUpperCase();
+  if (dice) out.push({ tag: "D", label: "Your dice rolls", value: dice });
+  if (coins) out.push({ tag: "C", label: "Your coin flips", value: coins });
+  if (saltHex) out.push({ tag: "R", label: "Browser CSPRNG salt (32 bytes)", value: "0x" + saltHex });
+  return out;
 }
 
 function entropyProgressHtml(bitsCollected, bitsNeeded) {

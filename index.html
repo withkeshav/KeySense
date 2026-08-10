@@ -20,15 +20,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E">
 
-  <!-- Open Graph / Social Cards -->
+  <!-- Open Graph / Social Cards.
+       og:image points at a PNG, not the SVG source: Facebook, LinkedIn, Slack and X
+       do not rasterize SVG for link previews, so an svg og:image silently shows no
+       thumbnail at all rather than a broken one. og-image.svg is kept as the editable
+       source; og-image.png (rendered from it at exactly 1200x630) is what every crawler
+       actually shows. Both must be re-pushed together if the design changes. -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://github.com/withkeshav/KeySense">
+  <meta property="og:site_name" content="KeySense">
   <meta property="og:title" content="KeySense - Web3 Key, Path and Security Workbench">
-  <meta property="og:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab.">
-  <meta property="og:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.svg">
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:title" content="KeySense - Web3 Key, Path and Security Workbench">
-  <meta property="twitter:description" content="Crypto key math is confusing, but we make it simple and understandable.">
+  <meta property="og:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab, all offline in your browser.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta name="twitter:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab, all offline in your browser.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.png">
+  <meta name="twitter:image:alt" content="KeySense - Web3 Key, Path and Security Workbench">
 
   <link rel="stylesheet" href="./src/styles.css">
 
@@ -49,6 +61,11 @@
         </button>
       </div>
     </header>
+
+    <!-- Runtime entropy canary result. Hidden unless the one-time sanity check on
+         crypto.getRandomValues actually fails - see secure-random.js. Should never
+         show in a normal browser; if it does, the message is the point. -->
+    <div class="warning-box" id="entropyCanaryWarning" style="display:none;margin:0 0 16px;"></div>
 
     <!-- Sticky seed bar: always visible on scroll, display-only. The seed is the center of everything below. -->
     <div class="seed-bar" id="seedBar">
@@ -182,12 +199,13 @@
               </div>
               <div id="entropyError" class="error" style="display:none;margin-top:8px;"></div>
 
-              <!-- Shown after a mixed-mode generate. The salt is the other half of
-                   the input, so rolls alone will not rebuild the seed without it. -->
+              <!-- Shown after a generate. In mixed mode this is the whole reason
+                   "mixed" is more than a checkbox description: every tagged part
+                   that actually got hashed together, salt included. -->
               <div id="entropySaltWrap" style="display:none;margin-top:12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);">
-                <div class="output-label" style="margin-bottom:6px;">Browser randomness that was mixed in</div>
-                <div id="entropySalt" class="output-value" style="font-size:11px;word-break:break-all;"></div>
-                <p class="hint" style="margin-top:8px;margin-bottom:0;">Your seed came from your rolls <em>plus</em> this value. Writing down only the rolls will not bring the wallet back. Save the words, which is what every wallet recovers from. Keep this only if you want to prove later that the two together rebuild the same seed.</p>
+                <div class="output-label" style="margin-bottom:8px;">What went into this seed</div>
+                <div id="entropyProvenance"></div>
+                <p class="hint" style="margin-top:8px;margin-bottom:0;">These pieces are joined and hashed with SHA-256 to make the entropy. In mixed mode, your rolls alone will not rebuild the seed without the browser randomness too - save the words, which is what every wallet recovers from.</p>
               </div>
 
               <!-- Lite derive strip: rolls -> address in one flow -->
@@ -549,6 +567,10 @@
           <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> + inline SLIP-0010 (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; <code style="font-family:var(--mono);font-size:0.92em;">@noble/hashes</code> (BLAKE2b for Sui, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. All libraries live in <code style="font-family:var(--mono);font-size:0.92em;">src/vendor/</code> and are served from this site, so nothing is fetched from a third party. To run it air-gapped, clone the repository and open the page with any local server.</p>
         </div>
         <div class="card">
+          <div class="card-title">What this toolkit does not do</div>
+          <p class="hint" style="margin-bottom:0;">It computes. It does not <strong>sign</strong> a transaction, does not <strong>broadcast</strong> anything to any network, and does not <strong>hold</strong> funds at any point, so there is nothing here to check a balance against or to "log into". A seed phrase and the addresses it derives are pure mathematics; using them to actually receive, send, or check funds needs a wallet application or a block explorer, not this page. Generate, back up, and understand a seed here if that helps, then use it in the software you intend to actually run it with.</p>
+        </div>
+        <div class="card">
           <div class="card-title">Blockchain derivation reference</div>
           <p class="hint" style="margin-bottom:12px;">Click any row to load that preset into the Derive tab and see the real address for the seed you have loaded.</p>
           <p class="hint" style="margin-bottom: 16px;">Each row is a common convention. Your wallet might use a different path for recovery - always check its docs.</p>
@@ -660,6 +682,22 @@ Mnemonic phrase (12 or 24 words)
 PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               </code>
             </div>
+
+            <!-- L1: live entropy/word breakdown for whatever seed is actually loaded -->
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
+              <div id="learnStep1Live"></div>
+            </div>
+
+            <!-- L2: interactive checksum demo -->
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:6px;">Try it: edit the last word</div>
+              <p class="hint" style="margin-bottom:8px;">The last word carries the checksum. Type a different real BIP39 word in its place and watch whether the checksum still passes.</p>
+              <label for="checksumLastWord" style="font-size:11px;">Last word</label>
+              <input id="checksumLastWord" type="text" autocomplete="off" spellcheck="false" style="margin-top:6px;margin-bottom:10px;font-family:var(--mono);font-size:13px;max-width:220px;">
+              <div id="checksumResultHost"></div>
+            </div>
+
             <div class="warning-box" style="margin-top:14px;">
               <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG, which is not a plain software RNG. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as the CPU's on-die thermal-noise generator and interrupt timing. If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode) and type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy instead. The value of real dice is not that they are more random than the CPU, it is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what matter.</p>
             </div>
@@ -674,9 +712,31 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
 
               <div id="learnCompareHost"></div>
 
+              <div style="margin-top:14px;">
+                <label for="compareRateSlider" style="font-size:11px;">Attacker speed: <span id="compareRateLabel"></span></label>
+                <input id="compareRateSlider" type="range" min="9" max="15" step="1" value="14" style="width:100%;margin-top:6px;">
+                <p class="hint" style="margin-top:4px;margin-bottom:0;">Move this and watch every row above change. The point is what stays true regardless: 128 bits stays absurd at any of these speeds, while the weak rows do not need a fast attacker to fall, only a patient one.</p>
+              </div>
+
               <div class="warning-box" style="margin-top:16px;">
                 <p>To reach 128 bits using random words you could actually memorise, you need <strong>ten</strong> Diceware words: 7776<sup>10</sup> is about 2<sup>129</sup>. But if you can memorise ten random words, you can memorise a twelve word BIP39 phrase, which is the same strength, carries a checksum that catches typos, and is restorable in every wallet. That is the whole argument against inventing your own: it is not merely riskier, it is worse at the one job it was supposed to do.</p>
               </div>
+            </div>
+
+            <!-- Same words, different passphrase: two unrelated wallets. -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Same 12 words, different passphrase</h3>
+              <p class="hint" style="margin-bottom:12px;">The BIP39 passphrase is a second, separate secret, not a strengthening of the first. The same words with no passphrase and with any passphrase are two completely unrelated wallets. Forgetting this "25th word" is the most common reason people believe a restored wallet is empty - it usually is not, it is just the wrong branch.</p>
+              <label for="passphraseBranchInput" style="font-size:11px;">Try a passphrase</label>
+              <input id="passphraseBranchInput" type="text" autocomplete="off" spellcheck="false" placeholder="x" style="margin-top:6px;margin-bottom:10px;font-family:var(--mono);font-size:13px;max-width:220px;">
+              <div id="passphraseBranchHost"></div>
+            </div>
+
+            <!-- Real-world case study: weak entropy is not a hypothetical risk. -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">This is not hypothetical</h3>
+              <p class="hint">In July 2026, a hardware Bitcoin wallet lost roughly $116M this way. A firmware build flag was checked for whether it <em>existed</em> rather than what it was <em>set to</em>, which silently routed seed generation to a poorly-seeded software random number generator instead of the device's hardware source. Effective entropy collapsed from 128 bits to as little as 40. The output still looked like a completely normal, valid, checksummed recovery phrase - there was no visual tell, the same way there was no visual tell in this tool's own Sui bug. The bug sat in open-source code for five years before anyone noticed.</p>
+              <p class="hint" style="margin-top:8px;">The maker's own advice to affected users: seeds built from real dice rolls were never at risk, because that path never touched the broken code. That is exactly the Physical entropy lab above. This tool's own randomness is checked for the equivalent failure on every load; see the note in the entropy lab if you want the detail.</p>
             </div>
           </div>
 
@@ -708,6 +768,10 @@ Master Node (m) = private key + chain code
 Child keys: CKD(parent, index) - child private key + child chain code
               </code>
             </div>
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
+              <div id="learnStep2Live"></div>
+            </div>
           </div>
 
           <!-- Step 3 -->
@@ -721,6 +785,16 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <div class="learn-segment"><span class="learn-seg-label">account'</span> <span class="learn-seg-desc">Separates independent wallets from the same seed (account 0, 1, 2...)</span></div>
               <div class="learn-segment"><span class="learn-seg-label">change</span> <span class="learn-seg-desc">0 for external (receiving) addresses, 1 for internal (change) addresses (UTXO only)</span></div>
               <div class="learn-segment"><span class="learn-seg-label">index</span> <span class="learn-seg-desc">The nth address in this chain. Most wallets increment this for each new address</span></div>
+            </div>
+            <div style="margin-top:16px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your current path (Derive tab, Step 3)</div>
+              <div id="learnStep3Live"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Why a restored wallet can look empty</h3>
+              <p class="hint" style="margin-bottom:12px;">Same 12 words, same Bitcoin account, two wallets that pick a different default <code style="font-family:var(--mono)">purpose</code>. Neither is wrong. They are different, equally valid branches of the same tree, and funds on one never show up while looking at the other.</p>
+              <div id="walletMismatchHost"></div>
             </div>
           </div>
 
@@ -741,6 +815,22 @@ Child keys: CKD(parent, index) - child private key + child chain code
           </div>
             <p class="hint" style="margin-top:14px;"><strong>Why harden the first levels?</strong> If someone gets your xpub for account 0, they can derive all addresses in that account. But they cannot derive hardened children, so the master key and sibling accounts remain safe.</p>
             <p class="hint" style="margin-top:10px;"><strong>Ed25519 chains are fully hardened.</strong> Solana, Sui, and Aptos use Ed25519 keys via SLIP-0010. SLIP-0010 requires <em>every</em> path segment to be hardened, not just the first few. This is why their paths look like <code style="font-family:var(--mono)">m/44'/501'/0'/0'</code> with no unhardened levels.</p>
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed: same index, hardened vs normal</div>
+              <div id="learnStep4Live"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">What can someone do with...</h3>
+              <p class="hint" style="margin-bottom:12px;">Four things people share by accident, and exactly what each one exposes, computed live from your own seed where it can be.</p>
+              <div class="action-buttons" style="flex-wrap:wrap;">
+                <button type="button" class="btn-secondary access-scope-btn active" data-scope="words">12 words alone</button>
+                <button type="button" class="btn-secondary access-scope-btn" data-scope="words-pass">12 words + passphrase</button>
+                <button type="button" class="btn-secondary access-scope-btn" data-scope="xpub">xpub only</button>
+                <button type="button" class="btn-secondary access-scope-btn" data-scope="xpub-child">xpub + one child private key</button>
+              </div>
+              <div id="accessScopeHost" style="margin-top:12px;"></div>
+            </div>
           </div>
 
           <!-- Step 5 -->
@@ -776,6 +866,16 @@ Child keys: CKD(parent, index) - child private key + child chain code
                 <strong style="color:var(--accent);">Aptos</strong>
                 <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). This tool shows the legacy address: <code>0x</code> + SHA3-256(32-byte public key || <code>0x00</code> scheme byte), which is the SDK and wallet default. Aptos also has SingleKey (unified) accounts from the same seed with a different address. SHA3-256 is not Keccak-256. Hashing uses a vendored SHA3-256 (Web Crypto has no SHA3).</p>
               </div>
+            </div>
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
+              <div id="learnStep5Live"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">One seed, nine chains</h3>
+              <p class="hint" style="margin-bottom:12px;">The same words, the same account 0, index 0, derived into every chain this tool supports, side by side. Nine different-looking addresses, nine different key derivations, one seed underneath all of them.</p>
+              <div id="learnChainGrid"></div>
             </div>
           </div>
 
@@ -937,50 +1037,58 @@ Child keys: CKD(parent, index) - child private key + child chain code
 
   <!-- Hidden paper wallet print template (only visible during window.print) -->
   <div id="paperWalletPrint" class="paper-wallet-print" aria-hidden="true">
-    <div class="pw-title">Cold Storage Backup</div>
+    <div class="pw-header">
+      <div class="pw-logo"><span class="pw-logo-accent">Key</span>Sense</div>
+      <div class="pw-subtitle">Cold Storage Backup</div>
+    </div>
 
-    <div class="pw-section">
-      <div class="pw-label">Seed words (keep secret)</div>
+    <div class="pw-section pw-nobreak">
+      <div class="pw-label">Seed words &mdash; keep secret</div>
       <div id="pwWordGrid"></div>
     </div>
 
-    <div class="pw-section">
-      <div class="pw-label">Address</div>
-      <div class="pw-mono" id="pwAddress"></div>
-    </div>
-    <div class="pw-row">
-      <div class="pw-section">
-        <div class="pw-label">Derivation path</div>
-        <div class="pw-mono" id="pwPath"></div>
+    <div class="pw-row pw-nobreak">
+      <div class="pw-col">
+        <div class="pw-section">
+          <div class="pw-label">Address</div>
+          <div class="pw-mono pw-address" id="pwAddress"></div>
+        </div>
+        <div class="pw-row">
+          <div class="pw-section">
+            <div class="pw-label">Derivation path</div>
+            <div class="pw-mono" id="pwPath"></div>
+          </div>
+          <div class="pw-section">
+            <div class="pw-label">Network</div>
+            <div class="pw-mono" id="pwNetwork"></div>
+          </div>
+        </div>
       </div>
-      <div class="pw-section">
-        <div class="pw-label">Network</div>
-        <div class="pw-mono" id="pwNetwork"></div>
-      </div>
+      <div class="pw-qr" id="pwQrHost"></div>
     </div>
-    <div class="pw-qr" id="pwQrHost"></div>
 
-    <div class="pw-section" id="pwPrivKeyWrap">
-      <div class="pw-label">Private key (keep secret)</div>
+    <div class="pw-section pw-nobreak" id="pwPrivKeyWrap">
+      <div class="pw-label">Private key &mdash; keep secret</div>
       <div class="pw-mono" id="pwPrivateKey"></div>
     </div>
-    <div class="pw-section" id="pwWifWrap" style="display:none;">
-      <div class="pw-label">WIF (private key, Bitcoin format, keep secret)</div>
+    <div class="pw-section pw-nobreak" id="pwWifWrap" style="display:none;">
+      <div class="pw-label">WIF (private key, Bitcoin format) &mdash; keep secret</div>
       <div class="pw-mono" id="pwWif"></div>
     </div>
-    <div class="pw-section" id="pwPubKeyWrap" style="display:none;">
+    <div class="pw-section pw-nobreak" id="pwPubKeyWrap" style="display:none;">
       <div class="pw-label">Public key</div>
       <div class="pw-mono" id="pwPubKey"></div>
     </div>
 
-    <div class="pw-branding">
-      <div>KeySense - Web3 Key, Path &amp; Security Workbench</div>
-      <div class="pw-links">
-        <span>keysense.withkeshav.com</span> &nbsp;|&nbsp;
-        <span>github.com/withkeshav/KeySense</span>
-      </div>
+    <div class="pw-warning pw-nobreak">Anyone who reads the seed words or private key above can spend these funds instantly. Store this page like cash: offline, out of sight of cameras, and destroyed or secured once you no longer need it. Generated locally in your browser &mdash; nothing on this page was ever transmitted or stored anywhere. For testing and educational purposes only. Always verify an address with an independent tool before sending real funds. KeySense is not a custodian or wallet provider and is not responsible for lost or stolen funds.</div>
+
+    <div class="pw-footer pw-nobreak">
+      <span>Created by <a href="https://www.withkeshav.com" target="_blank" rel="noopener">Keshav Maheshwari</a></span>
+      <span class="pw-footer-sep">&middot;</span>
+      <span>keysense.withkeshav.com</span>
+      <span class="pw-footer-sep">&middot;</span>
+      <span>github.com/withkeshav/KeySense</span>
     </div>
-    <div class="pw-footer">Generated locally in your browser. Nothing on this page was transmitted or stored anywhere. Anyone who reads the seed words or private key above can spend these funds instantly, so store this page like cash: offline, out of sight of cameras, and destroyed or secured once you no longer need it. For testing and educational purposes only. Always verify an address with an independent tool before sending real funds. KeySense is not a custodian or wallet provider and is not responsible for lost or stolen funds.</div>
   </div>
 
   <footer style="text-align:center;padding:28px 20px 20px;color:var(--text-subtle);font-size:12px;line-height:1.6;">
@@ -1019,6 +1127,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
   <script src="./src/bip39-helper.js"></script>
   <script src="./src/entropy-generator.js"></script>
   <script src="./src/entropy-compare.js"></script>
+  <script src="./src/learn-live.js"></script>
   <script src="./src/path-recovery.js"></script>
   <script src="./src/tree-inspector.js"></script>
   <script src="./src/paper-wallet.js"></script>

@@ -61,3 +61,54 @@ function secureDieFace() {
 function secureCoinFace() {
   return (secureRandomByte() & 1) ? "H" : "T";
 }
+
+/* Runtime entropy canary.
+ *
+ * In July 2026 a hardware wallet's firmware silently substituted a poorly
+ * seeded software PRNG for its hardware RNG because of a build-flag bug, and
+ * the output still looked like a completely normal, valid, checksummed seed
+ * phrase. Nobody noticed for five years, because nothing ever checked the
+ * OUTPUT, only the fact that a "random" function had been called.
+ *
+ * crypto.getRandomValues has no equivalent source-selection step to corrupt
+ * (see SECURITY-AUDIT.md's case study on this), but the same class of failure
+ * can still reach it one layer up: a browser with a broken Web Crypto
+ * implementation, or a malicious extension that monkey-patches
+ * window.crypto.getRandomValues before this page's own scripts run. Either
+ * would also produce normal-looking calls with degenerate output.
+ *
+ * This is a cheap, one-time sanity check, not a statistical test: two draws
+ * must differ, and neither may be all-zero or a single repeated byte. It
+ * cannot prove the source is strong, only catch the specific way a broken or
+ * substituted one tends to fail. */
+var secureRandomCanaryResult = null;
+
+function secureRandomCanaryCheck() {
+  if (secureRandomCanaryResult) return secureRandomCanaryResult;
+  if (!secureRandomAvailable()) {
+    secureRandomCanaryResult = { ok: false, reason: "crypto.getRandomValues is not available in this browser." };
+    return secureRandomCanaryResult;
+  }
+  var a = new Uint8Array(32);
+  var b = new Uint8Array(32);
+  crypto.getRandomValues(a);
+  crypto.getRandomValues(b);
+  var identical = true;
+  var allZero = true;
+  var allSameByte = true;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) identical = false;
+    if (a[i] !== 0) allZero = false;
+    if (a[i] !== a[0]) allSameByte = false;
+  }
+  if (identical) {
+    secureRandomCanaryResult = { ok: false, reason: "Two separate calls to crypto.getRandomValues returned identical output." };
+  } else if (allZero) {
+    secureRandomCanaryResult = { ok: false, reason: "crypto.getRandomValues returned an all-zero buffer." };
+  } else if (allSameByte) {
+    secureRandomCanaryResult = { ok: false, reason: "crypto.getRandomValues returned a single repeated byte value." };
+  } else {
+    secureRandomCanaryResult = { ok: true, reason: null };
+  }
+  return secureRandomCanaryResult;
+}

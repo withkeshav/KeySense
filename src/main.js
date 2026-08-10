@@ -1,6 +1,28 @@
 (function () {
       initUiBasics();
 
+      /* ── ENTROPY CANARY ──────────────────────────────────────────────
+       * Checked once, before anything on the page trusts crypto.getRandomValues
+       * for key material. See secure-random.js for what this catches and why. */
+      (function checkEntropyCanary() {
+        var result = secureRandomCanaryCheck();
+        if (result.ok) return;
+        var box = document.getElementById("entropyCanaryWarning");
+        if (!box) return;
+        box.textContent = "";
+        var title = document.createElement("p");
+        title.style.fontWeight = "700";
+        title.textContent = "This browser's random number source failed a basic sanity check.";
+        box.appendChild(title);
+        var detail = document.createElement("p");
+        detail.style.marginTop = "6px";
+        detail.textContent = result.reason + " Do not generate or trust any seed on this device " +
+          "until this is resolved: try a different, up to date browser, and check for any browser " +
+          "extension that could be intercepting crypto.getRandomValues.";
+        box.appendChild(detail);
+        box.style.display = "block";
+      })();
+
       /* ── SEED BAR SYNC ────────────────────────────────────────────────
        * The seed bar is a sticky, read-only display of the current mnemonic.
        * It stays visible on scroll and tab change so the seed is always in view.
@@ -34,11 +56,26 @@
        * generation: the results area cleared to em dashes while the bar kept
        * showing the previous seed, which is the one thing on screen a user is
        * most likely to copy. */
+      /* renderLearnLiveValues is defined inside the DOMContentLoaded closure
+       * further down (it needs langSelect and other elements scoped there),
+       * so setMnemonic - defined out here - cannot call it by name; that is
+       * a different, inner function scope, not merely "not yet defined".
+       * typeof on an out-of-scope identifier returns "undefined" rather than
+       * throwing, which is why a naive typeof-guard here would silently do
+       * nothing. This hook variable is assigned once the real function
+       * exists, and by the time any user interaction can call setMnemonic,
+       * DOMContentLoaded has always already fired. */
+      var learnLiveRenderHook = null;
+
       function setMnemonic(value) {
         var el = document.getElementById("mnemonic");
         if (!el) return;
         el.value = value;
         syncSeedBar();
+        /* Programmatic .value assignment fires neither "input" nor "change",
+         * so the Learn tab's live-value listeners (attached to those events)
+         * never see it. */
+        if (typeof learnLiveRenderHook === "function") learnLiveRenderHook();
       }
 
       async function renderQr(hostEl, text) {
@@ -1085,7 +1122,7 @@
         var entropyReproducible = document.getElementById("entropyReproducible");
         var entropyLowOverride = document.getElementById("entropyLowOverride");
         var entropySaltWrap = document.getElementById("entropySaltWrap");
-        var entropySalt = document.getElementById("entropySalt");
+        var entropyProvenanceHost = document.getElementById("entropyProvenance");
 
         /* True when the user has asked for a seed built from their rolls alone. */
         function entropyIsReproducible() {
@@ -1131,17 +1168,22 @@
         if (entropyLowOverride) entropyLowOverride.addEventListener("change", updateEntropyProgress);
         updateEntropyProgress();
 
-        /* Show the CSPRNG salt after a mixed-mode generate, or hide it in
-         * reproducible mode where there is no salt to show. */
-        function showEntropySalt(saltHex) {
-          if (!entropySaltWrap || !entropySalt) return;
-          if (saltHex) {
-            entropySalt.textContent = "0x" + saltHex;
-            entropySaltWrap.style.display = "block";
-          } else {
-            entropySalt.textContent = "";
+        /* Show exactly which tagged parts (dice / coins / CSPRNG salt) went
+         * into this generate, mirroring entropyToMnemonic's own construction
+         * via entropyProvenanceParts. Hidden in reproducible mode when there
+         * is nothing but the rolls themselves to show. */
+        function showEntropySalt(dice, coins, saltHex) {
+          if (!entropySaltWrap || !entropyProvenanceHost) return;
+          var parts = entropyProvenanceParts(dice, coins, saltHex);
+          entropyProvenanceHost.textContent = "";
+          if (!parts.length) {
             entropySaltWrap.style.display = "none";
+            return;
           }
+          parts.forEach(function (p) {
+            learnRenderKeyValueRow(entropyProvenanceHost, p.tag + "  " + p.label, p.value, { small: true });
+          });
+          entropySaltWrap.style.display = "block";
         }
 
         /* Shared options for both generate buttons, so the two paths cannot drift. */
@@ -1215,7 +1257,7 @@
           if (diceInput) diceInput.value = "";
           if (coinInput) coinInput.value = "";
           clearStage();
-          showEntropySalt(null);
+          showEntropySalt(null, null, null);
           updateEntropyProgress();
         });
 
@@ -1233,7 +1275,7 @@
              * reproducible mode is ticked. Changing any of them changes the seed. */
             var r = entropyToMnemonic(rolls, flips, wc, currentLang(), entropyOptions());
             setMnemonic(r.phrase);
-            showEntropySalt(r.saltHex);
+            showEntropySalt(rolls, flips, r.saltHex);
             showToast(r.lowEntropy
               ? "Demo phrase generated. Not enough randomness for real use."
               : "Generated " + r.wordCount + "-word mnemonic from your rolls");
@@ -1266,7 +1308,7 @@
           try {
             var r = entropyToMnemonic(rolls, flips, wc, currentLang(), entropyOptions());
             setMnemonic(r.phrase);
-            showEntropySalt(r.saltHex);
+            showEntropySalt(rolls, flips, r.saltHex);
             /* Apply the selected chain preset (reuses the existing presets map). */
             var presetName = entropyChainSelect ? entropyChainSelect.value : "eth";
             var preset = presets[presetName];
@@ -1412,9 +1454,18 @@
         /* ── ENTROPY COMPARISON (Learn step 1) ──────────────────────────── */
         var learnCompareHost = document.getElementById("learnCompareHost");
         var compareInput = document.getElementById("compareInput");
+        var compareRateSlider = document.getElementById("compareRateSlider");
+        var compareRateLabel = document.getElementById("compareRateLabel");
+
+        function currentGuessRate() {
+          var exp = compareRateSlider ? parseInt(compareRateSlider.value, 10) : 14;
+          return Math.pow(10, isNaN(exp) ? 14 : exp);
+        }
 
         function renderLearnCompare() {
           if (!learnCompareHost) return;
+          var rate = currentGuessRate();
+          if (compareRateLabel) compareRateLabel.textContent = entropyGuessRateLabel(rate);
           var rows = entropyReferenceRows();
           var typed = compareInput ? compareInput.value : "";
           if (typed) {
@@ -1430,6 +1481,7 @@
           }
           var typedEst = typed ? estimatePassphraseBits(typed) : null;
           renderEntropyComparison(learnCompareHost, rows, {
+            guessRate: rate,
             footnote: !typedEst ? null
               : typedEst.known
                 ? "That exact phrase is in every cracking wordlist, so its real strength is zero " +
@@ -1438,7 +1490,160 @@
           });
         }
         if (compareInput) compareInput.addEventListener("input", renderLearnCompare);
+        if (compareRateSlider) compareRateSlider.addEventListener("input", renderLearnCompare);
         renderLearnCompare();
+
+        /* ── L1/L2: LIVE VALUES + CHECKSUM DEMO IN THE 5-STEP WALKTHROUGH ── */
+        var checksumLastWordInput = document.getElementById("checksumLastWord");
+        var checksumResultHost = document.getElementById("checksumResultHost");
+        var checksumDemoBaseKey = null;
+
+        function renderChecksumDemo(breakdown) {
+          if (!checksumResultHost || !breakdown.valid) return;
+          var firstWords = breakdown.words.slice(0, -1).map(function (w) { return w.word; }).join(" ");
+          /* Only overwrite the input's own value when the underlying seed
+           * actually changed, never on every re-render, or a path-field
+           * change elsewhere on the page would erase what the user is
+           * mid-typing here. */
+          if (checksumLastWordInput && checksumDemoBaseKey !== breakdown.entropyHex) {
+            checksumDemoBaseKey = breakdown.entropyHex;
+            checksumLastWordInput.value = breakdown.words[breakdown.words.length - 1].word;
+          }
+          learnRenderChecksumDemo(checksumResultHost, firstWords,
+            checksumLastWordInput ? checksumLastWordInput.value : "", langSelect ? langSelect.value : "en");
+        }
+        if (checksumLastWordInput) {
+          checksumLastWordInput.addEventListener("input", function () {
+            var mn = document.getElementById("mnemonic");
+            var bd = learnEntropyBreakdown(mn ? mn.value : "", langSelect ? langSelect.value : "en");
+            if (!bd.valid) return;
+            var firstWords = bd.words.slice(0, -1).map(function (w) { return w.word; }).join(" ");
+            learnRenderChecksumDemo(checksumResultHost, firstWords, checksumLastWordInput.value,
+              langSelect ? langSelect.value : "en");
+          });
+        }
+
+        var passphraseBranchInput = document.getElementById("passphraseBranchInput");
+        var passphraseBranchHost = document.getElementById("passphraseBranchHost");
+        var lastMnemonicForDerive = LEARN_FALLBACK_MNEMONIC;
+        if (passphraseBranchInput) {
+          passphraseBranchInput.addEventListener("input", function () {
+            learnRenderPassphraseBranch(passphraseBranchHost, lastMnemonicForDerive, passphraseBranchInput.value);
+          });
+        }
+
+        /* W2: access-scope exercise. accessScopeCtx is rebuilt each render and
+         * reused across whichever of the 4 panels is currently selected. */
+        var accessScopeCurrent = "words";
+        var accessScopeCtx = {};
+        var accessScopeHost = document.getElementById("accessScopeHost");
+        document.querySelectorAll(".access-scope-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            document.querySelectorAll(".access-scope-btn").forEach(function (b) {
+              b.classList.toggle("active", b === btn);
+              b.style.background = b === btn ? "var(--accent-soft)" : "";
+              b.style.borderColor = b === btn ? "var(--accent)" : "";
+            });
+            accessScopeCurrent = btn.getAttribute("data-scope");
+            learnRenderAccessScope(accessScopeHost, accessScopeCurrent, accessScopeCtx);
+          });
+        });
+
+        function renderLearnLiveValues() {
+          var mnEl = document.getElementById("mnemonic");
+          var passphrase = document.getElementById("bip39Pass");
+          passphrase = passphrase ? passphrase.value : "";
+          var lang = langSelect ? langSelect.value : "en";
+          var breakdown = learnEntropyBreakdown(mnEl ? mnEl.value : "", lang);
+          learnRenderStep1(document.getElementById("learnStep1Live"), breakdown);
+          renderChecksumDemo(breakdown);
+          if (!breakdown.valid) return;
+          var mnemonicForDerive = breakdown.usedFallback ? LEARN_FALLBACK_MNEMONIC : mnEl.value.trim();
+          lastMnemonicForDerive = mnemonicForDerive;
+          learnRenderPassphraseBranch(passphraseBranchHost, mnemonicForDerive,
+            passphraseBranchInput ? passphraseBranchInput.value : "");
+
+          var masterKeyBreakdown = learnMasterKeyBreakdown(mnemonicForDerive, passphrase);
+          learnRenderStep2(document.getElementById("learnStep2Live"), masterKeyBreakdown);
+
+          accessScopeCtx = {
+            masterKeyBreakdown: masterKeyBreakdown,
+            xpubOnly: learnXpubOnlyDemo(mnemonicForDerive, passphrase, "m/44'/60'/0'"),
+            parentRecovery: learnParentKeyRecovery(mnemonicForDerive, passphrase, "m/44'/60'/0'", 0)
+          };
+          learnRenderAccessScope(accessScopeHost, accessScopeCurrent, accessScopeCtx);
+
+          var path = buildPathFromInputs();
+          var segments = learnPathSegments(path);
+          learnRenderStep3(document.getElementById("learnStep3Live"), segments, path);
+          learnRenderWalletMismatch(document.getElementById("walletMismatchHost"),
+            learnWalletMismatchDemo(mnemonicForDerive, passphrase));
+
+          if (segments.length) {
+            var lastSeg = segments[segments.length - 1];
+            var parentPath = "m/" + segments.slice(0, -1).map(function (s) { return s.raw; }).join("/");
+            if (parentPath === "m/") parentPath = "m";
+            var idxVal = lastSeg.value == null ? 0 : lastSeg.value;
+            learnRenderStep4(document.getElementById("learnStep4Live"),
+              learnHardenedComparison(mnemonicForDerive, passphrase, parentPath, idxVal));
+          }
+
+          learnRenderStep5(document.getElementById("learnStep5Live"),
+            learnAddressPipeline(mnemonicForDerive, passphrase));
+
+          /* Address derivation is async (Ed25519 chains, QR-free here), so
+           * this runs after the synchronous steps above rather than blocking
+           * them; the grid fills in a beat later on a slow device. */
+          renderChainGrid(mnemonicForDerive, passphrase);
+        }
+
+        /* W1: the same account-0/index-0 address on every chain this tool
+         * supports, reusing the exact preset map and formatAddress call the
+         * main Derive flow uses - no new derivation logic, just the same
+         * pipeline run nine times instead of once. */
+        var CHAIN_GRID_CHAINS = [
+          { key: "eth", label: "Ethereum" },
+          { key: "btc-native", label: "Bitcoin" },
+          { key: "solana", label: "Solana" },
+          { key: "tron", label: "Tron" },
+          { key: "ltc", label: "Litecoin" },
+          { key: "doge", label: "Dogecoin" },
+          { key: "cosmos", label: "Cosmos" },
+          { key: "sui", label: "Sui" },
+          { key: "aptos", label: "Aptos" }
+        ];
+
+        async function renderChainGrid(mnemonicForDerive, passphrase) {
+          var host = document.getElementById("learnChainGrid");
+          if (!host) return;
+          var root = ethers.utils.HDNode.fromMnemonic(mnemonicForDerive, passphrase || "");
+          var results = await Promise.all(CHAIN_GRID_CHAINS.map(async function (c) {
+            var preset = presets[c.key];
+            if (!preset) return { label: c.label, error: true };
+            var path = (preset.coinType === 501 || preset.coinType === SUI_COIN_TYPE || preset.coinType === APTOS_COIN_TYPE)
+              ? "m/" + preset.purpose + "'/" + preset.coinType + "'/" + preset.account + "'/" + preset.index + "'"
+              : "m/" + preset.purpose + "'/" + preset.coinType + "'/" + preset.account + "'/" + preset.change + "/" + preset.index;
+            try {
+              var secpPrivateHex = root.derivePath(path).privateKey;
+              var res = await formatAddress(mnemonicForDerive, path, preset.purpose, preset.coinType, secpPrivateHex, passphrase || "");
+              return { label: c.label, address: res.address };
+            } catch (e) {
+              return { label: c.label, error: true };
+            }
+          }));
+          learnRenderChainGrid(host, results);
+        }
+
+        ["mnemonic", "bip39Pass", "purpose", "coinType", "account", "change", "index"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener("input", renderLearnLiveValues);
+          el.addEventListener("change", renderLearnLiveValues);
+        });
+        /* Bridges the scope gap for setMnemonic, defined in the outer
+         * closure - see the comment on learnLiveRenderHook there. */
+        learnLiveRenderHook = renderLearnLiveValues;
+        renderLearnLiveValues();
 
         var learnOpenEntropy = document.getElementById("learnOpenEntropy");
         if (learnOpenEntropy) learnOpenEntropy.addEventListener("click", function (e) {

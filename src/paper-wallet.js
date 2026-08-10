@@ -13,25 +13,44 @@ function renderQrToHost(hostEl, text) {
   });
 }
 
+/* Built from DOM nodes, not an HTML string. BIP39 words only ever come from
+ * a fixed 2048-word list so this was never exploitable in practice, but
+ * every other sink in this app that touches a mnemonic builds nodes for the
+ * same reason: it should stay true regardless of where the string came from,
+ * not because of what the string happens to contain today. */
 function buildWordGrid(mnemonic) {
-  if (!mnemonic || typeof mnemonic !== "string") { return ""; }
+  if (!mnemonic || typeof mnemonic !== "string") { return null; }
   var words = mnemonic.trim().split(/\s+/).filter(Boolean);
-  if (words.length !== 12 && words.length !== 24) { return ""; }
-  var rows = "";
+  if (words.length !== 12 && words.length !== 24) { return null; }
+
+  var wrap = document.createElement("div");
+  wrap.className = "pw-word-grid";
+  var table = document.createElement("table");
+
   for (var i = 0; i < words.length; i += 4) {
-    var cells = "";
+    var tr = document.createElement("tr");
     for (var j = 0; j < 4; j++) {
       var idx = i + j;
+      var td = document.createElement("td");
+      var numSpan = document.createElement("span");
+      numSpan.className = "pw-num";
+      var wordSpan = document.createElement("span");
+      wordSpan.className = "pw-word";
       if (idx >= words.length) {
-        cells += '<td class="pw-slot pw-empty"><span class="pw-num"></span><span class="pw-word"></span></td>';
+        td.className = "pw-slot pw-empty";
       } else {
-        var num = idx + 1;
-        cells += '<td class="pw-slot"><span class="pw-num">' + num + '</span><span class="pw-word">' + words[idx] + '</span></td>';
+        td.className = "pw-slot";
+        numSpan.textContent = String(idx + 1);
+        wordSpan.textContent = words[idx];
       }
+      td.appendChild(numSpan);
+      td.appendChild(wordSpan);
+      tr.appendChild(td);
     }
-    rows += "<tr>" + cells + "</tr>";
+    table.appendChild(tr);
   }
-  return '<div class="pw-word-grid"><table>' + rows + "</table></div>";
+  wrap.appendChild(table);
+  return wrap;
 }
 
 function populatePaperWallet(data) {
@@ -53,7 +72,11 @@ function populatePaperWallet(data) {
   if (addrEl) { addrEl.textContent = data.address || ""; }
   if (pathEl) { pathEl.textContent = data.path || ""; }
   if (netEl) { netEl.textContent = data.network || ""; }
-  if (gridEl) { gridEl.innerHTML = buildWordGrid(data.mnemonic || ""); }
+  if (gridEl) {
+    gridEl.textContent = "";
+    var grid = buildWordGrid(data.mnemonic || "");
+    if (grid) gridEl.appendChild(grid);
+  }
   if (privKeyEl) { privKeyEl.textContent = data.privateKey || ""; }
   if (wifWrap && wifEl) {
     if (data.wif) { wifWrap.style.display = ""; wifEl.textContent = data.wif; }

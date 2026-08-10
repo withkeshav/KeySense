@@ -38,16 +38,18 @@ var ENTROPY_KNOWN_PHRASES = [
   "bitcoin"
 ];
 
-function entropyCrackSeconds(bits) {
+function entropyCrackSeconds(bits, rate) {
   if (!isFinite(bits) || bits <= 0) return 0;
-  return Math.pow(2, bits) / ENTROPY_GUESS_RATE;
+  return Math.pow(2, bits) / (rate || ENTROPY_GUESS_RATE);
 }
 
 /* Plain words rather than a number, because the number stops meaning anything
- * somewhere around 10^20. */
-function entropyCrackLabel(bits) {
+ * somewhere around 10^20. rate defaults to the fixed fast-offline-attack
+ * figure everywhere this was already called before the guess-rate slider
+ * existed, so no existing caller or test changes behaviour. */
+function entropyCrackLabel(bits, rate) {
   if (!isFinite(bits) || bits <= 0) return "already known";
-  var s = entropyCrackSeconds(bits);
+  var s = entropyCrackSeconds(bits, rate);
   if (s < 1) return "instant";
   if (s < 60) return Math.round(s) + " seconds";
   if (s < 3600) return Math.round(s / 60) + " minutes";
@@ -108,6 +110,18 @@ function entropyReferenceRows() {
     { label: "1 dice roll", bits: 2.585, kind: "weak" },
     { label: "“correct horse battery staple”", bits: 0, kind: "weak" }
   ];
+}
+
+/* Human label for a guess rate, used by the slider readout and the axis note
+ * so the two cannot drift apart. Powers of ten only; this is an order-of-
+ * magnitude dial, not a precision instrument. */
+function entropyGuessRateLabel(rate) {
+  if (rate >= 1e15) return "1 quadrillion guesses/sec (large ASIC farm)";
+  if (rate >= 1e14) return "100 trillion guesses/sec (fast offline attack)";
+  if (rate >= 1e12) return "1 trillion guesses/sec (GPU cluster)";
+  if (rate >= 1e9) return "1 billion guesses/sec (single GPU)";
+  if (rate >= 1e6) return "1 million guesses/sec (rate-limited online service)";
+  return "1,000 guesses/sec (strict rate limiting)";
 }
 
 function entropyRowColor(kind) {
@@ -171,7 +185,7 @@ function renderEntropyComparison(hostEl, rows, opts) {
     /* One decimal below 10, because rounding 2.585 to "3" overstates a single
      * dice roll by a noticeable fraction of its whole value. */
     val.textContent = (bits === 0 ? "0" : bits < 10 ? bits.toFixed(1) : String(Math.round(bits))) +
-      " bits · " + entropyCrackLabel(bits);
+      " bits · " + entropyCrackLabel(bits, opts.guessRate);
     table.appendChild(val);
   });
 
@@ -182,9 +196,9 @@ function renderEntropyComparison(hostEl, rows, opts) {
   axis.style.marginTop = "10px";
   axis.style.marginBottom = "0";
   axis.textContent = opts.axisNote ||
-    "Bars are bit counts, and bits are already a logarithm: every extra bit doubles the work. " +
+    ("Bars are bit counts, and bits are already a logarithm: every extra bit doubles the work. " +
     "A full bar is 128 bits, which is what one click of Generate gives you. Search times assume " +
-    "100 trillion guesses a second against a fast hash.";
+    entropyGuessRateLabel(opts.guessRate || ENTROPY_GUESS_RATE) + ".");
   hostEl.appendChild(axis);
 
   if (opts.footnote) {
