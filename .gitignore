@@ -1,5 +1,29 @@
+# Local tooling and AI worktrees
 .progress/
 AGENTS.md
-node_modules/
-.DS_Store
 .claude/
+.code-review-graph/
+.opencode/
+
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
