@@ -809,3 +809,349 @@ function learnRenderWalletMismatch(hostEl, demo) {
     "recoverable by entering the correct path or trying the other preset on the Derive tab.";
   hostEl.appendChild(note);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * Tier 3 teaching additions. Everything below is presentation layered on
+ * the same public calls the rest of the tool makes; none of it reimplements
+ * derivation. Pure helpers come first so run-vectors.js can pin them.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ---- 3b. Bit-flip explorer: pure helpers ---- */
+
+function learnBytesToBits(bytes) {
+  var bits = [];
+  for (var i = 0; i < bytes.length * 8; i++) {
+    bits.push((bytes[Math.floor(i / 8)] >> (7 - (i % 8))) & 1);
+  }
+  return bits;
+}
+
+function learnBitsToBytes(bits) {
+  var out = new Uint8Array(Math.ceil(bits.length / 8));
+  for (var i = 0; i < bits.length; i++) {
+    if (bits[i]) out[Math.floor(i / 8)] |= (0x80 >> (i % 8));
+  }
+  return out;
+}
+
+function learnWordAtIndex(lang, idx) {
+  var wl = getWordlist(lang);
+  if (!wl) return null;
+  if (typeof wl.getWord === "function") return wl.getWord(idx);
+  if (typeof wl.get === "function") return wl.get(idx);
+  return null;
+}
+
+/* Re-derive a VALID phrase from mutated entropy bits. BIP39 recomputes the
+ * checksum itself, which is exactly the behaviour being demonstrated: the
+ * checksum is a function of the entropy, so change one bit and the last word
+ * changes with it. */
+function learnPhraseFromEntropyBits(bits, lang) {
+  var wl = getWordlist(lang);
+  return ethers.utils.entropyToMnemonic(learnBitsToBytes(bits), wl);
+}
+
+/* Build a phrase from a full entropy+checksum bitstring WITHOUT recomputing
+ * the checksum. If only checksum bits were tampered with, the phrase will be
+ * a perfectly real-looking set of words that fails validation. */
+function learnPhraseFromFullBits(bits, lang) {
+  var words = [];
+  for (var i = 0; i + 11 <= bits.length; i += 11) {
+    var idx = 0;
+    for (var b = 0; b < 11; b++) idx = idx * 2 + (bits[i + b] ? 1 : 0);
+    words.push(learnWordAtIndex(lang, idx));
+  }
+  return words.join(" ");
+}
+
+/* ---- 3b. Bit-flip explorer: state and renderer ----
+ *
+ * The explorer is a playground COPY of the loaded seed's entropy. Flipping
+ * bits never touches the mnemonic input; the state re-seeds whenever the
+ * underlying seed's entropy changes. Clicking an entropy bit re-derives a new
+ * valid phrase (watch the last word move); clicking a checksum bit keeps the
+ * entropy but corrupts the stored checksum, so the phrase fails validation. */
+var learnBitExplorerState = null;
+
+function learnBitExplorerSeedState(breakdown) {
+  var bits = [];
+  for (var i = 0; i < breakdown.words.length; i++) {
+    var bin = breakdown.words[i].binary;
+    if (!bin) return null;
+    for (var b = 0; b < bin.length; b++) bits.push(bin.charAt(b) === "1" ? 1 : 0);
+  }
+  return {
+    sourceEntropyHex: breakdown.entropyHex,
+    entropy: bits.slice(0, breakdown.entropyBits),
+    checksum: bits.slice(breakdown.entropyBits),
+    entropyBits: breakdown.entropyBits,
+    originalWords: breakdown.words.map(function (w) { return w.word; })
+  };
+}
+
+function learnRenderBitExplorer(hostEl, breakdown, lang) {
+  if (typeof document === "undefined") return;
+  if (!hostEl) return;
+  lang = lang || "en";
+  if (!breakdown || !breakdown.valid) {
+    hostEl.textContent = "";
+    learnBitExplorerState = null;
+    return;
+  }
+  if (!learnBitExplorerState || learnBitExplorerState.sourceEntropyHex !== breakdown.entropyHex) {
+    learnBitExplorerState = learnBitExplorerSeedState(breakdown);
+    if (!learnBitExplorerState) { hostEl.textContent = ""; return; }
+  }
+  var st = learnBitExplorerState;
+
+  var full = st.entropy.concat(st.checksum);
+  var wl = getWordlist(lang);
+  var phrase = learnPhraseFromFullBits(full, lang);
+  var valid = false;
+  try { valid = ethers.utils.isValidMnemonic(phrase, wl); } catch (e) { valid = false; }
+  var words = phrase.split(" ");
+
+  hostEl.textContent = "";
+
+  var intro = document.createElement("p");
+  intro.className = "hint";
+  intro.style.marginBottom = "8px";
+  intro.textContent = "This is a scratch copy of " + (breakdown.usedFallback ? "the example seed" : "your seed") +
+    " - flipping bits here never touches the real one. Click any bit: entropy bits re-derive a brand new valid phrase " +
+    "(watch which words move), checksum bits corrupt the phrase so it fails validation.";
+  hostEl.appendChild(intro);
+
+  var badge = document.createElement("div");
+  badge.className = valid ? "bit-valid-badge" : "bit-invalid-badge";
+  badge.textContent = valid
+    ? "Checksum passes - this bitstring is a valid " + words.length + "-word phrase"
+    : "Checksum FAILS - real words, but the phrase is not a valid seed";
+  hostEl.appendChild(badge);
+
+  var grid = document.createElement("div");
+  grid.className = "bit-grid";
+  for (var w = 0; w < words.length; w++) {
+    var row = document.createElement("div");
+    row.className = "bit-row";
+    if (words[w] !== st.originalWords[w]) row.className += " bit-row-changed";
+    var num = document.createElement("span");
+    num.className = "bit-word-num";
+    num.textContent = String(w + 1);
+    row.appendChild(num);
+    var wordEl = document.createElement("span");
+    wordEl.className = "bit-word";
+    wordEl.textContent = words[w];
+    row.appendChild(wordEl);
+    for (var b = 0; b < 11; b++) {
+      (function (pos, isChecksum, value) {
+        var cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "bit-cell" + (isChecksum ? " bit-cell-checksum" : "") + (value ? " bit-cell-on" : "");
+        cell.textContent = value ? "1" : "0";
+        cell.setAttribute("aria-label", (isChecksum ? "checksum" : "entropy") + " bit " + (pos + 1) + ", value " + value + ". Click to flip.");
+        cell.addEventListener("click", function () {
+          if (pos < st.entropyBits) {
+            st.entropy[pos] = st.entropy[pos] ? 0 : 1;
+            /* Re-derive the valid phrase for the mutated entropy and adopt its
+             * recomputed checksum bits, so the checksum cells move with it. */
+            var newPhrase = learnPhraseFromEntropyBits(st.entropy, lang);
+            var newWords = newPhrase.split(" ");
+            var lastIdx = (typeof wl.getWordIndex === "function") ? wl.getWordIndex(newWords[newWords.length - 1]) : -1;
+            if (lastIdx >= 0) {
+              var bin = learnBinary11(lastIdx);
+              for (var c = 0; c < st.checksum.length; c++) {
+                st.checksum[c] = bin.charAt(bin.length - st.checksum.length + c) === "1" ? 1 : 0;
+              }
+            }
+          } else {
+            var ci = pos - st.entropyBits;
+            st.checksum[ci] = st.checksum[ci] ? 0 : 1;
+          }
+          learnRenderBitExplorer(hostEl, breakdown, lang);
+        });
+        row.appendChild(cell);
+      })(w * 11 + b, w * 11 + b >= st.entropyBits, full[w * 11 + b] ? true : false);
+    }
+    grid.appendChild(row);
+  }
+  hostEl.appendChild(grid);
+
+  var legend = document.createElement("p");
+  legend.className = "hint";
+  legend.style.marginTop = "8px";
+  legend.style.marginBottom = "8px";
+  legend.textContent = "Blue cells are entropy (the actual data). Accent cells at the end of the last word are checksum (derived from the entropy). " +
+    "Changed words are highlighted.";
+  hostEl.appendChild(legend);
+
+  var controls = document.createElement("div");
+  controls.className = "action-buttons";
+  var resetBtn = document.createElement("button");
+  resetBtn.type = "button";
+  resetBtn.className = "btn-secondary";
+  resetBtn.textContent = "Reset to the loaded seed";
+  resetBtn.addEventListener("click", function () {
+    learnBitExplorerState = learnBitExplorerSeedState(breakdown);
+    learnRenderBitExplorer(hostEl, breakdown, lang);
+  });
+  controls.appendChild(resetBtn);
+  var breakBtn = document.createElement("button");
+  breakBtn.type = "button";
+  breakBtn.className = "btn-secondary";
+  breakBtn.textContent = "Break the checksum";
+  breakBtn.addEventListener("click", function () {
+    st.checksum[0] = st.checksum[0] ? 0 : 1;
+    learnRenderBitExplorer(hostEl, breakdown, lang);
+  });
+  controls.appendChild(breakBtn);
+  hostEl.appendChild(controls);
+}
+
+/* ---- 3g. Live verification badges ----
+ *
+ * Transparency: the tool does not ask to be trusted, it recomputes the
+ * official BIP39/BIP32/BIP44/BIP84 test vectors in the reader's browser and
+ * shows the verdict. Any red row means this copy of the page is broken or
+ * tampered with and must not be trusted. */
+function learnVerifyVectors() {
+  var out = [];
+  if (typeof ethers === "undefined") return out;
+  var MN = LEARN_FALLBACK_MNEMONIC;
+  try {
+    var mk = learnMasterKeyBreakdown(MN, "");
+    out.push({
+      label: "BIP39 PBKDF2 seed of abandon...about (2048 rounds)",
+      expect: "0x5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4",
+      got: mk.seedHex
+    });
+    out.push({
+      label: "BIP32 master private key",
+      expect: "0x1837c1be8e2995ec11cda2b066151be2cfb48adf9e47b151d46adab3a21cdf67",
+      got: mk.masterPrivateKeyHex
+    });
+    out.push({
+      label: "BIP32 master chain code",
+      expect: "0x7923408dadd3c7b56eed15567707ae5e5dca089de972e07f3b860450e2a3b70e",
+      got: mk.chainCodeHex
+    });
+    var pipe = learnAddressPipeline(MN, "");
+    out.push({
+      label: "BIP44 EVM address m/44'/60'/0'/0/0",
+      expect: "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+      got: pipe.evm && pipe.evm.address
+    });
+    out.push({
+      label: "BIP84 Bitcoin native segwit m/84'/0'/0'/0/0",
+      expect: "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu",
+      got: pipe.btc && pipe.btc.address
+    });
+  } catch (e) {
+    out.push({ label: "verification runner", expect: "ran without throwing", got: String((e && e.message) || e) });
+  }
+  out.forEach(function (r) { r.pass = String(r.expect) === String(r.got); });
+  return out;
+}
+
+function learnRenderVerifyBadges(hostEl, checks) {
+  if (typeof document === "undefined") return;
+  if (!hostEl) return;
+  hostEl.textContent = "";
+  checks.forEach(function (c) {
+    var row = document.createElement("div");
+    row.className = "verify-row " + (c.pass ? "verify-ok" : "verify-bad");
+    var mark = document.createElement("span");
+    mark.className = "verify-mark";
+    mark.textContent = c.pass ? "PASS" : "FAIL";
+    row.appendChild(mark);
+    var label = document.createElement("span");
+    label.className = "verify-label";
+    label.textContent = c.label;
+    row.appendChild(label);
+    if (!c.pass) {
+      var got = document.createElement("span");
+      got.className = "verify-got";
+      got.style.fontFamily = "var(--mono)";
+      got.style.fontSize = "10px";
+      got.style.wordBreak = "break-all";
+      got.textContent = "got " + c.got;
+      row.appendChild(got);
+    }
+    hostEl.appendChild(row);
+  });
+}
+
+/* ---- 3h. Wordlist explorer ---- */
+
+function learnWordlistStats(lang) {
+  var arr = getWordlistArray(lang);
+  if (!arr) return null;
+  var seen = {};
+  var unique4 = true;
+  for (var i = 0; i < arr.length; i++) {
+    var p = String(arr[i]).slice(0, 4);
+    if (seen[p]) { unique4 = false; break; }
+    seen[p] = true;
+  }
+  return { count: arr.length, firstFourUnique: unique4 };
+}
+
+/* Prefix matches first, then contains matches, capped at limit. */
+function learnWordlistSearchMatches(arr, query, limit) {
+  var q = String(query || "").toLowerCase();
+  var matches = [];
+  var contains = [];
+  if (!q) {
+    for (var i = 0; i < arr.length && i < limit; i++) matches.push(arr[i]);
+    return { matches: matches, total: arr.length };
+  }
+  for (var j = 0; j < arr.length; j++) {
+    var w = String(arr[j]);
+    if (w.indexOf(q) === 0) matches.push(w);
+    else if (w.indexOf(q) !== -1) contains.push(w);
+    if (matches.length >= limit) break;
+  }
+  matches = matches.concat(contains).slice(0, limit);
+  return { matches: matches, total: matches.length };
+}
+
+function learnRenderWordlistExplorer(hostEl, lang, query) {
+  if (typeof document === "undefined") return;
+  if (!hostEl) return;
+  var arr = getWordlistArray(lang);
+  hostEl.textContent = "";
+  if (!arr) {
+    var p = document.createElement("p");
+    p.className = "hint";
+    p.textContent = "Wordlist not available.";
+    hostEl.appendChild(p);
+    return;
+  }
+  var stats = learnWordlistStats(lang);
+  var statsLine = document.createElement("p");
+  statsLine.className = "hint";
+  statsLine.style.marginBottom = "6px";
+  statsLine.textContent = arr.length + " words in this list. " +
+    (stats && stats.firstFourUnique
+      ? "Verified just now: no two of them share their first four letters, so typing four letters is always enough to name one."
+      : "First-four-letter uniqueness could not be verified for this list.");
+  hostEl.appendChild(statsLine);
+
+  var res = learnWordlistSearchMatches(arr, query, 48);
+  var countLine = document.createElement("p");
+  countLine.className = "hint";
+  countLine.style.marginBottom = "6px";
+  countLine.textContent = query
+    ? "Showing " + res.total + " matching word" + (res.total === 1 ? "" : "s") + " for \"" + query + "\" (first 48)."
+    : "First " + res.matches.length + " words:";
+  hostEl.appendChild(countLine);
+
+  var grid = document.createElement("div");
+  grid.className = "wordlist-grid";
+  res.matches.forEach(function (w, i) {
+    var chip = document.createElement("span");
+    chip.className = "wordlist-chip";
+    chip.textContent = (i + 1) + " " + w;
+    grid.appendChild(chip);
+  });
+  hostEl.appendChild(grid);
+}

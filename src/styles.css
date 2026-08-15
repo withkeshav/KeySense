@@ -277,6 +277,40 @@
       font-family: var(--font);
       font-size: 12px;
     }
+    .seed-bar-value.seed-bar-masked {
+      -webkit-text-security: disc;
+      user-select: none;
+    }
+    @supports not (-webkit-text-security: disc) {
+      .seed-bar-value.seed-bar-masked {
+        filter: blur(6px);
+        -webkit-filter: blur(6px);
+      }
+    }
+    .seed-bar-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .seed-bar-btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .seed-bar-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .seed-bar-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
 
     .dev-mode-toggle {
       margin-left: auto;
@@ -1401,4 +1435,149 @@
 }
 .guide-table tbody tr.guide-row:focus-visible {
   box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* ── Tier 3 teaching additions ──────────────────────────────────────────── */
+
+/* 3c/3e/3f: click-to-reveal blocks (quizzes, scenarios, FAQ) */
+.quiz-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--code-bg);
+}
+.quiz-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  list-style-position: outside;
+}
+.quiz-item summary:hover { color: var(--accent); }
+.quiz-item[open] summary { margin-bottom: 6px; }
+.quiz-item p.hint { margin: 0; }
+
+/* 3d: glossary */
+dl.glossary { margin: 0; }
+dl.glossary dt {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--accent);
+  margin-top: 10px;
+  font-family: var(--mono);
+}
+dl.glossary dd {
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* 3b: bit-flip explorer */
+.bit-grid { display: flex; flex-direction: column; gap: 4px; }
+.bit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+}
+.bit-row-changed {
+  background: var(--success-bg);
+  outline: 1px solid var(--success);
+}
+.bit-word-num {
+  font-size: 10px;
+  color: var(--text-subtle);
+  width: 18px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.bit-word {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  width: 74px;
+  flex-shrink: 0;
+}
+.bit-cell {
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.bit-cell:hover { border-color: var(--accent); }
+.bit-cell-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+.bit-cell-checksum { border-style: dashed; }
+.bit-cell-checksum.bit-cell-on {
+  background: var(--warning, #f59e0b);
+  border-color: var(--warning, #f59e0b);
+}
+.bit-valid-badge, .bit-invalid-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.bit-valid-badge { background: var(--success-bg); color: var(--success); }
+.bit-invalid-badge { background: var(--error-bg); color: var(--error); }
+
+/* 3g: verification badges */
+.verify-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.verify-ok { background: var(--success-bg); }
+.verify-bad { background: var(--error-bg); }
+.verify-mark {
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.verify-ok .verify-mark { background: var(--success); color: #ffffff; }
+.verify-bad .verify-mark { background: var(--error); color: #ffffff; }
+.verify-label { color: var(--text); }
+.verify-got { color: var(--error); }
+
+/* 3h: wordlist explorer */
+.wordlist-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.wordlist-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--code-bg);
+  color: var(--text-muted);
 }

@@ -26,8 +26,11 @@
       /* ── SEED BAR SYNC ────────────────────────────────────────────────
        * The seed bar is a sticky, read-only display of the current mnemonic.
        * It stays visible on scroll and tab change so the seed is always in view.
-       * No controls here - the Generate button lives only in the Derive tab Step 1. */
+       * Hide masks the phrase, Clear empties it. Both buttons only make sense
+       * when a seed is actually present, so they track the same state. */
       var seedBarValue = document.getElementById("seedBarValue");
+      var seedBarToggle = document.getElementById("seedBarToggle");
+      var seedBarClear = document.getElementById("seedBarClear");
       function syncSeedBar() {
         var mn = document.getElementById("mnemonic");
         var v = (mn && mn.value.trim()) || "";
@@ -38,8 +41,14 @@
           } else {
             seedBarValue.textContent = "No seed generated - click Generate in the Derive tab";
             seedBarValue.classList.add("seed-bar-empty");
+            seedBarValue.classList.remove("seed-bar-masked");
           }
         }
+        if (seedBarToggle) {
+          seedBarToggle.disabled = !v;
+          seedBarToggle.textContent = (seedBarValue && seedBarValue.classList.contains("seed-bar-masked")) ? "Show" : "Hide";
+        }
+        if (seedBarClear) seedBarClear.disabled = !v;
       }
       var mnInput = document.getElementById("mnemonic");
       if (mnInput) {
@@ -215,6 +224,61 @@
           var uo = document.getElementById("devUtxoAllOut");
           if (eo) eo.innerHTML = "";
           if (uo) uo.innerHTML = "";
+        }
+
+        /* Reset every derive result back to its empty state. Mirrors the reset
+         * block at the top of deriveKeys so Clear Seed leaves the results panel
+         * looking exactly like it does before a first derivation. */
+        function resetDeriveResults() {
+          clearFeatureError(errorDiv);
+          successDiv.style.display = "none";
+          successDiv.textContent = "";
+          addrSpan.textContent = "—";
+          pkSpan.textContent = "—";
+          wifBlock.style.display = "none";
+          wifOut.textContent = "—";
+          if (tronEvmRow) tronEvmRow.style.display = "none";
+          if (tronEvmAddr) tronEvmAddr.textContent = "—";
+          if (pubKeyCompressed) pubKeyCompressed.textContent = "—";
+          if (pubKeyUncompressedWrap) pubKeyUncompressedWrap.style.display = "none";
+          if (pubKeyUncompressed) pubKeyUncompressed.textContent = "—";
+          if (solanaExtraWrap) solanaExtraWrap.style.display = "none";
+          if (solanaSecret64) solanaSecret64.textContent = "—";
+          if (solanaKeyHint) solanaKeyHint.textContent = "";
+          if (qrHost) qrHost.innerHTML = "";
+          clearDevDeriveExtras();
+        }
+
+        /* Clear also retires every other panel showing data derived from the
+         * previous seed: the HD tree (it displays xprvs) and the Experiments
+         * outputs (typo suggestions, word finder, path recovery). Each is
+         * restored to its initial hint state rather than just hidden, so a
+         * later tab visit cannot mistake stale output for a fresh run. */
+        function resetSeedDependentPanels() {
+          var tc = document.getElementById("treeContainer");
+          if (tc) {
+            tc.textContent = "";
+            var p = document.createElement("p");
+            p.className = "hint";
+            p.style.textAlign = "center";
+            p.style.padding = "24px 0";
+            p.style.color = "var(--text-subtle)";
+            p.textContent = 'No tree yet. Click "Build tree from current seed" above to start.';
+            tc.appendChild(p);
+          }
+          var ti = document.getElementById("treeInfo");
+          if (ti) {
+            ti.textContent = "";
+            var q = document.createElement("p");
+            q.className = "hint";
+            q.style.color = "var(--text-subtle)";
+            q.textContent = "Click a tree node on the left to see its derived keys, extended key (xprv/xpub), and EVM address here.";
+            ti.appendChild(q);
+          }
+          ["typoSuggestOut", "wordFinderOut", "recoveryOut"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) { el.style.display = "none"; el.textContent = ""; }
+          });
         }
 
         /* One label/value row, built as DOM nodes so the value is always text.
@@ -450,6 +514,27 @@
           setMnemonic(randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value));
           syncSeedBar();
         });
+
+        /* Seed bar Hide/Show and Clear. The toggle masks the displayed phrase
+         * with a CSS class so it survives re-renders; Clear empties the
+         * mnemonic through setMnemonic (which also resyncs the bar) and resets
+         * every derived result so no stale key material is left on screen. */
+        var seedBarToggleBtn = document.getElementById("seedBarToggle");
+        var seedBarClearBtn = document.getElementById("seedBarClear");
+        if (seedBarToggleBtn) {
+          seedBarToggleBtn.addEventListener("click", function () {
+            if (!seedBarValue) return;
+            var masked = seedBarValue.classList.toggle("seed-bar-masked");
+            seedBarToggleBtn.textContent = masked ? "Show" : "Hide";
+          });
+        }
+        if (seedBarClearBtn) {
+          seedBarClearBtn.addEventListener("click", function () {
+            setMnemonic("");
+            resetDeriveResults();
+            resetSeedDependentPanels();
+          });
+        }
 
         deriveBtn.addEventListener("click", deriveKeys);
 
@@ -975,13 +1060,30 @@
           setTimeout(function () {
             var r = findValid12thWords(first11, currentLang());
             if (r.error) { setHintMessage(wordFinderOut, r.error, "var(--error)"); return; }
-            var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 12th words:</p>';
-            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+            /* Built as DOM nodes. The 12th word is wordlist text, not user
+             * input, so it cannot carry markup, but keeping this pattern
+             * consistent with the typo fixer above means no path in this panel
+             * ever concatenates strings into innerHTML. */
+            wordFinderOut.textContent = "";
+            var intro = document.createElement("p");
+            intro.className = "hint";
+            intro.style.marginBottom = "8px";
+            intro.textContent = "Found " + r.validCount + " valid 12th words:";
+            wordFinderOut.appendChild(intro);
+            var grid = document.createElement("div");
+            grid.style.display = "flex";
+            grid.style.flexWrap = "wrap";
+            grid.style.gap = "6px";
             r.validWords.forEach(function (w) {
-              html += '<button type="button" class="btn-secondary" data-append-word="' + w + '" style="font-size:12px;">' + w + '</button>';
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "btn-secondary";
+              btn.setAttribute("data-append-word", w);
+              btn.style.fontSize = "12px";
+              btn.textContent = w;
+              grid.appendChild(btn);
             });
-            html += '</div>';
-            wordFinderOut.innerHTML = html;
+            wordFinderOut.appendChild(grid);
             wordFinderOut.querySelectorAll("[data-append-word]").forEach(function (b) {
               b.addEventListener("click", function () {
                 var w = b.getAttribute("data-append-word");
@@ -1010,13 +1112,28 @@
             var r = findValid24thWords(first23, currentLang());
             if (r.error) { setHintMessage(wordFinderOut, r.error, "var(--error)"); return; }
             var show = r.validWords.slice(0, 40);
-            var html = '<p class="hint" style="margin-bottom:8px;">Found ' + r.validCount + ' valid 24th words (showing first ' + show.length + '):</p>';
-            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;">';
+            wordFinderOut.textContent = "";
+            var intro = document.createElement("p");
+            intro.className = "hint";
+            intro.style.marginBottom = "8px";
+            intro.textContent = "Found " + r.validCount + " valid 24th words (showing first " + show.length + "):";
+            wordFinderOut.appendChild(intro);
+            var grid = document.createElement("div");
+            grid.style.display = "flex";
+            grid.style.flexWrap = "wrap";
+            grid.style.gap = "6px";
+            grid.style.maxHeight = "160px";
+            grid.style.overflowY = "auto";
             show.forEach(function (w) {
-              html += '<button type="button" class="btn-secondary" data-append-word24="' + w + '" style="font-size:11px;">' + w + '</button>';
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "btn-secondary";
+              btn.setAttribute("data-append-word24", w);
+              btn.style.fontSize = "11px";
+              btn.textContent = w;
+              grid.appendChild(btn);
             });
-            html += '</div>';
-            wordFinderOut.innerHTML = html;
+            wordFinderOut.appendChild(grid);
             wordFinderOut.querySelectorAll("[data-append-word24]").forEach(function (b) {
               b.addEventListener("click", function () {
                 var w = b.getAttribute("data-append-word24");
@@ -1557,6 +1674,11 @@
           var breakdown = learnEntropyBreakdown(mnEl ? mnEl.value : "", lang);
           learnRenderStep1(document.getElementById("learnStep1Live"), breakdown);
           renderChecksumDemo(breakdown);
+          /* 3b: bit-flip explorer keeps its own scratch state and re-seeds only
+           * when the entropy changes, so passing the live breakdown on every
+           * render is safe - unrelated input changes do not reset the user's
+           * flips. No-op when invalid (state cleared inside). */
+          learnRenderBitExplorer(document.getElementById("learnBitExplorer"), breakdown, lang);
           if (!breakdown.valid) return;
           var mnemonicForDerive = breakdown.usedFallback ? LEARN_FALLBACK_MNEMONIC : mnEl.value.trim();
           lastMnemonicForDerive = mnemonicForDerive;
@@ -1644,6 +1766,24 @@
          * closure - see the comment on learnLiveRenderHook there. */
         learnLiveRenderHook = renderLearnLiveValues;
         renderLearnLiveValues();
+
+        /* 3g: one-time self-verification against the official BIP vectors.
+         * Rendered once at load - the vectors are constants, so there is
+         * nothing to recompute when the user's own seed changes. */
+        learnRenderVerifyBadges(document.getElementById("learnVerifyHost"), learnVerifyVectors());
+
+        /* 3h: wordlist explorer. Follows the mnemonic language select, same
+         * as the rest of the Learn tab. */
+        var wordlistSearchInput = document.getElementById("wordlistSearch");
+        var wordlistExplorerHost = document.getElementById("wordlistExplorerHost");
+        function renderWordlistExplorer() {
+          learnRenderWordlistExplorer(wordlistExplorerHost,
+            langSelect ? langSelect.value : "en",
+            wordlistSearchInput ? wordlistSearchInput.value : "");
+        }
+        if (wordlistSearchInput) wordlistSearchInput.addEventListener("input", renderWordlistExplorer);
+        if (langSelect) langSelect.addEventListener("change", renderWordlistExplorer);
+        renderWordlistExplorer();
 
         var learnOpenEntropy = document.getElementById("learnOpenEntropy");
         if (learnOpenEntropy) learnOpenEntropy.addEventListener("click", function (e) {

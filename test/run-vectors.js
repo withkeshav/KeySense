@@ -397,6 +397,77 @@ function runAllVectors() {
     return Promise.resolve();
   }
 
+  /* ---- 5d. Tier 3 teaching helpers (bit explorer, badges, wordlist) ----
+   * Pure compute only. The bit-flip explorer's whole point is that flipping
+   * entropy bits re-derives a DIFFERENT valid phrase (checksum recomputed by
+   * BIP39 itself), while corrupting checksum bits alone yields real words
+   * that fail validation. These pins freeze that behaviour. */
+  function checkLearnTier3() {
+    if (typeof learnBytesToBits !== "function") return Promise.resolve();
+    try {
+      var MN = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+      var wl = getWordlist("en");
+
+      /* Byte <-> bit helpers round-trip both directions. */
+      var ent = ethers.utils.mnemonicToEntropy(MN, wl);
+      var bytes = ethers.utils.arrayify(ent);
+      var back = learnBitsToBytes(learnBytesToBits(bytes));
+      var hexBack = "";
+      for (var i = 0; i < back.length; i++) hexBack += ("0" + back[i].toString(16)).slice(-2);
+      record("learn3", "bits-bytes-roundtrip", ent.replace(/^0x/, ""), hexBack);
+
+      /* Zero entropy is abandon x11 + about. Flipping single bits must give
+       * deterministic, DIFFERENT, still-valid phrases. */
+      var zero = learnBytesToBits(new Uint8Array(16));
+      var b0 = zero.slice(); b0[0] = 1;
+      record("learn3", "flip-entropy-bit-0",
+        "length abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        learnPhraseFromEntropyBits(b0, "en"));
+      var b127 = zero.slice(); b127[127] = 1;
+      record("learn3", "flip-entropy-bit-127",
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon actual",
+        learnPhraseFromEntropyBits(b127, "en"));
+      var valid0 = false;
+      try { valid0 = ethers.utils.isValidMnemonic(learnPhraseFromEntropyBits(b0, "en"), wl); } catch (e2) {}
+      record("learn3", "flipped-entropy-still-valid", true, valid0);
+
+      /* Corrupt only a checksum bit: real words, invalid phrase. abandon12's
+       * last word "about" is index 3 (00000000011); flipping the final
+       * checksum bit gives index 2, "able", and validation must fail. */
+      var bd = learnEntropyBreakdown(MN, "en");
+      var bits = [];
+      bd.words.forEach(function (w) {
+        for (var c = 0; c < w.binary.length; c++) bits.push(w.binary.charAt(c) === "1" ? 1 : 0);
+      });
+      record("learn3", "full-bitstring-length", 132, bits.length);
+      var corrupted = bits.slice();
+      corrupted[131] = corrupted[131] ? 0 : 1;
+      var corruptedPhrase = learnPhraseFromFullBits(corrupted, "en");
+      record("learn3", "checksum-flip-last-word", "able", corruptedPhrase.split(" ").pop());
+      var validC = false;
+      try { validC = ethers.utils.isValidMnemonic(corruptedPhrase, wl); } catch (e3) {}
+      record("learn3", "checksum-flip-invalid", false, validC);
+      /* Untampered bitstring must rebuild the original phrase exactly. */
+      record("learn3", "untampered-rebuild", MN, learnPhraseFromFullBits(bits, "en"));
+
+      /* 3g: the self-verification must recompute all official vectors green. */
+      var checks = learnVerifyVectors();
+      record("learn3", "verify-vector-count", 5, checks.length);
+      record("learn3", "verify-all-pass", true, checks.every(function (c) { return c.pass; }));
+
+      /* 3h: wordlist stats and search. */
+      var stats = learnWordlistStats("en");
+      record("learn3", "wordlist-count", 2048, stats && stats.count);
+      record("learn3", "wordlist-first-four-unique", true, stats && stats.firstFourUnique);
+      var arr = getWordlistArray("en");
+      var m = learnWordlistSearchMatches(arr, "abando", 48);
+      record("learn3", "wordlist-search-prefix", "abandon", m && m.matches[0]);
+      var none = learnWordlistSearchMatches(arr, "zzzzzzzz", 48);
+      record("learn3", "wordlist-search-no-match", 0, none && none.matches.length);
+    } catch (e) { fail("learn3", "tier3-helpers", e); }
+    return Promise.resolve();
+  }
+
   /* ---- 6. Brain wallet, locking the demo in place ---- */
   function checkBrain() {
     if (typeof deriveBrainWalletData !== "function") return Promise.resolve();
@@ -420,6 +491,7 @@ function runAllVectors() {
     .then(checkEntropy)
     .then(checkCompare)
     .then(checkLearnLive)
+    .then(checkLearnTier3)
     .then(checkBrain)
     .then(function () { return results; });
 }

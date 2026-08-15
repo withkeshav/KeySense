@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 0'  # Sundays 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: npm test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run test suite
+        run: npm test
+
+  # Weekly re-verification of the vendored supply chain. This is the scheduled
+  # part of the fail-closed story from .progress/SECURITY-AUDIT.md: a hash
+  # checked once during an audit is only proof for that day. These two scripts
+  # re-check the copied vendors against their pinned upstream hashes and prove
+  # the built hashes file still reproduces from its pinned inputs.
+  vendor-check:
+    name: vendor supply chain re-check
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify copied vendor hashes vs pinned upstream
+        run: bash tools/verify-vendor.sh
+      - name: Prove built hashes reproduce from pinned inputs
+        run: bash tools/build-crypto.sh --check
+      - name: Run test suite against verified vendors
+        run: npm test

@@ -29,6 +29,14 @@ python3 -m http.server 8080
 
 Then open in a browser. The whole tool, every tab and every chain, also works straight from `file://` with no server and no network at all. Open `index.html` from a USB stick on an air-gapped machine and it works.
 
+## Tests and CI
+
+```bash
+npm test
+```
+
+Runs the full vector suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP maintainer fixtures for every chain, the entropy lab, the brain wallet, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 20 and 22 for every push and PR, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
+
 ## Deploy on a VPS
 
 ```bash

@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Security, hardening round
+
+- **An RNG fail-closed test suite in CI's `npm test` (now 185 vectors, was 139).** The Coldcard lesson restated as executable checks: `secure-random.js` and the entropy lab are loaded in fresh vm contexts with `crypto` present, absent, missing `getRandomValues`, or stubbed to return all-zero, identical, or single-repeated-byte output. Every degradation must fail loudly (throw or trip the canary with the right reason) rather than hand back key material; mixed mode must refuse without `crypto` while deterministic mode (the documented escape hatch) must keep working. A Math.random tripwire counts calls across the entire suite and fails on any (measured: 0). A vendor pin guard reads `tools/build-crypto.sh`'s pinned `@noble/hashes` and `esbuild` versions and checks the committed `src/vendor/keysense-hashes.js` banner still names exactly those versions, so a hand-edit or wrong-version rebuild cannot pass silently.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`). Pushes and PRs run `npm test` on Node 20 and 22. A weekly cron job re-runs `tools/verify-vendor.sh` (pinned upstream SHA-384 re-check of the copied vendors) and `tools/build-crypto.sh --check` (byte-for-byte reproduction of the built hashes file) plus the suite: visibility is not verification, only running the check on a schedule is.
+- **`RELEASE.md`**, a release checklist covering the full suite, both vendor scripts, a browser smoke test, the self-test drift guard, tagging, and the post-release cron confirmation.
+
+### Added, learning round 3 (teaching material)
+
+- **An interactive bit-flip explorer in Learn step 1.** The seed's entropy as a clickable grid of 12 words x 11 bits, with the checksum bits visually distinct. Click an entropy bit and a completely different, still-valid phrase is re-derived live through the same public `ethers.utils.entropyToMnemonic` call the rest of the tool uses (watch which words move); click a checksum bit and the phrase becomes real words that fail validation. Reset and Break-the-checksum buttons included. Operates on a scratch copy; the loaded seed is never touched.
+- **Per-step retrieval quizzes (steps 1-5), threat-model scenario cards ("What is the real offer?"), and an FAQ**, all as click-to-reveal blocks. Retrieval practice (answer before revealing) is the best-evidenced study technique there is; the scenarios drill the one trick every seed-phrase scam uses.
+- **A "When defences actually help" section in step 1**, drawing the honest boundaries from the Coldcard incident: own entropy protects at creation only, a passphrase selects a different wallet rather than repairing a weak seed, updates cannot fix an already-created seed, two-tool verification catches bugs before they cost you, and failing closed beats failing quietly.
+- **A live self-verification card.** The page recomputes the official BIP39 PBKDF2 seed, BIP32 master key and chain code, BIP44 EVM address, and BIP84 native segwit address of the standard `abandon...about` vector in your browser and shows PASS/FAIL per row. Any FAIL means the page copy is broken or tampered with.
+- **A wordlist explorer**: searchable 2048-word list that also verifies, live on every query, that no two words share their first four letters.
+- **A plain-language glossary** of the twelve terms this page leans on hardest.
+
+### Added, UI
+
+- **Seed bar Hide/Show and Clear buttons.** Hide masks the phrase (`-webkit-text-security`, blur fallback) so it cannot be read over your shoulder; Clear empties the seed and resets every panel that showed derived data: the Derive results, the HD tree (which displays xprvs), and the Experiments outputs. Previously the seed was always displayed in plain text.
+- **An inline "Never type a real seed here" disclaimer** next to the mnemonic input.
+- **The 12th/24th word-finder buttons are now built as DOM nodes**, matching the typo fixer's pattern, so no path in that panel concatenates strings into `innerHTML`.
+
+### Governance
+
+- `AGENTS.md` (untracked) now codifies the validate-first-then-ask exception path for protected-area changes, the discipline this project already followed for its Sui and Taproot fixes.
+
 ### Added, learning round 2
 
 - **The entropy lab shows exactly what got hashed together**, not just the salt. Mixed mode now lists every tagged part (dice, coins, browser CSPRNG salt) that fed the SHA-256 pool, so "mixed mode" is something you can read rather than take on faith.

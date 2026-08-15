@@ -67,10 +67,15 @@
          show in a normal browser; if it does, the message is the point. -->
     <div class="warning-box" id="entropyCanaryWarning" style="display:none;margin:0 0 16px;"></div>
 
-    <!-- Sticky seed bar: always visible on scroll, display-only. The seed is the center of everything below. -->
+    <!-- Sticky seed bar: always visible on scroll, display-only. The seed is the center of everything below.
+         Hide masks the phrase so it cannot be read over your shoulder; Clear empties it along with all derived results. -->
     <div class="seed-bar" id="seedBar">
       <span class="seed-bar-label">Seed</span>
       <code class="seed-bar-value seed-bar-empty" id="seedBarValue">No seed generated - click Generate in the Derive tab</code>
+      <div class="seed-bar-actions">
+        <button type="button" id="seedBarToggle" class="seed-bar-btn" disabled>Hide</button>
+        <button type="button" id="seedBarClear" class="seed-bar-btn" disabled>Clear</button>
+      </div>
     </div>
 
     <div class="tabs" role="tablist">
@@ -95,6 +100,7 @@
           </div>
           <label for="mnemonic">Mnemonic (12 or 24 words)</label>
           <textarea id="mnemonic" placeholder="Click Generate below, or type/paste a BIP39 mnemonic."></textarea>
+          <p class="hint" style="margin-top:6px;"><strong>Never type a real seed here.</strong> This page is an educational tool for testing and learning. Any seed you enter or generate stays in this browser tab and is shown on screen in plain text. For a wallet you actually use, generate and sign on a trusted offline machine.</p>
           <div class="action-buttons" style="margin-top: 12px;">
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;width:100%;">
               <div style="flex:1;min-width:120px;">
@@ -698,6 +704,12 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <div id="checksumResultHost"></div>
             </div>
 
+            <!-- 3b: interactive bit-flip explorer -->
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:6px;">Try it: flip the bits yourself</div>
+              <div id="learnBitExplorer"></div>
+            </div>
+
             <div class="warning-box" style="margin-top:14px;">
               <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG, which is not a plain software RNG. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as the CPU's on-die thermal-noise generator and interrupt timing. If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode) and type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy instead. The value of real dice is not that they are more random than the CPU, it is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what matter.</p>
             </div>
@@ -738,6 +750,28 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <p class="hint">In July 2026, a hardware Bitcoin wallet lost roughly $116M this way. A firmware build flag was checked for whether it <em>existed</em> rather than what it was <em>set to</em>, which silently routed seed generation to a poorly-seeded software random number generator instead of the device's hardware source. Effective entropy collapsed from 128 bits to as little as 40. The output still looked like a completely normal, valid, checksummed recovery phrase - there was no visual tell, the same way there was no visual tell in this tool's own Sui bug. The bug sat in open-source code for five years before anyone noticed.</p>
               <p class="hint" style="margin-top:8px;">The maker's own advice to affected users: seeds built from real dice rolls were never at risk, because that path never touched the broken code. That is exactly the Physical entropy lab above. This tool's own randomness is checked for the equivalent failure on every load; see the note in the entropy lab if you want the detail.</p>
             </div>
+
+            <!-- 3a: which defences actually help, and when. -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">When defences actually help</h3>
+              <p class="hint">After an incident like that one, the useful question is not "what is safest" but "which defence protects against which failure, at which moment". These are the ones that matter, and their limits:</p>
+              <ul class="list-plain" style="margin-top:12px;">
+                <li><strong>Own entropy (dice) protects at creation time only.</strong> Mixing real dice rolls into the seed means no software bug on your device - then or later - could have predicted it. It says nothing about any seed generated before or after by other means.</li>
+                <li><strong>A passphrase selects a different wallet. It does not repair a weak one.</strong> If the underlying entropy is guessable, an attacker sweeping the seed can also sweep every passphrase branch. Strength comes from entropy, not from a memorable word on top of it.</li>
+                <li><strong>Updates cannot fix an already-created seed.</strong> A seed generated while a random source was broken stays weak forever, whatever firmware ships afterwards. The only remedy is moving funds to a freshly generated seed - which is why "was my device affected" questions are so urgent after RNG disclosures.</li>
+                <li><strong>Verification catches bugs before they cost you.</strong> Deriving the same seed in two independent tools and comparing addresses is the cheapest end-to-end check that exists. This page verifies itself against the official BIP test vectors live - see the <em>This page verifies itself</em> card below this walkthrough.</li>
+                <li><strong>Failing closed beats failing quietly.</strong> A tool whose randomness is unavailable should refuse to generate anything (this one does - it is tested in CI), because a plausible-looking phrase from a broken source is worse than an honest error.</li>
+              </ul>
+            </div>
+
+            <!-- 3c: retrieval quiz, step 1 -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <p class="hint" style="margin-bottom:10px;">Answer in your head first, then open the question. Recalling an answer before seeing it is what makes it stick.</p>
+              <details class="quiz-item"><summary>How many bits of real entropy are in a 12-word phrase?</summary><p class="hint">128. Twelve words carry 132 bits and the last 4 are checksum, so the secret part is 128 bits. 24-word phrases carry 256.</p></details>
+              <details class="quiz-item"><summary>You restore your wallet and mistype one word. What happens?</summary><p class="hint">Almost always the wallet refuses: the checksum no longer matches. There is a 1-in-16 chance (12 words) or 1-in-256 (24 words) the mistake still passes and silently derives a different, empty wallet - which is why typing words carefully matters.</p></details>
+              <details class="quiz-item"><summary>Does adding a strong passphrase make a weakly generated seed safe?</summary><p class="hint">No. The passphrase selects a different branch of a tree whose root is still the guessable entropy. An attacker who sweeps the seed can sweep the passphrase branches too. Strength has to be in the entropy itself.</p></details>
+            </div>
           </div>
 
           <!-- Step 2 -->
@@ -772,6 +806,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
               <div id="learnStep2Live"></div>
             </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <details class="quiz-item"><summary>What two values does HMAC-SHA512 produce at the root of the tree?</summary><p class="hint">The left 256 bits become the master private key; the right 256 bits become the master chain code. Child derivation needs both.</p></details>
+              <details class="quiz-item"><summary>Does the BIP39 passphrase change the master key?</summary><p class="hint">Yes. It feeds PBKDF2 <em>before</em> HMAC-SHA512, so the same 12 words with any different passphrase produce a completely unrelated tree - not a hardened version of the same one.</p></details>
+            </div>
           </div>
 
           <!-- Step 3 -->
@@ -795,6 +835,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <h3 class="learn-heading" style="margin-top:0;">Why a restored wallet can look empty</h3>
               <p class="hint" style="margin-bottom:12px;">Same 12 words, same Bitcoin account, two wallets that pick a different default <code style="font-family:var(--mono)">purpose</code>. Neither is wrong. They are different, equally valid branches of the same tree, and funds on one never show up while looking at the other.</p>
               <div id="walletMismatchHost"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <details class="quiz-item"><summary>In m/84'/0'/0'/0/0, what does the 84 tell you?</summary><p class="hint">The purpose: native segwit (bech32, bc1q...). 44 is legacy, 49 is wrapped segwit, 86 is taproot.</p></details>
+              <details class="quiz-item"><summary>Your words are correct but the restored wallet shows zero balance. What are the first two suspects?</summary><p class="hint">A different derivation path (purpose, account, or a wallet's non-standard default) or a passphrase you forgot setting. Try the Path recovery tool on the Experiments tab.</p></details>
             </div>
           </div>
 
@@ -830,6 +876,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
                 <button type="button" class="btn-secondary access-scope-btn" data-scope="xpub-child">xpub + one child private key</button>
               </div>
               <div id="accessScopeHost" style="margin-top:12px;"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <details class="quiz-item"><summary>Your account xpub leaks. What exactly is exposed?</summary><p class="hint">Every address that account can derive (present and future) and therefore your balances and transaction history. Not exposed: private keys, the master key, and sibling hardened accounts.</p></details>
+              <details class="quiz-item"><summary>Why is every level hardened on Solana, Sui and Aptos?</summary><p class="hint">They use Ed25519 via SLIP-0010, and SLIP-0010 requires hardened derivation at every level. Normal (non-hardened) derivation does not exist on those chains.</p></details>
             </div>
           </div>
 
@@ -877,6 +929,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <p class="hint" style="margin-bottom:12px;">The same words, the same account 0, index 0, derived into every chain this tool supports, side by side. Nine different-looking addresses, nine different key derivations, one seed underneath all of them.</p>
               <div id="learnChainGrid"></div>
             </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <details class="quiz-item"><summary>Same seed, Ethereum and Tron: same private key?</summary><p class="hint">No. Coin type 60 and 195 are different hardened branches, so different keys. Tron's address then formats the Ethereum-style hash as Base58Check starting with T.</p></details>
+              <details class="quiz-item"><summary>Is a Sui address just the public key in hex?</summary><p class="hint">No. It is BLAKE2b-256 of a scheme flag byte plus the public key. Both are 32 bytes, which is exactly why people assume they are the same thing.</p></details>
+            </div>
           </div>
 
           <div class="learn-nav">
@@ -884,6 +942,13 @@ Child keys: CKD(parent, index) - child private key + child chain code
             <span class="learn-progress" id="learnProgress">1 / 5</span>
             <button type="button" class="btn-secondary" id="learnNext">Next</button>
           </div>
+        </div>
+
+        <!-- 3g: live self-verification against official BIP vectors -->
+        <div class="card">
+          <div class="card-title">This page verifies itself</div>
+          <p class="hint" style="margin-bottom:12px;">Trust nothing, including this tool. The checks below recompute the official BIP39, BIP32, BIP44 and BIP84 test vectors right now, in your browser, with the same code the Derive tab uses. Every row must read PASS. A FAIL means this copy of the page is broken or has been tampered with: do not use it, and re-download it from the official repository.</p>
+          <div id="learnVerifyHost"></div>
         </div>
 
         <!-- Reference: Understanding derivation paths -->
@@ -965,6 +1030,56 @@ Child keys: CKD(parent, index) - child private key + child chain code
             <li>Losing the path can mean losing access even if you keep the words.</li>
             <li>Compare any result against a second tool or a test wallet before mainnet use.</li>
           </ul>
+        </div>
+
+        <!-- 3e: threat-model scenario cards -->
+        <div class="card">
+          <div class="card-title">What is the real offer?</div>
+          <p class="hint" style="margin-bottom:12px;">Every scam around seed phrases is a version of one trick: getting you to expose the words. Read each scenario, decide what is really being asked, then open it to compare.</p>
+          <details class="quiz-item"><summary>A stranger in a forum offers to "verify your recovery phrase is safe" using their professional tool.</summary><p class="hint">The offer is: give me your words. There is nothing to verify - a valid phrase is valid. Whoever receives it owns the wallet within minutes.</p></details>
+          <details class="quiz-item"><summary>"Wallet support" asks you to read your 12 words aloud to "restore your account after suspicious activity".</summary><p class="hint">No legitimate support channel, ever, asks for the words. The words are not a credential you present; they are the wallet itself. The "suspicious activity" is this conversation.</p></details>
+          <details class="quiz-item"><summary>A site asks you to type your seed phrase to "check whether your wallet is affected by the latest RNG bug".</summary><p class="hint">A phrase already generated cannot be checked for bugs by looking at it - the risk lived in the device that made it, at creation time. Typing it anywhere simply hands it over.</p></details>
+          <details class="quiz-item"><summary>An airdrop form says "connect your wallet by entering your seed phrase".</summary><p class="hint">Connecting a wallet never involves the phrase - signatures and approvals expose nothing reusable. Any input field asking for it is a drain attempt, however professional the page looks.</p></details>
+        </div>
+
+        <!-- 3d: glossary -->
+        <div class="card">
+          <div class="card-title">Plain-language glossary</div>
+          <p class="hint" style="margin-bottom:12px;">The jargon of this page in one place.</p>
+          <dl class="glossary">
+            <dt>Entropy</dt><dd>The actual random data behind a seed. Everything else - words, keys, addresses - is derived from it. Its length in bits is the real strength of a wallet.</dd>
+            <dt>Checksum</dt><dd>A few extra bits computed from the entropy and appended before encoding, so that typos produce an invalid phrase instead of a different valid-looking wallet.</dd>
+            <dt>Mnemonic</dt><dd>The 12-24 word phrase: a human-writable encoding of entropy plus checksum, one word per 11 bits.</dd>
+            <dt>Seed (BIP39)</dt><dd>Not the words themselves. The 512-bit value PBKDF2 produces from mnemonic plus passphrase; the root of all keys.</dd>
+            <dt>Master key / chain code</dt><dd>The two halves of HMAC-SHA512 at the root: the first private key, and the entropy used to derive children deterministically.</dd>
+            <dt>xprv / xpub</dt><dd>Serialized extended keys: a key plus its chain code. An xpub alone can derive child addresses but no private keys.</dd>
+            <dt>Hardened (')</dt><dd>A derivation step that needs the parent private key. It cannot be computed from an xpub, which is why account levels are hardened.</dd>
+            <dt>Derivation path</dt><dd>The route through the key tree, like m/44'/60'/0'/0/0. Same seed plus different path equals different keys.</dd>
+            <dt>Purpose / coin type</dt><dd>First two path levels: which BIP standard (44, 49, 84, 86) and which chain (SLIP-0044 registry: 0 BTC, 60 ETH, 501 SOL...).</dd>
+            <dt>WIF</dt><dd>Wallet Import Format: a private key packaged for copy-paste between Bitcoin wallets.</dd>
+            <dt>Bech32 / HRP</dt><dd>The address alphabet Bitcoin segwit uses, and its human-readable prefix (bc, cosmos, ltc...).</dd>
+            <dt>secp256k1 / Ed25519</dt><dd>The two signing curves here. Bitcoin, Ethereum and friends use secp256k1; Solana, Sui and Aptos use Ed25519, whose derivation (SLIP-0010) is hardened at every level.</dd>
+          </dl>
+        </div>
+
+        <!-- 3f: FAQ -->
+        <div class="card">
+          <div class="card-title">Frequently asked</div>
+          <details class="quiz-item"><summary>Why exactly 2048 words?</summary><p class="hint">2048 is 2<sup>11</sup>, so each word encodes exactly 11 bits with no waste. 12 words x 11 bits = 132 bits = 128 entropy + 4 checksum.</p></details>
+          <details class="quiz-item"><summary>Are 12 words enough, or do I need 24?</summary><p class="hint">128 bits of entropy is already beyond any brute-force horizon; 24 words (256 bits) mainly help when you trust the phrase to survive partial exposure or want headroom against future attacks.</p></details>
+          <details class="quiz-item"><summary>Can two different seeds ever produce the same address?</summary><p class="hint">Mathematically possible, practically impossible: the space of seeds is so much larger than the space of addresses that a collision has never occurred by chance.</p></details>
+          <details class="quiz-item"><summary>Why does my restored wallet show an empty balance?</summary><p class="hint">Usually a different derivation path (try the Path recovery tool on the Experiments tab) or a passphrase set long ago and forgotten. The funds are almost certainly fine.</p></details>
+          <details class="quiz-item"><summary>What does the last word do that is special?</summary><p class="hint">It carries the checksum: in a 12-word phrase its last 4 bits are computed from all 128 entropy bits, so it is not freely choosable.</p></details>
+          <details class="quiz-item"><summary>Is the passphrase stored or recoverable anywhere?</summary><p class="hint">No. It only selects which branch of the tree exists. Forget it and that wallet is unreachable with today's technology, by design.</p></details>
+        </div>
+
+        <!-- 3h: wordlist explorer -->
+        <div class="card">
+          <div class="card-title">Wordlist explorer</div>
+          <p class="hint" style="margin-bottom:12px;">The 2048 English words every BIP39 wallet knows. Type to search - the uniqueness of the first four letters is verified live below every time you do.</p>
+          <label for="wordlistSearch" style="font-size:11px;">Search the wordlist</label>
+          <input id="wordlistSearch" type="text" autocomplete="off" spellcheck="false" placeholder="aband..." style="margin-top:6px;margin-bottom:12px;font-family:var(--mono);font-size:13px;max-width:260px;">
+          <div id="wordlistExplorerHost"></div>
         </div>
 
         <!-- HD Derivation Tree Inspector -->
