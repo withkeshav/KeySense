@@ -78,8 +78,9 @@ output is qualitative and volunteered, and it is published in the repository as 
 | Readability gate and baseline | Live in the repo, wired as `npm run test:readability` |
 | Reader session protocol | Published, needs readers |
 | Learn redesign outline | Published as a proposal: `docs/learn-research/OUTLINE.md` |
-| Visual system: diagrams, charts, motion | Published as a plan: `docs/learn-research/VISUAL-SYSTEM.md` |
-| Rebuild | Two segments done, four build stages to go. Subtraction first, then the words, then the graphics |
+| Visual system: diagrams, charts, motion | Built and in use: `docs/learn-research/VISUAL-SYSTEM.md` and `src/learn-visuals.js` |
+| Rebuild | All six segments rewritten and drawn, a mixed practice section added, every segment below the grade 8 target. Measured: segment 2 dropped from 6.88 to 4.38 with its longest sentence down from 43 words to 22 |
+| What is left | The five reader sessions, and nothing else. A page with no network and no analytics cannot measure its own comprehension |
 
 ## Challenge it
 
