@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KeySense visual system, sample sheet</title>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+         margin: 0; padding: 24px 20px 60px; background: #0a0a0b; color: #f4f4f5; }
+  html[data-theme="light"] body { background: #fafafa; color: #18181b; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  h2 { font-size: 13px; margin: 28px 0 4px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
+  p.note { font-size: 12px; max-width: 70ch; opacity: 0.75; margin: 0 0 8px; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  .card { border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-top: 10px; background: rgba(255,255,255,0.03); }
+  html[data-theme="light"] .card { border-color: #e4e4e7; background: #fff; }
+  button { font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+           background: transparent; color: inherit; cursor: pointer; }
+  svg { display: block; max-width: 100%; }
+</style>
+</head>
+<body>
+<h1>Visual system sample sheet</h1>
+<p class="note">Every primitive from <code>src/learn-visuals.js</code>, rendered once. This page is for
+looking at, and for screenshots in a review. It is not linked from the app and it collects nothing.
+Motion runs only when you press a button, which is the rule the app follows too: nothing animates on
+first paint.</p>
+<p class="note"><button id="themeBtn">Switch theme</button> <button id="motionBtn">Play the motion primitives</button>
+<span id="motionState"></span></p>
+
+<h2>Roles and legend</h2>
+<p class="note">Five meanings, each with a shape rule, so the drawing survives greyscale, colour
+blindness and a black and white print. The legend is generated from the same table the drawings use.</p>
+<div class="card" id="legendHost"></div>
+
+<h2>box and arrow</h2>
+<p class="note">A pipeline: private key, public key, hashed, address. Straight arrows with labels.</p>
+<div class="card" id="pipelineHost"></div>
+
+<h2>branch</h2>
+<p class="note">One parent, two children. This is hardened against normal, and the xpub reach
+question, drawn the same way every time.</p>
+<div class="card" id="branchHost"></div>
+
+<h2>group</h2>
+<p class="note">A labelled container, for a chain family or an address format group.</p>
+<div class="card" id="groupHost"></div>
+
+<h2>chart</h2>
+<p class="note">The randomness comparison. Logarithmic, because the rows span 2^9 to 2^128 and a
+linear axis would make every weak row invisible next to the strong ones, which is the opposite of
+the lesson. The reader's own value is outlined and marked, not only coloured.</p>
+<div class="card" id="chartHost"></div>
+
+<h2>trace</h2>
+<p class="note">One value followed through a diagram. The end state is readable without watching, so
+the motion carries nothing on its own.</p>
+<div class="card" id="traceHost"></div>
+
+<script src="../src/learn-visuals.js"></script>
+<script>
+(function () {
+  "use strict";
+  var V = window.KeySenseVisuals;
+  var state = document.getElementById("motionState");
+
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var root = document.documentElement;
+    root.setAttribute("data-theme", root.getAttribute("data-theme") === "light" ? "dark" : "light");
+  });
+
+  /* Roles and legend */
+  document.getElementById("legendHost").appendChild(V.diagram({
+    width: 420, height: 130, ariaLabel: "Legend of the five colour roles",
+    children: [V.legend()]
+  }));
+
+  /* Pipeline */
+  document.getElementById("pipelineHost").appendChild(V.diagram({
+    width: 640, height: 110, ariaLabel: "Private key to public key to address",
+    children: [
+      V.box({ x: 0, y: 30, w: 120, h: 44, label: "Private key", role: "secret" }),
+      V.arrow({ from: [120, 52], to: [170, 52], role: "secret", label: "curve" }),
+      V.box({ x: 170, y: 30, w: 120, h: 44, label: "Public key", role: "public" }),
+      V.arrow({ from: [290, 52], to: [340, 52], role: "public", label: "hash" }),
+      V.box({ x: 340, y: 30, w: 120, h: 44, label: "Hash", role: "hashed" }),
+      V.arrow({ from: [460, 52], to: [510, 52], role: "hashed", label: "encode" }),
+      V.box({ x: 510, y: 30, w: 120, h: 44, label: "Address", sub: "0x...", role: "address" })
+    ]
+  }));
+
+  /* Branch */
+  document.getElementById("branchHost").appendChild(V.diagram({
+    width: 560, height: 190, ariaLabel: "One parent with a hardened and a normal child",
+    children: [V.branch({
+      parent: { x: 0, y: 66, w: 130, h: 46, label: "Parent key", role: "secret" },
+      children: [
+        { x: 330, y: 6, w: 200, h: 46, label: "Hardened child", sub: "needs the private key", role: "secret" },
+        { x: 330, y: 126, w: 200, h: 46, label: "Normal child", sub: "reachable from the xpub", role: "public", dashed: true }
+      ]
+    })]
+  }));
+
+  /* Group */
+  document.getElementById("groupHost").appendChild(V.diagram({
+    width: 560, height: 130, ariaLabel: "Two address format families",
+    children: [V.group({
+      x: 0, y: 0, w: 540, h: 118, title: "Bitcoin address formats, one key",
+      children: [
+        V.box({ x: 16, y: 30, w: 120, h: 40, label: "Legacy", sub: "1...", role: "address" }),
+        V.box({ x: 148, y: 30, w: 120, h: 40, label: "SegWit", sub: "3...", role: "address" }),
+        V.box({ x: 280, y: 30, w: 120, h: 40, label: "Native", sub: "bc1q...", role: "address" }),
+        V.box({ x: 412, y: 30, w: 112, h: 40, label: "Taproot", sub: "bc1p...", role: "address" })
+      ]
+    })]
+  }));
+
+  /* Chart */
+  var chartRows = [
+    { label: "Invented phrase", value: 30, display: "2^30" },
+    { label: "Eight diceware words", value: 103, display: "2^103" },
+    { label: "Your phrase", value: 128, display: "2^128", mine: true },
+    { label: "24 word phrase", value: 256, display: "2^256" }
+  ];
+  document.getElementById("chartHost").appendChild(V.diagram({
+    width: 640, height: 150, ariaLabel: "Guess counts for four ways of making a seed",
+    children: [V.chart({ rows: chartRows, log10: true, width: 620, axisLabel: "logarithmic scale, guesses as a power of two" })]
+  }));
+
+  /* Trace */
+  var traceSvg = V.diagram({
+    width: 560, height: 100, ariaLabel: "One value followed through three boxes",
+    children: [
+      V.box({ x: 0, y: 28, w: 120, h: 44, label: "Entropy", role: "secret" }),
+      V.box({ x: 200, y: 28, w: 120, h: 44, label: "Words", role: "hashed" }),
+      V.box({ x: 400, y: 28, w: 120, h: 44, label: "Seed", role: "address" })
+    ]
+  });
+  var route = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  route.setAttribute("d", "M 120 50 L 200 50 M 320 50 L 400 50");
+  route.setAttribute("fill", "none");
+  route.setAttribute("stroke", "var(--viz-secret)");
+  route.setAttribute("stroke-width", "2.5");
+  route.setAttribute("id", "tracePath");
+  traceSvg.appendChild(route);
+  document.getElementById("traceHost").appendChild(traceSvg);
+
+  document.getElementById("motionBtn").addEventListener("click", function () {
+    var reduced = V.reducedMotion();
+    state.textContent = reduced ? "reduced motion is on, so these are instant state changes" : "playing";
+    var boxes = document.querySelectorAll("#traceHost rect");
+    boxes.forEach(function (b) { V.fadeValue(b); });
+    V.pulseOnce(document.querySelector("#branchHost svg"));
+    if (!reduced) V.drawTrace(document.getElementById("tracePath"));
+    window.setTimeout(function () { state.textContent = ""; }, V.MOTION.trace + 200);
+  });
+})();
+</script>
+</body>
+</html>

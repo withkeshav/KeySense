@@ -9,6 +9,14 @@
 - **New reader session page, `test/learn-comprehension.html`.** Runs from a local file, no network, stores nothing, and cannot report anything back.
 - **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet. The wiki is now live at https://github.com/withkeshav/KeySense/wiki with 6 pages.
 
+### Added, the visual system is built
+
+- **New `src/learn-visuals.js`.** Six diagram primitives (box, arrow, branch, group, legend, trace), one chart primitive with a logarithmic option, and exactly three motion primitives (fadeValue, drawTrace, pulseOnce) on a fixed grammar of 120, 240 and 600 milliseconds with ease-out. No dependencies, and it works from `file://` with the network off.
+- **Five colour roles with a second channel each**: secret, public, hashed, address and warn, distinguished by corner shape and dash pattern as well as colour, so a drawing survives greyscale, colour blindness and a black and white print. Tokens live in `src/styles.css` for both themes.
+- **New `tools/viz-contrast.js`, run as `npm run test:viz`.** It reads the tokens out of the stylesheet and measures every role against the surface it sits on, then exits 0, 1 or 2 the way the other gates do. Measured: worst pairing is 5.02 to 1, against a 4.5 to 1 text target and 3 to 1 for shapes.
+- **New sample sheet, `test/learn-visuals-sample.html`,** rendering every primitive once for review and screenshots. Not linked from the app. Motion runs only on a button press, never on first paint.
+- **Loaded by `index.html` and `test/self-test.html` together.** The suite's drift guard fails when the two pages load different script sets, so a half-added module cannot ship.
+
 ### Added, research decisions and the visual system plan
 
 - **The benchmark is fixed and written down: grade 8, for readers working in English as a second language.** The deep material stays verbatim and only moves behind disclosures. The printable worksheet is deferred and tracked in the roadmap rather than dropped. All recorded in `docs/learn-research/PLAN.md`.
