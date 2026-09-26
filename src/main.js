@@ -1805,6 +1805,17 @@
           learnRenderStep5(document.getElementById("learnStep5Live"),
             learnAddressPipeline(mnemonicForDerive, passphrase));
 
+          /* 3i: the drawings, built from the same live values the panels above
+           * show. One call, and it is a no-op when the primitives are missing,
+           * so the Learn tab still works if src/learn-visuals.js fails to
+           * load. */
+          learnRenderDiagrams({
+            mnemonic: mnemonicForDerive,
+            passphrase: passphrase,
+            path: path,
+            lang: lang
+          });
+
           /* Address derivation is async (Ed25519 chains, QR-free here), so
            * this runs after the synchronous steps above rather than blocking
            * them; the grid fills in a beat later on a slow device. */

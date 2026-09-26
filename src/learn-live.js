@@ -1155,3 +1155,223 @@ function learnRenderWordlistExplorer(hostEl, lang, query) {
   });
   hostEl.appendChild(grid);
 }
+
+/* ── Diagrams ──────────────────────────────────────────────────────────
+ * The drawings are built from the same live values the panels above show,
+ * through the primitives in src/learn-visuals.js. Three rules are kept here:
+ * a value that comes from the reader's own seed is drawn with their real
+ * digits, a drawing that is illustrative says so in its caption, and nothing
+ * moves unless the reader asks for it (the primitives decide that themselves).
+ *
+ * Pure DOM construction, no listeners, no top-level side effects, same
+ * contract as the rest of this file.
+ */
+
+function learnShortHex(hex, head, tail) {
+  if (!hex) return "(not available)";
+  var s = String(hex);
+  if (s.length <= head + tail + 3) return s;
+  return s.slice(0, head) + "..." + s.slice(-(tail || 4));
+}
+
+function learnDiagramHost(id, caption, svg) {
+  if (typeof document === "undefined") return;
+  var host = document.getElementById(id);
+  if (!host) return;
+  host.textContent = "";
+  if (caption) {
+    var p = document.createElement("p");
+    p.className = "hint";
+    p.style.margin = "0 0 4px";
+    p.textContent = caption;
+    host.appendChild(p);
+  }
+  if (svg) host.appendChild(svg);
+}
+
+/* Step 1: words to bits, and where the checksum sits. */
+function learnDiagramWordsToBits(host, breakdown) {
+  var V = window.KeySenseVisuals;
+  if (!breakdown || !breakdown.valid || !breakdown.words.length) return;
+  var words = breakdown.words;
+  var first = words[0];
+  var last = words[words.length - 1];
+  var w = 168;
+  var children = [
+    V.box({ x: 0, y: 18, w: w, h: 52, label: first.word, sub: "word 1", role: "secret" }),
+    V.arrow({ from: [w, 44], to: [w + 40, 44], role: "secret", label: "11 bits" }),
+    V.box({ x: w + 40, y: 18, w: w, h: 52, label: first.binary || "?", sub: "its 11-bit index", role: "hashed" }),
+    V.arrow({ from: [w + 40 + w, 44], to: [w + 80 + w, 44], role: "hashed" }),
+    V.box({ x: w + 80 + w, y: 18, w: w, h: 52, label: last.word, sub: "the last word", role: "secret" }),
+    V.arrow({ from: [w + 80 + 2 * w, 44], to: [w + 120 + 2 * w, 44], role: "secret", label: "split" }),
+    V.box({ x: w + 120 + 2 * w, y: 18, w: w, h: 52, label: (11 - breakdown.checksumBits) + " + " + breakdown.checksumBits + " bits",
+           sub: "entropy then checksum", role: "address" })
+  ];
+  learnDiagramHost(host,
+    "Your own words: " + breakdown.entropyBits + " bits of entropy plus a " + breakdown.checksumBits +
+    " bit checksum, which is why " + breakdown.wordCount + " words carry " + (breakdown.wordCount * 11) +
+    " bits of information in total.",
+    V.diagram({ width: 760, height: 92, ariaLabel: "Words become 11 bit numbers, and the last word carries the checksum", children: children }));
+}
+
+/* Step 1: how many guesses each way of making a phrase needs. */
+function learnDiagramRandomnessChart(host, breakdown) {
+  var V = window.KeySenseVisuals;
+  var mine = breakdown && breakdown.valid ? breakdown.entropyBits : null;
+  var rows = [
+    { label: "Invented phrase", value: 30, display: "about 2^30" },
+    { label: "Eight random words", value: 103, display: "about 2^103" },
+    { label: "One random word", value: 13, display: "about 2^13" }
+  ];
+  if (mine) rows.splice(2, 0, { label: "Your phrase", value: mine, display: "about 2^" + mine, mine: true });
+  learnDiagramHost(host,
+    mine
+      ? "Your own phrase sits on this scale. Longer bars are harder to guess, and the axis is logarithmic, so a small step up the screen is a huge step in effort."
+      : "Loaded from the test phrase, because the box above does not yet hold a valid one. Longer bars are harder to guess.",
+    V.diagram({ width: 620, height: rows.length * 26 + 40, ariaLabel: "Guess counts for four ways of making a phrase",
+                children: [V.chart({ rows: rows, log10: true, width: 600, axisLabel: "logarithmic, guesses shown as a power of two" })] }));
+}
+
+/* Step 2: the 512 bit seed, and the two halves it becomes. */
+function learnDiagramSeedSplit(host, mk) {
+  var V = window.KeySenseVisuals;
+  if (!mk || mk.error) return;
+  var children = [
+    V.box({ x: 0, y: 58, w: 150, h: 52, label: "512 bit seed", sub: "from your words", role: "hashed" }),
+    V.arrow({ from: [150, 84], to: [205, 84], role: "hashed", label: "HMAC-SHA512" }),
+    V.box({ x: 205, y: 52, w: 160, h: 64, label: "Two halves", sub: "key says Bitcoin seed", role: "hashed" }),
+    V.arrow({ from: [365, 84], to: [430, 42], role: "secret", elbow: true, label: "left 256" }),
+    V.arrow({ from: [365, 84], to: [430, 126], role: "address", elbow: true, label: "right 256" }),
+    V.box({ x: 430, y: 16, w: 290, h: 52, label: "Master private key", sub: learnShortHex(mk.masterPrivateKeyHex, 10, 6), role: "secret" }),
+    V.box({ x: 430, y: 100, w: 290, h: 52, label: "Master chain code", sub: learnShortHex(mk.chainCodeHex, 10, 6), role: "address" })
+  ];
+  learnDiagramHost(host,
+    "Your own seed, split. Both halves are needed to rebuild the tree, which is why a backup has to be the words and not one key.",
+    V.diagram({ width: 730, height: 172, ariaLabel: "The 512 bit seed splits into a master private key and a master chain code", children: children }));
+}
+
+/* Step 3: the path as a ladder, with the reader's own segments. */
+function learnDiagramPathLadder(host, path) {
+  var V = window.KeySenseVisuals;
+  var segs = learnPathSegments(path);
+  if (!segs.length) return;
+  var bw = 92;
+  var gap = 14;
+  var children = [V.box({ x: 0, y: 30, w: 44, h: 40, label: "m", role: "address" })];
+  var x = 44 + gap;
+  segs.forEach(function (s, i) {
+    children.push(V.arrow({ from: [x - gap, 50], to: [x, 50], role: s.hardened ? "secret" : "public", noMarker: i === 0 }));
+    children.push(V.box({
+      x: x, y: 22, w: bw, h: 56,
+      label: s.raw,
+      sub: s.label + (s.hardened ? " (hardened)" : ""),
+      role: s.hardened ? "secret" : "public"
+    }));
+    x += bw + gap;
+  });
+  learnDiagramHost(host,
+    "Your current path, drawn. A locked box (hardened) needs the private key to open; an open box can be reached with the xpub alone.",
+    V.diagram({ width: x, height: 92, ariaLabel: "The derivation path drawn as a ladder of segments", children: children }));
+}
+
+/* Step 4: one parent, two children, and what each one needs. */
+function learnDiagramHardenedBranch(host, cmp, parentPath) {
+  var V = window.KeySenseVisuals;
+  if (!cmp || cmp.error || !cmp.normal || !cmp.hardened) return;
+  var children = [
+    V.box({ x: 0, y: 56, w: 160, h: 56, label: "One parent key", sub: parentPath, role: "secret" }),
+    V.arrow({ from: [160, 84], to: [240, 44], role: "secret", elbow: true, label: "index + apostrophe" }),
+    V.arrow({ from: [160, 84], to: [240, 124], role: "public", elbow: true, dashed: true, label: "index plain" }),
+    V.box({ x: 240, y: 12, w: 330, h: 60, label: "Hardened child", sub: cmp.hardened.path.slice(-14) + "  needs the private key", role: "secret" }),
+    V.box({ x: 240, y: 96, w: 330, h: 60, label: "Normal child", sub: cmp.normal.path.slice(-14) + "  reachable from the xpub", role: "public" })
+  ];
+  learnDiagramHost(host,
+    "The same parent, derivable two ways. A watch-only wallet holding the xpub can follow the dashed route only, which is why the hardened levels are the ones that keep an account sealed.",
+    V.diagram({ width: 600, height: 172, ariaLabel: "One parent key branching into a hardened child and a normal child", children: children }));
+}
+
+/* Step 5: private key to address, per chain. */
+function learnDiagramAddressPipeline(host, pipe) {
+  var V = window.KeySenseVisuals;
+  if (!pipe || pipe.error) return;
+  function row(y, label, boxes, aria) {
+    var g = V.group({ x: 0, y: y, w: 700, h: 74, title: label, children: [] });
+    var x = 14;
+    boxes.forEach(function (b, i) {
+      g.appendChild(V.box({ x: x, y: y + 20, w: 150, h: 44, label: b, sub: b.sub, role: b.role }));
+      if (i < boxes.length - 1) g.appendChild(V.arrow({ from: [x + 150, y + 42], to: [x + 172, y + 42], role: b.role, label: b.how }));
+      x += 172;
+    });
+    return g;
+  }
+  var evm = pipe.evm, btc = pipe.btc;
+  var children = [];
+  if (evm) {
+    children.push(row(0, "Ethereum style, and every EVM chain", [
+      { label: "Private key", sub: learnShortHex(evm.privateKeyHex, 8, 4), role: "secret" },
+      { label: "Public key", sub: "uncompressed point", role: "public", how: "curve math" },
+      { label: "Keccak hash", sub: learnShortHex(evm.keccakHashHex, 8, 4), role: "hashed", how: "hash" },
+      { label: "Address", sub: learnShortHex(evm.address, 8, 4), role: "address", how: "last 20 bytes" }
+    ]));
+  }
+  if (btc) {
+    children.push(row(88, "Bitcoin", [
+      { label: "Private key", sub: learnShortHex(btc.privateKeyHex, 8, 4), role: "secret" },
+      { label: "Public key", sub: "compressed point", role: "public", how: "curve math" },
+      { label: "Hash160", sub: learnShortHex(btc.hash160Hex, 8, 4), role: "hashed", how: "sha256 then ripemd" },
+      { label: "Address", sub: learnShortHex(btc.address, 8, 4), role: "address", how: "bech32" }
+    ]));
+  }
+  learnDiagramHost(host,
+    "The same job done two ways. Both start at a private key and end at an address, and the middle step is where the two families part company.",
+    V.diagram({ width: 710, height: 170, ariaLabel: "Private key to address pipelines for Ethereum style chains and Bitcoin", children: children }));
+}
+
+/* Step 6: one key, four Bitcoin formats, drawn once. */
+function learnDiagramFormats(host) {
+  var V = window.KeySenseVisuals;
+  var formats = [
+    { label: "Legacy", sub: "starts with 1" },
+    { label: "SegWit wrapped", sub: "starts with 3" },
+    { label: "Native segwit", sub: "bc1q..." },
+    { label: "Taproot", sub: "bc1p..." }
+  ];
+  var children = [V.group({
+    x: 0, y: 0, w: 700, h: 96, title: "One key, four Bitcoin address formats (illustrative)",
+    children: formats.map(function (f, i) {
+      return V.box({ x: 14 + i * 172, y: 28, w: 158, h: 52, label: f.label, sub: f.sub, role: "address" });
+    })
+  })];
+  learnDiagramHost(host,
+    "The format only changes how the address is written. All four come from the same underlying key, and the box above shows the real ones for your seed.",
+    V.diagram({ width: 710, height: 106, ariaLabel: "Four Bitcoin address formats from one key", children: children }));
+}
+
+/* The single entry point main.js calls after it has the live values. */
+var learnDiagramSignature = null;
+
+function learnRenderDiagrams(opts) {
+  opts = opts || {};
+  if (typeof document === "undefined" || !window.KeySenseVisuals) return;
+  var signature = [opts.mnemonic, opts.passphrase, opts.path, opts.lang].join("|");
+  if (signature === learnDiagramSignature) return;
+  learnDiagramSignature = signature;
+  try {
+    var breakdown = learnEntropyBreakdown(opts.mnemonic, opts.lang);
+    learnDiagramWordsToBits("vizStep1", breakdown);
+    learnDiagramRandomnessChart("vizStep1Chart", breakdown);
+    learnDiagramSeedSplit("vizStep2", learnMasterKeyBreakdown(opts.mnemonic, opts.passphrase));
+    learnDiagramPathLadder("vizStep3", opts.path);
+    if (opts.path) {
+      var segs = learnPathSegments(opts.path);
+      var parentPath = "m/" + segs.slice(0, -1).map(function (s) { return s.raw; }).join("/");
+      learnDiagramHardenedBranch("vizStep4", learnHardenedComparison(opts.mnemonic, opts.passphrase, parentPath, 0), parentPath);
+    }
+    learnDiagramAddressPipeline("vizStep5", learnAddressPipeline(opts.mnemonic, opts.passphrase));
+    learnDiagramFormats("vizStep6");
+  } catch (e) {
+    /* A drawing must never take the page down with it: the text above each host
+     * already carries the lesson, so a failure here is silent by design and the
+     * suite covers the primitives directly. */
+  }
+}

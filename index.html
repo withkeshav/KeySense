@@ -688,6 +688,7 @@
           <!-- Step 1 -->
           <div class="learn-content" data-step="1">
             <h3 class="learn-heading">1. The Seed Phrase</h3>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: twelve ordinary words keep your money safe. Where does that safety come from?</summary></details>
             <p class="hint">A seed phrase is the wallet. Twelve ordinary looking words are the whole thing. Whoever has them can spend everything, and nobody can reset them for you.</p>
 
             <!-- Pretest: the three beliefs that cause the most loss, asked before any explanation is given. -->
@@ -702,6 +703,7 @@
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">What the words actually are</h3>
+              <div id="vizStep1"></div>
               <p class="hint">Your phrase is a written form of one long random number. That number is called <strong>entropy</strong>. Everything else in this walkthrough is arithmetic on it.</p>
               <div style="margin-top:12px;padding:12px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
                 <div class="card-title" style="font-size:12px;margin-bottom:6px;">A word you will keep meeting: entropy</div>
@@ -765,6 +767,7 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">How much randomness is really in there?</h3>
+              <div id="vizStep1Chart"></div>
               <p class="hint" style="margin-bottom:12px;">Every option below makes a phrase that looks equally convincing. What differs is how many guesses stand between an attacker and your coins. Type a passphrase to see where your own idea would land.</p>
 
               <label for="compareInput" style="font-size:11px;">Try a passphrase you might have invented</label>
@@ -779,7 +782,7 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               </div>
 
               <details class="quiz-item" style="margin-top:16px;">
-                <summary>Go deeper: why inventing your own phrase is worse, not just riskier</summary>
+                <summary>Go deeper: why inventing your own phrase is worse, not just riskier.</summary>
                 <div class="warning-box" style="margin-top:10px;">
                   <p>Ten random words from a 7776 word list would reach about 2<sup>129</sup>, which is the same strength as twelve BIP39 words.</p>
                   <p style="margin-top:8px;">But if you can memorise ten random words, you can memorise a twelve word BIP39 phrase. That phrase carries a checksum, which catches typos, and every wallet can restore it. So inventing your own is not merely riskier. It is worse at the one job it was supposed to do.</p>
@@ -830,15 +833,23 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
           <!-- Step 2 -->
           <div class="learn-content" data-step="2" style="display:none;">
             <h3 class="learn-heading">2. From Seed to Master Key (BIP32)</h3>
-            <p class="hint">The 512-bit seed from PBKDF2 is split into two halves to create the master key pair.</p>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: the tool cuts one long number into two halves. What could each half be for?</summary></details>
+            <p class="hint">Your words become one long random number: the seed. One scramble step then cuts it into two halves.</p>
             <ul class="list-plain" style="margin-top:12px;">
-              <li><strong>HMAC-SHA512</strong>(key="Bitcoin seed", message=seed) produces 512 bits</li>
-              <li><strong>Left 256 bits</strong> = master private key (the root secret)</li>
-              <li><strong>Right 256 bits</strong> = master chain code (entropy for child derivation)</li>
-              <li>Every child key in the tree derives from this master node</li>
+              <li><strong>HMAC-SHA512</strong> is that scramble step. It mixes a key and a message into a result of fixed length that cannot be turned back. Here the key is the text <code style="font-family:var(--mono)">"Bitcoin seed"</code>, and the message is your seed.</li>
+              <li><strong>Left 256 bits</strong> become the master private key. This is the root secret.</li>
+              <li><strong>Right 256 bits</strong> become the master chain code. This is extra randomness for child keys.</li>
+              <li>Every child key in the tree comes from this one master node.</li>
             </ul>
-            <div class="learn-visual" style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
-              <code style="display:block;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;">
+            <div id="vizStep2"></div>
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
+              <div id="learnStep2Live"></div>
+            </div>
+
+            <details class="quiz-item" style="margin-top:14px;"><summary>Go deeper: the exact recipe and its names</summary>
+              <div class="learn-visual" style="margin-top:10px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <code style="display:block;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;">
 512-bit seed (from PBKDF2)
     |
     v
@@ -853,26 +864,26 @@ Master Node (m) = private key + chain code
     |
     v
 Child keys: CKD(parent, index) - child private key + child chain code
-              </code>
-            </div>
-            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
-              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
-              <div id="learnStep2Live"></div>
-            </div>
+                </code>
+              </div>
+              <p class="hint">The seed comes from PBKDF2, run over your words. A passphrase is mixed in at that step. So the same words with a different passphrase give an unrelated tree, not a hardened version of it.</p>
+            </details>
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
-              <details class="quiz-item"><summary>What two values does HMAC-SHA512 produce at the root of the tree?</summary><p class="hint">The left 256 bits become the master private key; the right 256 bits become the master chain code. Child derivation needs both.</p></details>
-              <details class="quiz-item"><summary>Does the BIP39 passphrase change the master key?</summary><p class="hint">Yes. It feeds PBKDF2 <em>before</em> HMAC-SHA512, so the same 12 words with any different passphrase produce a completely unrelated tree - not a hardened version of the same one.</p></details>
-              <details class="quiz-item"><summary>Why does child derivation need the chain code in addition to the parent private key?</summary><p class="hint">Because the chain code supplies the extra entropy that makes each child unique and deterministic. Why this matters: a private key alone cannot rebuild the tree, which is why backups must keep the seed, not one key.</p></details>
+              <details class="quiz-item"><summary>What two values does HMAC-SHA512 produce at the root of the tree?</summary><p class="hint">The left 256 bits become the master private key. The right 256 bits become the master chain code. Child derivation needs both.</p></details>
+              <details class="quiz-item"><summary>Does the BIP39 passphrase change the master key?</summary><p class="hint">Yes. It is mixed in before HMAC-SHA512 runs. A different passphrase gives a completely unrelated tree with the same words.</p></details>
+              <details class="quiz-item"><summary>Why does child derivation need the chain code as well as the parent private key?</summary><p class="hint">The chain code carries the extra randomness that makes each child unique and repeatable. Why this matters: one private key alone cannot rebuild the tree, so a backup has to be the words, not one key.</p></details>
             </div>
           </div>
 
           <!-- Step 3 -->
           <div class="learn-content" data-step="3" style="display:none;">
             <h3 class="learn-heading">3. The Derivation Path</h3>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: a path reads like m/44'/0'/0'/0/0. What do you think each step does?</summary></details>
             <p class="hint">A derivation path navigates the HD key tree. Each level has a specific purpose.</p>
             <div class="path-preview" style="text-align:center;margin:16px 0;">m / purpose' / coin_type' / account' / change / address_index</div>
+            <div id="vizStep3"></div>
             <div style="margin-top:16px;">
               <div class="learn-segment"><span class="learn-seg-label">purpose'</span> <span class="learn-seg-desc">Which BIP standard: 44 (legacy), 49 (wrapped segwit), 84 (native segwit), 86 (taproot)</span></div>
               <div class="learn-segment"><span class="learn-seg-label">coin_type'</span> <span class="learn-seg-desc">SLIP-0044 coin index: 0=BTC, 60=ETH, 501=SOL, 195=TRX, 2=LTC, 3=DOGE, 118=COSMOS, 784=SUI, 637=APTOS</span></div>
@@ -917,6 +928,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <!-- Step 4 -->
           <div class="learn-content" data-step="4" style="display:none;">
             <h3 class="learn-heading">4. Hardened vs Normal Derivation</h3>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: one small mark, an apostrophe, changes how a key can be derived. What might it be protecting?</summary></details>
             <p class="hint">The apostrophe (<code style="font-family:var(--mono)">'</code>) means <strong>hardened</strong> - the child key requires the parent <em>private</em> key, not just the public key.</p>
             <div style="overflow-x:auto;margin-top:14px;">
             <table class="guide-table">
@@ -929,6 +941,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
               </tbody>
             </table>
           </div>
+            <div id="vizStep4"></div>
             <p class="hint" style="margin-top:14px;"><strong>Why harden the first levels?</strong> If someone gets your xpub for account 0, they can derive all addresses in that account. But they cannot derive hardened children, so the master key and sibling accounts remain safe.</p>
             <p class="hint" style="margin-top:10px;"><strong>Ed25519 chains are fully hardened.</strong> Solana, Sui, and Aptos use Ed25519 keys via SLIP-0010. SLIP-0010 requires <em>every</em> path segment to be hardened, not just the first few. This is why their paths look like <code style="font-family:var(--mono)">m/44'/501'/0'/0'</code> with no unhardened levels.</p>
             <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
@@ -959,6 +972,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <!-- Step 5 -->
           <div class="learn-content" data-step="5" style="display:none;">
             <h3 class="learn-heading">5. From Private Key to Address</h3>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: the last step throws information away on purpose. Why is that safe?</summary></details>
             <p class="hint">The private key produces a public key. The public key is then hashed and encoded into an address. This segment follows that route for the two chains most people meet first.</p>
 
             <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
@@ -980,6 +994,8 @@ Child keys: CKD(parent, index) - child private key + child chain code
             <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
               <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
               <div id="learnStep5Live"></div>
+            <div id="vizStep5" style="margin-top:14px;"></div>
+
             </div>
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
@@ -992,6 +1008,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <!-- Step 6 -->
           <div class="learn-content" data-step="6" style="display:none;">
             <h3 class="learn-heading">6. One Key, Many Addresses</h3>
+            <details class="quiz-item" style="margin-bottom:12px;"><summary>Predict first: the same key can be written as an address starting with 1, with 3, with bc1q or with bc1p. What changes?</summary></details>
             <p class="hint">The same words give a different looking address on every chain. Here is why that happens, and how to check that you are looking at the right one.</p>
 
             <div style="margin-top:14px;">
@@ -1019,6 +1036,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">One seed, nine chains</h3>
+              <div id="vizStep6"></div>
               <p class="hint" style="margin-bottom:12px;">The same words, the same account 0, index 0, derived into every chain this tool supports, side by side. Nine different-looking addresses, nine different key derivations, one seed underneath all of them.</p>
               <div id="learnChainGrid"></div>
             </div>
@@ -1030,6 +1048,40 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <details class="quiz-item"><summary>Why does the same seed show a 0x address on Ethereum and a bc1q address on Bitcoin?</summary><p class="hint">Because the paths differ (coin type 60 vs 0, purpose 44 vs 84) so the keys differ, and each chain then encodes its key differently. Why this matters: one seed holds many independent wallets, so checking one chain never tells you about the others.</p></details>
             </div>
           </div>
+
+
+        <!-- 3h: mixed practice across the whole walkthrough, no new script -->
+        <div class="card learn-practice">
+          <div class="card-title">Practice everything at once</div>
+          <p class="hint" style="margin-bottom:12px;">Each segment above ends with a few questions. These mix all six together, the way a real problem arrives, with no label telling you which part of the tree you are looking at. Answer first, then open the answer.</p>
+
+          <details class="quiz-item"><summary>Your 12 words give a bc1q address in one wallet and an address starting with 1 in another. Is one of them wrong?</summary><p class="hint">No. Both are real addresses on the same seed. They sit on different branches, because the two wallets default to a different purpose (84 against 44). A wallet only shows you the branch it knows about.</p></details>
+
+          <details class="quiz-item"><summary>You write your 12 words down in the wrong order. Does the wallet still open?</summary><p class="hint">Almost never. The order is part of the value, and a wrong order usually fails the checksum. About 1 time in 16 for 12 words it passes anyway and builds a different, empty wallet, which is the dangerous case.</p></details>
+
+          <details class="quiz-item"><summary>Someone photographs your account xpub. What can they see, and what can they not see?</summary><p class="hint">They can see every address that account will ever use, so your balance and your history. They cannot see your private keys, your master key, or the other accounts on your seed.</p></details>
+
+          <details class="quiz-item"><summary>Which half of the master node is the root secret, and which half keeps child keys different?</summary><p class="hint">The master private key is the root secret. The master chain code is the extra randomness that makes each child unique. Child derivation needs both.</p></details>
+
+          <details class="quiz-item"><summary>Your words are right but a restored wallet shows zero. What are the first two suspects?</summary><p class="hint">A different derivation path (purpose, account, or a wallet's own unusual default), or a passphrase you have forgotten you set. Both change the branch, so the wallet looks empty rather than wrong.</p></details>
+
+          <details class="quiz-item"><summary>Why does the same seed give a different private key on Ethereum and on Bitcoin?</summary><p class="hint">Coin type is part of the path and it is hardened, so 60 and 0 land on two different branches. Different branches, different keys.</p></details>
+
+          <details class="quiz-item"><summary>A stranger says word order does not matter, because the set of words is the same. Right or wrong?</summary><p class="hint">Wrong. Order changes the entropy, so it changes every key below it. The same set of words in a different order is a different wallet, or no wallet at all.</p></details>
+
+          <details class="quiz-item"><summary>Why can an address be published while the private key cannot?</summary><p class="hint">Because the steps from key to address run one way. A hash cannot be undone, so publishing an address gives nothing that leads back to the key.</p></details>
+
+          <details class="quiz-item"><summary>Your friend shares an xpub and one child private key from an unhardened level. What have they given away?</summary><p class="hint">The whole account. The unhardened step can be run backwards from the child key plus the public data, which rebuilds the parent private key. A watch-only wallet stops being watch-only at that moment.</p></details>
+
+          <details class="quiz-item"><summary>A 24 word phrase against a 12 word phrase: how much more guessing does it cost an attacker?</summary><p class="hint">128 more bits of guessing, which takes it from about 2^128 to about 2^256. Both are far out of reach today, so the weak point is rarely the length. It is how the words were made.</p></details>
+
+          <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+            <h3 class="learn-heading" style="margin-top:0;">Explain it in your own words</h3>
+            <p class="hint" style="margin-bottom:12px;">Two of the ideas above matter more than the rest. If you can explain these out loud, without the page, you have the whole picture. Try before you open the model answer.</p>
+            <details class="quiz-item"><summary>Explain to someone who has never used a wallet why writing the words down, in order, on paper, is the whole job.</summary><p class="hint">A model answer: those words are not a password to an account that someone else holds. They are the account. Every address and every key on every chain is worked out from them, so whoever has them has the money, and whoever loses them loses the money. A screen can fail, and a phone can be lost. A cloud copy can be read by someone you never met. So the safest copy is one on paper, in order, kept away from the internet. Nothing else is needed, and nothing else can rescue them.</p></details>
+            <details class="quiz-item"><summary>Explain why a wallet can show an empty balance even when your words are correct.</summary><p class="hint">A model answer: the words do not lead to one wallet. They lead to a tree, and a wallet only looks at the branches it knows about. Two wallets can default to a different branch from the same words, so each one shows a different set of addresses. The funds are not lost. They are on a branch you are not looking at. So the first thing to check is the path, and then whether a passphrase was mixed in.</p></details>
+          </div>
+        </div>
 
           <div class="learn-nav">
             <button type="button" class="btn-secondary" id="learnPrev" disabled>Previous</button>
@@ -1191,7 +1243,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <ul class="list-plain">
             <li><strong style="color:var(--accent);">Visualize the tree</strong> - click "Build tree from current seed" above to see every derivation branch and click nodes to derive keys.</li>
             <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Experiments tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
-            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, enable Expert mode to open "Physical entropy lab" and type your own dice rolls so the seed does not depend on your computer alone.</li>
+            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Derive tab, enable Expert mode to open "Physical entropy lab". There you type your own dice rolls, so the seed does not depend on your computer alone.</li>
           </ul>
         </div>
       </div>

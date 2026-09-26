@@ -170,6 +170,30 @@ address with an independent tool before real funds move.
 Criteria 1 and 2 are automated. Criterion 3 needs the operator to recruit readers. Without it, the
 result is an indication and must be reported as one.
 
+## 8b. Single-pass finish (operator asked for everything in one go, 2026-09-26)
+
+Everything below runs in one session, in this order, each step committed and deployed as it
+lands, so nothing waits on a later approval. The visual system it uses is already built
+(`VISUAL-SYSTEM.md`), so no step has to invent a drawing style mid-flight.
+
+| # | Work | Proves itself by |
+|---|---|---|
+| 1 | Segment 2 recast: predict, do, explain, the 512-bit split drawn, the 43 word sentence gone | reading gate, live DOM, screenshot |
+| 2 | Segment 3 recast: the path drawn as a labelled ladder with the reader's own path lit | same |
+| 3 | Segment 4 recast: one parent and two children drawn, showing what an xpub reaches | same |
+| 4 | Segment 5: the key to address pipeline drawn | same |
+| 5 | Segment 6: the four Bitcoin formats and the chain set drawn | same |
+| 6 | Segment 1: words to bits to checksum drawn with the reader's own last word, plus the randomness chart | same |
+| 7 | A mixed practice pool across all six segments, and teach-back boxes with model answers | against the misconception list |
+| 8 | The ESL sentence ceiling added to the gate, at the level the content now holds | gate exits 0, and exits 1 when a long sentence is put back |
+
+Two things stay outside this pass, and neither is a matter of effort:
+
+- **The reader sessions.** Five readers at the grade 8 ESL level. A page with no network and no
+  analytics cannot measure its own comprehension, so this needs people. Protocol: `MEASUREMENT.md`.
+- **Anything inside the protected derivation code.** Nothing here touches derivation, address
+  formats, vanity mining or the brain wallet flow.
+
 ## 9. Effort and order
 
 Reconciled against what actually shipped. The stage numbers below are the plan of record.

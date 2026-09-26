@@ -27,7 +27,9 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const TARGET = 8.0;              /* operator target: an 8th grade reader, including ESL */
-const HARD_SENTENCE = 25;        /* words; advisory, reported not gated */
+const HARD_SENTENCE = 25;        /* words; the guideline, counted and reported */
+const ESL_CEILING = 30;          /* words; HARD failure. An ESL reader re-reads or stops at a sentence this long */
+const DENSE_SHARE = 0.20;        /* HARD failure if more than this share of sentences pass the guideline */
 const CEILING_SLACK = 0.05;      /* ratchet allowance so rounding noise is not a failure */
 const BASELINE_PATH = path.join(ROOT, "tools", "learn-readability-baseline.json");
 
@@ -175,12 +177,24 @@ function extractSteps(html) {
   const next = rest.slice(1).search(/<div class="tab-content" data-content="/);
   const panel = next === -1 ? rest : rest.slice(0, next + 1);
 
-  const blocks = [];
-  const re = /class="learn-content"\s+data-step="(\d)"/g;
+  /* Boundaries, in document order: the walkthrough segments, then the mixed
+   * practice section, then the panel's shared remainder (the nav bar, the
+   * self-verification card, the reference appendix and the glossary). Slicing
+   * from the LAST step marker to the end of the panel - the obvious version -
+   * attributes all of that trailing material to the final segment, which
+   * inflates it and hides where the words actually live. Every region is
+   * measured; nothing is dropped and nothing is attributed to the wrong block. */
   const hits = [];
   let m;
-  while ((m = re.exec(panel))) hits.push({ step: m[1], at: m.index });
+  const stepRe = /class="learn-content"\s+data-step="(\d)"/g;
+  while ((m = stepRe.exec(panel))) hits.push({ step: m[1], at: m.index });
+  const practiceRe = /class="[^"]*learn-practice/g;
+  if ((m = practiceRe.exec(panel))) hits.push({ step: "practice", at: m.index });
+  const sharedRe = /class="learn-nav"/g;
+  if ((m = sharedRe.exec(panel))) hits.push({ step: "panel-extra", at: m.index });
   if (!hits.length) return null;
+  hits.sort((a, b) => a.at - b.at);
+  const blocks = [];
   for (let i = 0; i < hits.length; i++) {
     const end = i + 1 < hits.length ? hits[i + 1].at : panel.length;
     blocks.push({ step: hits[i].step, html: panel.slice(hits[i].at, end) });
@@ -213,6 +227,15 @@ for (const b of blocks) {
     console.error("COULD NOT MEASURE: step " + b.step + " produced no sentences or words");
     process.exit(2);
   }
+  /* ESL discipline. A grade average hides one sentence a reader has to read
+   * twice, and a long sentence is where an ESL reader stops rather than
+   * guesses. So the individual sentences are counted, not just averaged. */
+  const proseText = normalise(proseOnly(scan(b.html).prose));
+  const sents = sentences(proseText);
+  const countWords = (s) => (s.match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
+  r.prose.over_guideline = sents.filter((s) => countWords(s) > HARD_SENTENCE).length;
+  r.prose.over_ceiling = sents.filter((s) => countWords(s) > ESL_CEILING).length;
+  r.prose.share_over_guideline = sents.length ? r.prose.over_guideline / sents.length : 0;
   results[b.step] = r;
 }
 
@@ -223,6 +246,9 @@ for (const [step, r] of Object.entries(results)) {
     prose_words: r.prose.words,
     prose_sentences: r.prose.sentences,
     longest_sentence: r.prose.longest,
+    sentences_over_guideline: r.prose.over_guideline,
+    sentences_over_ceiling: r.prose.over_ceiling,
+    share_over_guideline: Math.round(r.prose.share_over_guideline * 1000) / 1000,
     visual_fk: r.visual ? r.visual.fk : null,
     visual_words: r.visual ? r.visual.words : 0,
     full_fk: r.full.fk,
@@ -231,14 +257,40 @@ for (const [step, r] of Object.entries(results)) {
 }
 
 if (flag("--write-baseline")) {
+  /* Re-recording the baseline is a deliberate act with a paper trail, never a
+   * quiet way past the ratchet. Each re-record appends its reason and the
+   * values it moved, the log is kept in the baseline file, and every run
+   * prints it. The FK target and the sentence ceiling stay hard, so a
+   * re-record can accept more words; it cannot accept harder prose. */
+  let previous = null;
+  try { previous = JSON.parse(fs.readFileSync(BASELINE_PATH, "utf8")); } catch (e) { previous = null; }
+  const log = (previous && previous.rebaseline_log) || [];
+  const moved = [];
+  if (previous && previous.steps) {
+    for (const [step, now] of Object.entries(summary)) {
+      const before = previous.steps[step];
+      if (!before) { moved.push(step + " (new)"); continue; }
+      if (before.prose_words !== now.prose_words || Math.abs((before.prose_fk || 0) - now.prose_fk) > 0.005) {
+        moved.push(step + ": FK " + before.prose_fk + " to " + now.prose_fk + ", words " + before.prose_words + " to " + now.prose_words);
+      }
+    }
+  }
+  const reason = argVal("--reason");
+  if (!reason) {
+    console.error("\ncowardly refusing to --write-baseline without --reason: a re-record needs a reason on the record.");
+    console.error("rc 2, nothing written.");
+    process.exit(2);
+  }
+  log.push({ at: new Date().toISOString().slice(0, 10), reason, moved });
   const payload = {
     note: "Recorded by tools/learn-readability.js --write-baseline. The gate fails when a step gets WORSE than this, and always prints the gap to the 8th grade target so passing above target is never silent.",
     target_prose_fk: TARGET,
     measured_by: "tools/learn-readability.js",
+    rebaseline_log: log,
     steps: summary
   };
   fs.writeFileSync(BASELINE_PATH, JSON.stringify(payload, null, 2) + "\n");
-  console.log("baseline written to " + BASELINE_PATH);
+  console.log("baseline written to " + BASELINE_PATH + ", with " + log.length + " re-record(s) on the log");
 }
 
 console.log("Learn Paths readability, measured from " + path.relative(ROOT, FILE));
@@ -260,7 +312,9 @@ for (const step of Object.keys(summary).sort()) {
     "  " + String(s.visual_words).padStart(7) +
     "  " + (gap > 0 ? ("+" + gap.toFixed(2) + " ABOVE") : gap.toFixed(2)));
   if (s.longest_sentence > HARD_SENTENCE) {
-    console.log("        note: longest sentence is " + s.longest_sentence + " words, over the " + HARD_SENTENCE + " word guideline");
+    console.log("        note: longest sentence is " + s.longest_sentence + " words, and " +
+      s.sentences_over_guideline + " of " + s.prose_sentences + " sentences are over the " +
+      HARD_SENTENCE + " word guideline (" + Math.round(s.share_over_guideline * 100) + " percent)");
   }
 }
 
@@ -299,9 +353,42 @@ if (fs.existsSync(BASELINE_PATH) && !flag("--write-baseline")) {
   console.log("\nratchet: no baseline file yet, nothing to compare against");
 }
 
+/* The ceiling is a hard failure, not a note. It exists because the target is an
+ * ESL reader, and one 35 word sentence is where that reader gives up; a grade
+ * average cannot see it. Both checks measure the shipped content, so they were
+ * added once the content already held them. */
+const overCeiling = Object.entries(summary).filter(([, s]) => s.sentences_over_ceiling > 0);
+const denseProse = Object.entries(summary).filter(([, s]) => s.share_over_guideline > DENSE_SHARE);
+
+if (overCeiling.length) {
+  console.log("\nFAIL (rc 1): sentence(s) over the " + ESL_CEILING + " word ceiling in step(s) " +
+    overCeiling.map(([k, s]) => k + " (" + s.sentences_over_ceiling + ")").join(", ") +
+    ". Split them: a long sentence is where an ESL reader stops.");
+  process.exit(1);
+}
+if (denseProse.length) {
+  console.log("\nFAIL (rc 1): more than " + Math.round(DENSE_SHARE * 100) + " percent of sentences are over the " +
+    HARD_SENTENCE + " word guideline in step(s) " + denseProse.map(([k]) => k).join(", ") +
+    ". The average can look fine while the page reads as a wall.");
+  process.exit(1);
+}
+
 if (aboveTarget.length) {
   console.log("ABOVE TARGET on step(s) " + aboveTarget.join(", ") + ". This is reported, not hidden: the gate ratchets against the baseline until the content is rewritten to target.");
 }
+
+/* Print the re-record history every run, so a baseline that has been moved is
+ * never mistaken for an untouched one. */
+try {
+  const rec = JSON.parse(fs.readFileSync(BASELINE_PATH, "utf8"));
+  if (rec.rebaseline_log && rec.rebaseline_log.length) {
+    console.log("\nbaseline re-records on the record:");
+    for (const entry of rec.rebaseline_log) {
+      console.log("  " + entry.at + ": " + entry.reason);
+      if (entry.moved && entry.moved.length) console.log("      moved: " + entry.moved.join(" | "));
+    }
+  }
+} catch (e) { /* no baseline yet is not an error here */ }
 
 if (regressions.length) {
   console.log("\nREGRESSION against baseline:");
