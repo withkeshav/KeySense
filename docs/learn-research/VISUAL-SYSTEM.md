@@ -89,6 +89,12 @@ Fixed grammar, reused everywhere:
 - Honest limit: the gate measures reading load, not beauty, and it will not be asked to. Whether it
   looks good is the operator's eye. The deliverable for that judgement is screenshots, not a claim.
 
+## Gotchas found while building it
+
+- **var() does not work in an SVG presentation attribute.** `stroke="var(--viz-secret)"` is not an error, it simply paints nothing, so every diagram rendered as unstyled black shapes while every structural test passed. Colours are set as CSS (`element.style.fill`), and a test now walks a built diagram and fails if a var() appears in an attribute.
+- **`<defs>` pollutes naive selectors.** Arrowhead tips and hatch patterns live in the same SVG, so `querySelectorAll("rect")` or `("path")` returns defs children first and a probe of the first one measures an invisible pattern rectangle. Select by the primitive's own group (`g.viz-node rect`, `g.viz-flow path`).
+- **A CDN can serve a stale asset after a deploy.** Measured here: `index.html` returns `cf-cache-status: DYNAMIC` (always fresh) while `/src/*.js` and `/src/styles.css` came back `HIT` with an age. So a fresh page can be paired with old scripts. Verify a deploy by fetching the asset with a cache-buster (`?v=<sha>`), and consider purging the cache or shortening the edge TTL for `/src/*`.
+
 ## Order
 
 1. Build the system and the fixture page, no content changes. Self-contained and provable: the

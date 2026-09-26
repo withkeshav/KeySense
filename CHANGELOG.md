@@ -17,6 +17,11 @@
 - **New sample sheet, `test/learn-visuals-sample.html`,** rendering every primitive once for review and screenshots. Not linked from the app. Motion runs only on a button press, never on first paint.
 - **Loaded by `index.html` and `test/self-test.html` together.** The suite's drift guard fails when the two pages load different script sets, so a half-added module cannot ship.
 
+### Fixed, the diagrams painted nothing
+
+- **`var()` is not valid in an SVG presentation attribute.** Every fill and stroke in the first build of the visual system was set as an attribute, so the browser dropped each one and the diagrams rendered as unstyled black shapes. Text measured `rgb(0, 0, 0)` on a dark page. Caught by looking at rendered pixels, not by the suite: all 206 structural assertions passed while nothing on screen was painted. Colours now go through CSS (`element.style.fill`), verified in a browser as `secret stroke rgb(251, 191, 36)`, `warn fill url(#vizHatch-warn)`, `arrow stroke rgb(96, 165, 250)`, and the suite gained a walker test that fails if a var() ever appears in an attribute again.
+- **The sample sheet linked no stylesheet**, so the token file it depends on was never loaded. The five colour roles now live in `src/viz-tokens.css`, which `index.html`, `test/self-test.html` and the sample sheet all link, and the drift guard compares stylesheets as well as scripts. Proven by breaking it: removing the link from the self-test page fails the suite with `stylesheets missing from self-test: src/viz-tokens.css`.
+
 ### Added, research decisions and the visual system plan
 
 - **The benchmark is fixed and written down: grade 8, for readers working in English as a second language.** The deep material stays verbatim and only moves behind disclosures. The printable worksheet is deferred and tracked in the roadmap rather than dropped. All recorded in `docs/learn-research/PLAN.md`.

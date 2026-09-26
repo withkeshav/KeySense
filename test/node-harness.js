@@ -417,7 +417,10 @@ function checkVisuals() {
    * stroke="var(--viz-secret)" paints nothing and every diagram came out as
    * unstyled black shapes while all the structural assertions above passed.
    * Paintable properties must go through CSS, so anything left in an attribute
-   * that mentions var( is a regression. */
+   * that mentions var( is a regression. In a real browser the painted values do
+   * live in an attribute named "style", so a browser-side version of this check
+   * has to exclude that one attribute; here the stub keeps style off attrs
+   * entirely, which is the same thing. */
   const painted = [V.diagram({ width: 200, height: 100, ariaLabel: "walk", children: [
     V.group({ x: 0, y: 0, w: 190, h: 90, title: "g", children: [
       V.box({ x: 6, y: 20, w: 60, h: 30, label: "secret", role: "secret" }),
