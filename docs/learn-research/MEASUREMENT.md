@@ -2,6 +2,10 @@
 
 Status: built, ready to run. This is Phase D of `docs/learn-research/PLAN.md`.
 
+Benchmark, decided by the operator on 2026-09-26: **grade 8, with readers working in English as a
+second language.** The pass bar below is written for that reader, so a reader who is at ease in
+English is not the target case.
+
 ## Why this exists
 
 The page ships `connect-src 'none'` and its privacy policy promises no analytics, so nothing about a

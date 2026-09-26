@@ -14,6 +14,7 @@ here so anyone can read them, check them, or disagree with them in public.
 | [LEARNING-SCIENCE.md](LEARNING-SCIENCE.md) | Which teaching techniques are proven to work, filtered by what an offline page can do | Evidence complete, 18 primary sources |
 | [PRIOR-ART.md](PRIOR-ART.md) | Teardown of 8 existing explainers, naming the teaching device each one uses | Complete |
 | [MEASUREMENT.md](MEASUREMENT.md) | The protocol for the reader sessions, the scoring rubric and the pass bar | Ready, needs readers |
+| [VISUAL-SYSTEM.md](VISUAL-SYSTEM.md) | The graphics, charts and motion system: colour roles, diagram and chart primitives, motion grammar, and how it gets verified | Plan, approved in principle, next to build |
 
 ## How any number here was produced
 

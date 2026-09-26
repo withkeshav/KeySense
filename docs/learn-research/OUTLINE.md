@@ -227,7 +227,7 @@ it can replace them.
 ## 10. What needs your decision
 
 1. Approve this outline, or name what changes.
-2. The three open questions from the research plan still stand: benchmark (US grade 8 or CBSE Class 8
-   with ESL readers, recommendation is ESL), printable worksheet yes or no, and whether depth is
-   preserved verbatim or also trimmed.
+2. Answered by the operator on 2026-09-26: benchmark is **grade 8 with ESL readers**; the deep
+   material **stays verbatim** and only moves behind disclosures; the printable worksheet is **not
+   now**, and is tracked in the roadmap in `VISUAL-SYSTEM.md`.
 3. Can you recruit 5 readers at the target level? Without them criterion 3 is never measured.

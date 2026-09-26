@@ -118,10 +118,11 @@ Method: fix the benchmark, then make it enforceable. Candidate benchmark: WCAG 3
 because the audience includes readers working in a second language. Then write a `tools/` script
 that extracts the Learn panel, computes per-step FK and jargon-at-first-use, and fails above
 budget, so the standard cannot silently rot the way the earlier learning round's prose did.
-Open question for the operator: is the benchmark US grade 8, or CBSE Class 8 with English as a
-second language? Recommendation: assume the harder case, ESL readers, which forces short
-sentences and a definition at first use of every term. Falsifier: a gate that no existing section
-passes is a badly set gate, not a strict one; calibrate before enforcing.
+**Decided by the operator on 2026-09-26: grade 8, with readers working in English as a second
+language.** The harder bar is the one enforced, because passing it also passes the easier one, and it
+forces short sentences plus a definition at first use of every term. Falsifier: a gate that no
+existing section passes is a badly set gate, not a strict one, so it was calibrated against the real
+page before it was enforced.
 
 **RQ6. How do we prove comprehension when the app is forbidden from collecting anything?**
 This is the crux and it has no cheap answer. Server-side instrumentation is off the table by
@@ -230,15 +231,24 @@ Phase B and D can run in parallel. Phase F must not start before the operator ap
 - Hosting, deploy, or the privacy policy. The privacy policy data section was added separately.
 - Translation. English only. If a second language is wanted, that is a new plan.
 
-## 8. Open questions for the operator
+## 8. Decisions taken, and what is still open
 
-1. Benchmark: US grade 8 or CBSE Class 8 for a reader working in English as a second language?
-   Recommendation: assume ESL, because passing that bar also passes the easier one.
-2. Can you recruit 5 readers at the target level for Phase E? Without them, comprehension is
-   never actually measured, only inferred from readability, and that should be stated as a
-   limitation rather than dressed up as proof.
-3. Printable worksheet (D7): wanted or not?
-4. Do you want the "go deeper" depth preserved verbatim, or edited down as well?
+Answered by the operator on 2026-09-26:
+
+1. **Benchmark: grade 8 with ESL readers.** Closed.
+2. **Deep material stays verbatim.** The existing technical depth is not trimmed to hit a number. It
+   moves behind a disclosure where it is not needed at the surface, and its wording is preserved.
+   Closed.
+3. **Printable worksheet (D7): not now, added to the roadmap.** See VISUAL-SYSTEM.md, roadmap
+   section. It is revisited after the reader sessions, when there is evidence about what a reader
+   needs on paper.
+4. **The visual layer: approved in principle**, specified in `VISUAL-SYSTEM.md`.
+
+Still open, and only the operator can answer it:
+
+- Can you recruit 5 readers at the target level for the reader sessions? Without them, comprehension
+  is never measured, only inferred from readability, and that is stated as a limitation rather than
+  dressed up as proof.
 
 ## 9. Progress log (newest first)
 

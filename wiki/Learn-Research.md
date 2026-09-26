@@ -78,7 +78,8 @@ output is qualitative and volunteered, and it is published in the repository as 
 | Readability gate and baseline | Live in the repo, wired as `npm run test:readability` |
 | Reader session protocol | Published, needs readers |
 | Learn redesign outline | Published as a proposal: `docs/learn-research/OUTLINE.md` |
-| Rebuild | In progress, subtraction first |
+| Visual system: diagrams, charts, motion | Published as a plan: `docs/learn-research/VISUAL-SYSTEM.md` |
+| Rebuild | Two segments done, four build stages to go. Subtraction first, then the words, then the graphics |
 
 ## Challenge it
 

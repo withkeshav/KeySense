@@ -9,6 +9,11 @@
 - **New reader session page, `test/learn-comprehension.html`.** Runs from a local file, no network, stores nothing, and cannot report anything back.
 - **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet. The wiki is now live at https://github.com/withkeshav/KeySense/wiki with 6 pages.
 
+### Added, research decisions and the visual system plan
+
+- **The benchmark is fixed and written down: grade 8, for readers working in English as a second language.** The deep material stays verbatim and only moves behind disclosures. The printable worksheet is deferred and tracked in the roadmap rather than dropped. All recorded in `docs/learn-research/PLAN.md`.
+- **New plan, `docs/learn-research/VISUAL-SYSTEM.md`,** for the graphics layer: five semantic colour roles each with a non-colour equivalent, six diagram primitives, one chart primitive, and exactly three motion primitives with a fixed duration and easing grammar. Motion is limited to showing a value change, never runs on first paint, and switches off entirely for reduced motion. Decoration is excluded, because decorative graphics were measured to raise liking and not recall.
+
 ### Changed, Learn walkthrough is now six segments
 
 - **Split the address segment in two.** Segment 5 was 955 prose words plus 596 non-prose, close to half the walkthrough in one click. It is now segment 5, "From Private Key to Address" (116 prose words), and segment 6, "One Key, Many Addresses" (963 words, the format and cross-chain material). Segmentation is the largest design effect in the learning research at 1.36.
