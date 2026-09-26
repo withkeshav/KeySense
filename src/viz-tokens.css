@@ -1,0 +1,31 @@
+/* Visual system colour roles, in one place.
+ *
+ * Five meanings, not five colours: secret, public, hashed, address, warn. Each
+ * role also carries a shape rule in src/learn-visuals.js, so a drawing still
+ * works in greyscale, for a colour blind reader, and in a black and white
+ * print. Contrast is measured by tools/viz-contrast.js (npm run test:viz), not
+ * asserted here.
+ *
+ * index.html, test/self-test.html and the sample sheet all link this file, so
+ * a diagram cannot be rendered against tokens that were never loaded, which is
+ * what happens when the roles live only inside the app stylesheet.
+ */
+:root {
+  --viz-secret: #fbbf24;
+  --viz-public: #60a5fa;
+  --viz-hashed: #c4b5fd;
+  --viz-address: #4ade80;
+  --viz-warn: #f87171;
+  --viz-line: rgba(255, 255, 255, 0.28);
+  --viz-surface: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] {
+  --viz-secret: #92400e;
+  --viz-public: #1d4ed8;
+  --viz-hashed: #5b21b6;
+  --viz-address: #15803d;
+  --viz-warn: #b91c1c;
+  --viz-line: rgba(0, 0, 0, 0.28);
+  --viz-surface: #ffffff;
+}

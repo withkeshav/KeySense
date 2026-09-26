@@ -46,9 +46,19 @@ function scriptSrcList(html) {
   return out;
 }
 
+function styleSrcList(html) {
+  const out = [];
+  const re = /<link[^>]+href="([^"]+\.css)"/g;
+  let m;
+  while ((m = re.exec(html))) out.push(m[1].replace(/^\.\//, ""));
+  return out;
+}
+
 /* Guard against the self-test page drifting away from what the app loads.
  * Without this, someone adds a script tag to index.html in six months and the
- * suite silently stops covering it. */
+ * suite silently stops covering it. Stylesheets are checked for the same
+ * reason: the visual system tokens live in their own file, and a page that
+ * links the drawings without the tokens renders black on black. */
 function checkDrift() {
   let selfTest;
   try { selfTest = read("test/self-test.html"); }
@@ -62,7 +72,17 @@ function checkDrift() {
 
   const missing = app.filter((s) => test.indexOf(s) === -1);
   const extra = test.filter((s) => app.indexOf(s) === -1);
-  return { skipped: false, missing, extra, ok: missing.length === 0 && extra.length === 0 };
+
+  const appCss = styleSrcList(read("index.html"));
+  const testCss = styleSrcList(selfTest).map((s) => s.replace(/^\.\.\//, ""));
+  const cssMissing = appCss.filter((s) => testCss.indexOf(s) === -1);
+  const cssExtra = testCss.filter((s) => appCss.indexOf(s) === -1);
+
+  return {
+    skipped: false, missing, extra,
+    cssMissing, cssExtra,
+    ok: missing.length === 0 && extra.length === 0 && cssMissing.length === 0 && cssExtra.length === 0
+  };
 }
 
 /* Wrap the context's Math so calls to Math.random are counted. The whole
@@ -447,14 +467,16 @@ function main() {
       }
     }
 
-    console.log("\n# script drift guard");
+    console.log("\n# asset drift guard");
     if (drift.skipped) console.log("skip   " + drift.reason);
-    else if (drift.ok) console.log("ok     self-test.html loads the same scripts as index.html");
+    else if (drift.ok) console.log("ok     self-test.html loads the same scripts and stylesheets as index.html");
     else {
       failed++;
       console.log("NOT OK self-test.html has drifted from index.html");
       if (drift.missing.length) console.log("         missing from self-test: " + drift.missing.join(", "));
       if (drift.extra.length) console.log("         extra in self-test:     " + drift.extra.join(", "));
+      if (drift.cssMissing.length) console.log("         stylesheets missing from self-test: " + drift.cssMissing.join(", "));
+      if (drift.cssExtra.length) console.log("         stylesheets extra in self-test:     " + drift.cssExtra.join(", "));
     }
 
     const passed = results.filter((r) => r.pass).length;

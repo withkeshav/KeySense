@@ -20,7 +20,11 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
-const CSS = fs.readFileSync(path.join(ROOT, "src", "styles.css"), "utf8");
+/* The roles come from the token file that every page links; --text and the page
+ * background come from the app stylesheet. Reading both means the measurement
+ * follows the shipped values rather than a copy of them. */
+const CSS_FILES = ["src/viz-tokens.css", "src/styles.css"];
+const CSS_BY_FILE = CSS_FILES.map((f) => ({ file: f, text: fs.readFileSync(path.join(ROOT, f), "utf8") }));
 
 /* Text is 4.5:1. Shapes only need 3:1 per WCAG 1.4.11. */
 const TEXT_TARGET = 4.5;
@@ -89,8 +93,17 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const dark = tokenBlock(CSS, ":root");
-const light = tokenBlock(CSS, '[data-theme="light"]');
+function tokensFor(selector) {
+  const out = {};
+  for (const entry of CSS_BY_FILE) {
+    const block = tokenBlock(entry.text, selector);
+    if (block) Object.assign(out, block);
+  }
+  return out;
+}
+
+const dark = tokensFor(":root");
+const light = tokensFor('[data-theme="light"]');
 const THEMES = [
   { name: "dark", tokens: dark, page: dark && dark["--bg-gradient-start"] },
   { name: "light", tokens: light, page: light && light["--bg-gradient-end"] }
