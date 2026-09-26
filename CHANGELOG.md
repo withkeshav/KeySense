@@ -2,9 +2,19 @@
 
 ## Unreleased
 
+### Added, brain custom path
+
+- **Optional custom path override in the Brain Wallet tab.** Type a path into `brainCustomPath` to derive one extra address for comparison. The 5 fixed paths are always derived unchanged. `brainSyncPathBtn` fills the input from the account and index fields. `deriveBrainCustomAddress` in `src/brain-wallet-service.js` resolves the path, infers purpose and coin type, and auto-hardens Ed25519 paths for SLIP-0010 with a note when the resolved path differs. Empty input means no override. Locked by 2 frozen vectors.
+
+### Added, learning batch 1
+
+- **Interactive path builder in Learn step 3.** Sliders `learnPathAccount` and `learnPathIndex` preview a Bitcoin path across account 0 to 9 and index 0 to 9. Read only preview that never changes the Derive tab.
+- **Guided empty-wallet buttons in Learn step 3.** `learnTryLegacyBtn` and `learnTryNativeBtn` load the Legacy and Native SegWit paths into the Derive tab using the same presets as the guide rows.
+- **5 new quizzes across steps 1 to 5**, one per step, with answer-first reveal.
+
 ### Security, hardening round
 
-- **An RNG fail-closed test suite in CI's `npm test` (now 185 vectors, was 139).** The Coldcard lesson restated as executable checks: `secure-random.js` and the entropy lab are loaded in fresh vm contexts with `crypto` present, absent, missing `getRandomValues`, or stubbed to return all-zero, identical, or single-repeated-byte output. Every degradation must fail loudly (throw or trip the canary with the right reason) rather than hand back key material; mixed mode must refuse without `crypto` while deterministic mode (the documented escape hatch) must keep working. A Math.random tripwire counts calls across the entire suite and fails on any (measured: 0). A vendor pin guard reads `tools/build-crypto.sh`'s pinned `@noble/hashes` and `esbuild` versions and checks the committed `src/vendor/keysense-hashes.js` banner still names exactly those versions, so a hand-edit or wrong-version rebuild cannot pass silently.
+- **An RNG fail-closed test suite in CI's `npm test` (now 189 vectors, was 139).** The Coldcard lesson restated as executable checks: `secure-random.js` and the entropy lab are loaded in fresh vm contexts with `crypto` present, absent, missing `getRandomValues`, or stubbed to return all-zero, identical, or single-repeated-byte output. Every degradation must fail loudly (throw or trip the canary with the right reason) rather than hand back key material; mixed mode must refuse without `crypto` while deterministic mode (the documented escape hatch) must keep working. A Math.random tripwire counts calls across the entire suite and fails on any (measured: 0). A vendor pin guard reads `tools/build-crypto.sh`'s pinned `@noble/hashes` and `esbuild` versions and checks the committed `src/vendor/keysense-hashes.js` banner still names exactly those versions, so a hand-edit or wrong-version rebuild cannot pass silently.
 - **GitHub Actions CI** (`.github/workflows/ci.yml`). Pushes and PRs run `npm test` on Node 20 and 22. A weekly cron job re-runs `tools/verify-vendor.sh` (pinned upstream SHA-384 re-check of the copied vendors) and `tools/build-crypto.sh --check` (byte-for-byte reproduction of the built hashes file) plus the suite: visibility is not verification, only running the check on a schedule is.
 - **`RELEASE.md`**, a release checklist covering the full suite, both vendor scripts, a browser smoke test, the self-test drift guard, tagging, and the post-release cron confirmation.
 

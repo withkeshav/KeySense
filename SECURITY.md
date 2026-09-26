@@ -10,6 +10,8 @@ Every library is vendored into `src/vendor/` and served from the same origin as 
 
 The page also ships a Content-Security-Policy that includes `connect-src 'none'`. Even if a bug allowed script execution on the page, that script would have no way to send your seed anywhere.
 
+The optional Brain Wallet custom path input is display only and never leaves the device.
+
 Opening the page as a `file://` URL works for everything, including Solana, Sui and Aptos. There is no dynamic `import()` and nothing requires a secure context, so the whole tool runs from a USB stick on a machine with no network stack. This is verified in CI-style by `npm test` plus a headless `file://` run.
 
 ## Verifying the vendored libraries

@@ -12,8 +12,8 @@ Created by [Keshav Maheshwari](https://www.withkeshav.com)
 
 - **Derive Keys** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
 - **Vanity Miner** - Offline EVM vanity address generator
-- **Brain Wallet** - SHA-256 passphrase -> BIP39 mnemonic -> deterministic wallet
-- **Learn Paths** - Visual explanation of BIP44/49/84/86 derivation structure
+- **Brain Wallet** - SHA-256 passphrase -> BIP39 mnemonic -> deterministic wallet, with optional custom path override
+- **Learn Paths** - Visual explanation of BIP44/49/84/86 derivation structure, with interactive builder, quizzes, and verify badges
 - **Blockchain Guide** - Address format reference across chains
 - **Path Recovery** - Find which derivation path matches a known address
 - **Paper Wallet** - Print an air-gapped cold backup
@@ -35,7 +35,7 @@ Then open in a browser. The whole tool, every tab and every chain, also works st
 npm test
 ```
 
-Runs the full vector suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP maintainer fixtures for every chain, the entropy lab, the brain wallet, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 20 and 22 for every push and PR, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
+Runs the full 189 vector suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP maintainer fixtures for every chain, the entropy lab, the brain wallet including custom path vectors, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 20 and 22 for every push and PR, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
 
 ## Deploy on a VPS
 

@@ -84,3 +84,34 @@ async function deriveBrainSolAddress(phrase, solPath, bip39Passphrase) {
   var solRes = await formatAddress(phrase, solPath, 44, 501, "", bip39Passphrase);
   return solRes.address;
 }
+
+/* Optional custom path override for the brain wallet tab. The fixed paths in
+ * deriveBrainWalletData are never changed by this. Empty input means no
+ * override. Ed25519 coins auto harden like the Derive tab does. */
+async function deriveBrainCustomAddress(phrase, customPath, bip39Passphrase) {
+  var raw = String(customPath || "").trim().replace(/\s+/g, "");
+  if (!raw) throw new Error("Enter a custom derivation path.");
+  if (!/^m\//i.test(raw)) raw = "m/" + raw;
+  var inferred = inferPurposeCoinFromPath(raw);
+  if (!inferred) throw new Error("Could not read purpose and coin type from path: " + raw);
+  var purpose = inferred.purpose;
+  var coinType = inferred.coinType;
+  var resolvedPath = raw;
+  var pathNote = null;
+  if (coinType === 501 || coinType === SUI_COIN_TYPE || coinType === APTOS_COIN_TYPE) {
+    var hardened = hardenAllPathSegments(raw);
+    if (hardened !== raw) {
+      resolvedPath = hardened;
+      pathNote = "Path auto-hardened for SLIP-0010 (Ed25519): " + hardened;
+    }
+  }
+  var hdRoot = ethers.utils.HDNode.fromMnemonic(phrase, bip39Passphrase || "");
+  var secpPrivateKeyHex = hdRoot.derivePath(resolvedPath).privateKey;
+  var res = await formatAddress(phrase, resolvedPath, purpose, coinType, secpPrivateKeyHex, bip39Passphrase || "");
+  res.requestedPath = raw;
+  res.resolvedPath = resolvedPath;
+  if (pathNote) res.pathNote = pathNote;
+  res.purpose = purpose;
+  res.coinType = coinType;
+  return res;
+}

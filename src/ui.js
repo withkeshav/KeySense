@@ -38,6 +38,8 @@ function initTabs() {
 }
 
 function initLearnPath() {
+  /* Step state lives only in this closure variable. No localStorage, no seed
+   * material: moving between steps toggles visibility and nothing else. */
   const steps = document.querySelectorAll(".learn-step");
   const contents = document.querySelectorAll(".learn-content");
   const prevBtn = document.getElementById("learnPrev");

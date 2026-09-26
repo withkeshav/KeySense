@@ -518,6 +518,15 @@
             </div>
           </div>
 
+          <div style="margin-top:14px;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <label for="brainCustomPath">Custom derivation path <span class="label-chip">optional override, empty means fixed paths</span></label>
+              <input id="brainCustomPath" type="text" placeholder="m/44'/60'/0'/0/0" autocomplete="off" spellcheck="false" style="margin-top:6px;font-family:var(--mono);font-size:13px;">
+              <p class="hint" style="margin-top:6px;margin-bottom:0;">Optional. When filled, one extra address is derived at this path for comparison. The 5 fixed paths above are always derived unchanged.</p>
+            </div>
+            <button type="button" id="brainSyncPathBtn" class="btn-secondary" style="flex-shrink:0;">Sync from account</button>
+          </div>
+
           <div class="action-buttons" style="margin-top:14px;">
             <button type="button" id="brainCompute" class="btn-primary">Derive all chains</button>
           </div>
@@ -559,6 +568,15 @@
               <div style="margin-top:14px;">
                 <div class="output-label">Solana - <code id="brainSolPath" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">m/44'/501'/0'/0'</code></div>
                 <div class="output-value" id="brainSol">Loading…</div>
+              </div>
+
+              <!-- CUSTOM -->
+              <div style="margin-top:14px;display:none;" id="brainCustomWrap">
+                <div class="output-label">Custom path - <code id="brainCustomPathLabel" style="font-family:var(--mono);font-size:12px;color:var(--text-muted)">—</code></div>
+                <div class="output-value" id="brainCustomAddress">—</div>
+                <div class="output-label" style="margin-top:6px;">Custom private key</div>
+                <div class="output-value" id="brainCustomPrivateKey">—</div>
+                <p class="hint" id="brainCustomNote" style="display:none;margin-top:6px;"></p>
               </div>
             </div>
           </div>
@@ -770,7 +788,8 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <p class="hint" style="margin-bottom:10px;">Answer in your head first, then open the question. Recalling an answer before seeing it is what makes it stick.</p>
               <details class="quiz-item"><summary>How many bits of real entropy are in a 12-word phrase?</summary><p class="hint">128. Twelve words carry 132 bits and the last 4 are checksum, so the secret part is 128 bits. 24-word phrases carry 256.</p></details>
               <details class="quiz-item"><summary>You restore your wallet and mistype one word. What happens?</summary><p class="hint">Almost always the wallet refuses: the checksum no longer matches. There is a 1-in-16 chance (12 words) or 1-in-256 (24 words) the mistake still passes and silently derives a different, empty wallet - which is why typing words carefully matters.</p></details>
-              <details class="quiz-item"><summary>Does adding a strong passphrase make a weakly generated seed safe?</summary><p class="hint">No. The passphrase selects a different branch of a tree whose root is still the guessable entropy. An attacker who sweeps the seed can sweep the passphrase branches too. Strength has to be in the entropy itself.</p></details>
+              <details class="quiz-item"><summary>Does adding a strong passphrase make a weakly generated seed safe?</summary><p class="hint">No. The passphrase selects a different branch of a tree whose root is still the guessable entropy. Why this matters: an attacker who sweeps the seed can sweep the passphrase branches too.</p></details>
+              <details class="quiz-item"><summary>Why is it never safe to type your seed into a website that offers to check it?</summary><p class="hint">Because the words are the wallet itself, not a login name. Why this matters: anyone who receives them can derive every key and spend everything within minutes.</p></details>
             </div>
           </div>
 
@@ -811,6 +830,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
               <details class="quiz-item"><summary>What two values does HMAC-SHA512 produce at the root of the tree?</summary><p class="hint">The left 256 bits become the master private key; the right 256 bits become the master chain code. Child derivation needs both.</p></details>
               <details class="quiz-item"><summary>Does the BIP39 passphrase change the master key?</summary><p class="hint">Yes. It feeds PBKDF2 <em>before</em> HMAC-SHA512, so the same 12 words with any different passphrase produce a completely unrelated tree - not a hardened version of the same one.</p></details>
+              <details class="quiz-item"><summary>Why does child derivation need the chain code in addition to the parent private key?</summary><p class="hint">Because the chain code supplies the extra entropy that makes each child unique and deterministic. Why this matters: a private key alone cannot rebuild the tree, which is why backups must keep the seed, not one key.</p></details>
             </div>
           </div>
 
@@ -831,16 +851,32 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <div id="learnStep3Live"></div>
             </div>
 
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:6px;">Try it: move account and index</div>
+              <p class="hint" style="margin-bottom:10px;">Read only preview. Moving these sliders never changes the Derive tab. It shows how the account and index segments reshape a Bitcoin path.</p>
+              <label for="learnPathAccount" style="font-size:11px;">Account: <span id="learnPathAccountLabel">0</span></label>
+              <input id="learnPathAccount" type="range" min="0" max="9" step="1" value="0" style="width:100%;margin-top:6px;" aria-label="Preview account segment">
+              <label for="learnPathIndex" style="font-size:11px;margin-top:10px;">Address index: <span id="learnPathIndexLabel">0</span></label>
+              <input id="learnPathIndex" type="range" min="0" max="9" step="1" value="0" style="width:100%;margin-top:6px;" aria-label="Preview address index segment">
+              <div id="learnPathBuilderPreview" style="margin-top:10px;"></div>
+            </div>
+
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Why a restored wallet can look empty</h3>
               <p class="hint" style="margin-bottom:12px;">Same 12 words, same Bitcoin account, two wallets that pick a different default <code style="font-family:var(--mono)">purpose</code>. Neither is wrong. They are different, equally valid branches of the same tree, and funds on one never show up while looking at the other.</p>
               <div id="walletMismatchHost"></div>
+              <div class="action-buttons" style="margin-top:10px;">
+                <button type="button" class="btn-secondary" id="learnTryLegacyBtn">Try m/44'/0'/0'/0/0 in Derive</button>
+                <button type="button" class="btn-secondary" id="learnTryNativeBtn">Try m/84'/0'/0'/0/0 in Derive</button>
+              </div>
+              <p class="hint" style="margin-top:8px;margin-bottom:0;">Each button loads one path into the Derive tab using the same presets as Step 2 there. Click one, note the address, then click the other.</p>
             </div>
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
               <details class="quiz-item"><summary>In m/84'/0'/0'/0/0, what does the 84 tell you?</summary><p class="hint">The purpose: native segwit (bech32, bc1q...). 44 is legacy, 49 is wrapped segwit, 86 is taproot.</p></details>
               <details class="quiz-item"><summary>Your words are correct but the restored wallet shows zero balance. What are the first two suspects?</summary><p class="hint">A different derivation path (purpose, account, or a wallet's non-standard default) or a passphrase you forgot setting. Try the Path recovery tool on the Experiments tab.</p></details>
+              <details class="quiz-item"><summary>What changes in the path when you switch from account 0 to account 1, and what stays the same?</summary><p class="hint">Only the account segment moves from 0' to 1'; purpose, coin type, change and index stay put. Why this matters: one segment of difference selects a fully separate wallet branch with its own addresses.</p></details>
             </div>
           </div>
 
@@ -882,6 +918,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
               <details class="quiz-item"><summary>Your account xpub leaks. What exactly is exposed?</summary><p class="hint">Every address that account can derive (present and future) and therefore your balances and transaction history. Not exposed: private keys, the master key, and sibling hardened accounts.</p></details>
               <details class="quiz-item"><summary>Why is every level hardened on Solana, Sui and Aptos?</summary><p class="hint">They use Ed25519 via SLIP-0010, and SLIP-0010 requires hardened derivation at every level. Normal (non-hardened) derivation does not exist on those chains.</p></details>
+              <details class="quiz-item"><summary>Why does an xpub plus one normal child private key expose the whole account?</summary><p class="hint">Because normal child math can be run backwards from the child key to the parent key using only public data. Why this matters: a watch-only xpub stops being watch-only the moment one child private key leaks beside it.</p></details>
             </div>
           </div>
 
@@ -934,6 +971,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
               <details class="quiz-item"><summary>Same seed, Ethereum and Tron: same private key?</summary><p class="hint">No. Coin type 60 and 195 are different hardened branches, so different keys. Tron's address then formats the Ethereum-style hash as Base58Check starting with T.</p></details>
               <details class="quiz-item"><summary>Is a Sui address just the public key in hex?</summary><p class="hint">No. It is BLAKE2b-256 of a scheme flag byte plus the public key. Both are 32 bytes, which is exactly why people assume they are the same thing.</p></details>
+              <details class="quiz-item"><summary>Why does the same seed show a 0x address on Ethereum and a bc1q address on Bitcoin?</summary><p class="hint">Because the paths differ (coin type 60 vs 0, purpose 44 vs 84) so the keys differ, and each chain then encodes its key differently. Why this matters: one seed holds many independent wallets, so checking one chain never tells you about the others.</p></details>
             </div>
           </div>
 

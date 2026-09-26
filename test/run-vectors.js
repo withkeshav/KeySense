@@ -477,7 +477,28 @@ function runAllVectors() {
         return attempt(function () {
           return deriveBrainWalletData(v.passphrase, "", 0, 0);
         }).then(function (b) {
-          record("brain", v.id, v.expectedEth, b && b.ethAddress, { source: v.source });
+          if (v.expectedEth !== undefined) {
+            record("brain", v.id, v.expectedEth, b && b.ethAddress, { source: v.source });
+          }
+          if (v.customPath) {
+            if (typeof deriveBrainCustomAddress !== "function") {
+              fail("brain", v.id + "-custom", new Error("deriveBrainCustomAddress not defined"));
+              return;
+            }
+            return attempt(function () {
+              return deriveBrainCustomAddress(b.phrase, v.customPath, "");
+            }).then(function (c) {
+              if (v.expectedCustomAddress !== undefined) {
+                record("brain", v.id + "-addr", v.expectedCustomAddress, c && c.address, { source: v.source, path: v.customPath });
+              }
+              if (v.expectedCustomPrivateKey !== undefined) {
+                record("brain", v.id + "-priv", v.expectedCustomPrivateKey, c && c.privateHex, { source: v.source, path: v.customPath });
+              }
+              if (v.expectedResolvedPath !== undefined) {
+                record("brain", v.id + "-path", v.expectedResolvedPath, c && c.resolvedPath, { source: v.source, path: v.customPath });
+              }
+            }, function (e) { fail("brain", v.id + "-custom", e); });
+          }
         }, function (e) { fail("brain", v.id, e); });
       });
     });

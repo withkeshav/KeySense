@@ -834,6 +834,18 @@
         }
 
         if (brainCompute) {
+          /* Sync button copies the account and address index into the custom
+           * path field as an EVM path. It only fills the input. */
+          var brainSyncBtn = document.getElementById("brainSyncPathBtn");
+          if (brainSyncBtn) {
+            brainSyncBtn.addEventListener("click", function () {
+              var cp = document.getElementById("brainCustomPath");
+              if (!cp) return;
+              var acc = brainAccountEl ? Math.max(0, parseInt(brainAccountEl.value, 10) || 0) : 0;
+              var idx = brainAddrIdxEl ? Math.max(0, parseInt(brainAddrIdxEl.value, 10) || 0) : 0;
+              cp.value = "m/44'/60'/" + acc + "'/0/" + idx;
+            });
+          }
           brainCompute.addEventListener("click", async function () {
             brainComputeRequestId += 1;
             var currentRequestId = brainComputeRequestId;
@@ -872,6 +884,40 @@
               brainOutput.style.display = "block";
               await renderQr(brainQrHost, brain.ethAddress);
               if (currentRequestId !== brainComputeRequestId) return;
+
+              /* Optional custom path override. Fixed outputs above stay for
+               * comparison. Empty means no override. */
+              var brainCustomInput = document.getElementById("brainCustomPath");
+              var brainCustomWrap = document.getElementById("brainCustomWrap");
+              var customRaw = brainCustomInput ? brainCustomInput.value.trim().replace(/\s+/g, "") : "";
+              if (brainCustomWrap) brainCustomWrap.style.display = "none";
+              if (customRaw) {
+                try {
+                  var customRes = await deriveBrainCustomAddress(brain.phrase, customRaw, bip39Extra);
+                  if (currentRequestId !== brainComputeRequestId) return;
+                  var customPathEl = document.getElementById("brainCustomPathLabel");
+                  var customAddrEl = document.getElementById("brainCustomAddress");
+                  var customPkEl = document.getElementById("brainCustomPrivateKey");
+                  var customNoteEl = document.getElementById("brainCustomNote");
+                  if (customPathEl) customPathEl.textContent = customRes.resolvedPath || customRaw;
+                  if (customAddrEl) customAddrEl.textContent = customRes.address;
+                  if (customPkEl) customPkEl.textContent = customRes.privateHex || "—";
+                  if (customNoteEl) {
+                    if (customRes.pathNote) {
+                      customNoteEl.textContent = customRes.pathNote;
+                      customNoteEl.style.display = "block";
+                    } else {
+                      customNoteEl.textContent = "";
+                      customNoteEl.style.display = "none";
+                    }
+                  }
+                  if (brainCustomWrap) brainCustomWrap.style.display = "block";
+                } catch (ce) {
+                  if (currentRequestId !== brainComputeRequestId) return;
+                  if (brainCustomWrap) brainCustomWrap.style.display = "none";
+                  showFeatureError(brainError, "Brain Wallet", ce, { userInput: true });
+                }
+              }
 
               (async function () {
                 try {
@@ -1566,6 +1612,52 @@
               applyGuidePreset(presetName);
             }
           });
+        });
+
+        /* ── LEARN STEP 3: read only path builder preview ─────────────────
+         * Two sliders shape a fixed Bitcoin path (purpose 44, coin 0). Labels
+         * come from the existing learnPathSegments; nothing here writes to
+         * the Derive tab inputs. */
+        var learnPathAccount = document.getElementById("learnPathAccount");
+        var learnPathIndex = document.getElementById("learnPathIndex");
+        var learnPathAccountLabel = document.getElementById("learnPathAccountLabel");
+        var learnPathIndexLabel = document.getElementById("learnPathIndexLabel");
+        var learnPathBuilderHost = document.getElementById("learnPathBuilderPreview");
+        function renderLearnPathBuilder() {
+          if (!learnPathAccount || !learnPathIndex || !learnPathBuilderHost) return;
+          var acc = Math.max(0, parseInt(learnPathAccount.value, 10) || 0);
+          var idx = Math.max(0, parseInt(learnPathIndex.value, 10) || 0);
+          if (learnPathAccountLabel) learnPathAccountLabel.textContent = String(acc);
+          if (learnPathIndexLabel) learnPathIndexLabel.textContent = String(idx);
+          var previewPath = "m/44'/0'/" + acc + "'/0/" + idx;
+          learnRenderStep3(learnPathBuilderHost, learnPathSegments(previewPath), previewPath);
+          var note = document.createElement("p");
+          note.className = "hint";
+          note.style.marginTop = "8px";
+          note.style.marginBottom = "0";
+          note.textContent = "Read only. The Derive tab is untouched.";
+          learnPathBuilderHost.appendChild(note);
+        }
+        if (learnPathAccount) {
+          learnPathAccount.addEventListener("input", renderLearnPathBuilder);
+          learnPathAccount.addEventListener("change", renderLearnPathBuilder);
+        }
+        if (learnPathIndex) {
+          learnPathIndex.addEventListener("input", renderLearnPathBuilder);
+          learnPathIndex.addEventListener("change", renderLearnPathBuilder);
+        }
+        renderLearnPathBuilder();
+
+        /* ── LEARN STEP 3: empty wallet guided task ───────────────────────
+         * One click per path. Reuses the same preset logic as the guide rows
+         * above, so behaviour matches Step 2 of the Derive tab exactly. */
+        var learnTryLegacyBtn = document.getElementById("learnTryLegacyBtn");
+        if (learnTryLegacyBtn) learnTryLegacyBtn.addEventListener("click", function () {
+          applyGuidePreset("btc-legacy");
+        });
+        var learnTryNativeBtn = document.getElementById("learnTryNativeBtn");
+        if (learnTryNativeBtn) learnTryNativeBtn.addEventListener("click", function () {
+          applyGuidePreset("btc-native");
         });
 
         /* ── ENTROPY COMPARISON (Learn step 1) ──────────────────────────── */

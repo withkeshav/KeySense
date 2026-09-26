@@ -257,7 +257,17 @@ var KEYSENSE_VECTORS = {
   /* Brain wallet. Deliberately weak by design; these lock the demo, not endorse it. */
   brainWallet: [
     { id: "brain-xkcd", passphrase: "correct horse battery staple",
-      expectedEth: "0xbc5f7b96F113AA74fe3B6AC9Cb3B447b138fb5Fc", source: "frozen" }
+      expectedEth: "0xbc5f7b96F113AA74fe3B6AC9Cb3B447b138fb5Fc", source: "frozen" },
+    { id: "brain-xkcd-custom-evm", passphrase: "correct horse battery staple",
+      customPath: "m/44'/60'/1'/0/5",
+      expectedCustomAddress: "0xc0a6CA164eD55D7D014dc93edF711f8eb7643aD0",
+      expectedCustomPrivateKey: "0x7f7cdabf35a3bc27372a68b0bfaa3ed6e120561d641fe5106289dc797dfa3264",
+      source: "frozen" },
+    { id: "brain-xkcd-custom-sol", passphrase: "correct horse battery staple",
+      customPath: "m/44'/501'/0'/0/0",
+      expectedCustomAddress: "FTGau4MrnHR538sqab7ekLGQVPctwHr8ZFhqPjmbeCan",
+      expectedResolvedPath: "m/44'/501'/0'/0'/0'",
+      source: "frozen" }
   ]
 };
 
