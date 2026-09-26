@@ -60,8 +60,13 @@ The app collects nothing. Hosting sees routine server traces only. See `PRIVACY.
 
 Found an issue or idea. Open an issue at `https://github.com/withkeshav/KeySense/issues`. Never share seeds or private keys. See `CONTRIBUTING.md`.
 
+## Research
+
+The Learn tab is built on published research, and the research is in the open: the plan, the evidence briefs and the measurement kit live in `docs/learn-research/`, and the reading level is checked by a gate, `npm run test:readability`. Nothing is measured on you. The reader session page has no network and stores nothing. See [Learn Research](Learn-Research.md) and `PRIVACY.md`.
+
 ## More pages
 
+- [Learn Research](Learn-Research.md)
 - [Brain Wallet](Brain-Wallet.md)
 - [Learn Paths](Learn-Paths.md)
 - [Verification](Verification.md)

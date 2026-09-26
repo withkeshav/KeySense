@@ -7,6 +7,7 @@
     "dev": "npx serve .",
     "start": "npx serve .",
     "test": "node test/node-harness.js",
+    "test:readability": "node tools/learn-readability.js",
     "test:build": "bash tools/build-crypto.sh --check"
   },
   "author": "Keshav Maheshwari (https://www.withkeshav.com)",

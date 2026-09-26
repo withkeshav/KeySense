@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- This page collects nothing and can reach nothing. The policy below is the
+     whole guarantee: no network of any kind, no images, no fonts, no storage. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; form-action 'none'; base-uri 'none'">
+<title>KeySense learning check (facilitator copy)</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --text:#e8eaf0; --muted:#9aa3b2; --accent:#57b6ff; --line:#2a2f3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:20px; margin:0 0 6px; }
+  h2 { font-size:16px; margin:26px 0 10px; }
+  p.hint { color:var(--muted); font-size:13px; margin:6px 0 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-top:14px; }
+  .banner { border-left:3px solid var(--accent); background:#131922; padding:12px 14px; border-radius:8px; font-size:13px; color:var(--muted); }
+  label { display:block; margin-bottom:6px; font-size:14px; }
+  textarea, input[type=text] { width:100%; background:#0d1016; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px; font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize:vertical; }
+  textarea { min-height:64px; }
+  .q { margin:0 0 18px; }
+  .q .num { color:var(--muted); font-size:12px; letter-spacing:.04em; text-transform:uppercase; }
+  .rubric { font-size:13px; color:var(--muted); margin-top:8px; }
+  .rubric code { color:var(--text); }
+  button { background:var(--accent); color:#06121d; border:0; border-radius:8px; padding:9px 14px; font-weight:600; cursor:pointer; }
+  button.secondary { background:#232a36; color:var(--text); }
+  #out { white-space:pre-wrap; font:13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background:#0d1016; border:1px solid var(--line); border-radius:8px; padding:12px; margin-top:14px; min-height:80px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .scores { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:13px; align-items:center; margin-top:8px; }
+  select { background:#0d1016; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>KeySense learning check</h1>
+  <p class="hint">For the facilitator. Run this on the same machine the reader will use, from a local copy.</p>
+
+  <div class="banner">
+    <strong>This page collects nothing.</strong> No network calls of any kind, enforced by the policy in this file, and nothing is saved to the browser.
+    Answers live in this screen only. Use Copy while the reader is present, or write the scores down on paper.
+    This page is a self check, not evidence about real readers: only a session with a real reader at the target level counts as evidence.
+  </div>
+
+  <h2>Before the reader starts: run the check on the current page</h2>
+  <p class="hint">The reader must not have seen the app's Learn tab yet. Ask each question out loud, let them answer, type their words. Do not explain, prompt, or correct. If they say they do not know, write that.</p>
+
+  <div class="card">
+    <div class="q">
+      <div class="num">Pre 1</div>
+      <label for="pre1">In your own words, what is a seed phrase?</label>
+      <textarea id="pre1"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Pre 2</div>
+      <label for="pre2">If you type the same 12 words into two different wallet apps, do you get the same addresses or different ones?</label>
+      <input id="pre2" type="text" placeholder="same / different / not sure">
+    </div>
+    <div class="q">
+      <div class="num">Pre 3</div>
+      <label for="pre3">What would make a seed phrase weak?</label>
+      <textarea id="pre3"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Pre 4</div>
+      <label for="pre4">Can the last word of a 12 word phrase be any word you like, or is it special?</label>
+      <input id="pre4" type="text" placeholder="any word / special / not sure">
+    </div>
+  </div>
+
+  <h2>Then: three tasks, no help, no hints</h2>
+  <p class="hint">Give the reader the app. Say: take as long as you want, and you cannot do it wrong. Watch, do not teach. Record which task they complete alone.</p>
+
+  <div class="card">
+    <div class="scores">
+      <span>Task 1: in the Learn tab, find and read the first step, then say back what the seed phrase is and why the last word matters.</span>
+      <select id="task1"><option value="">--</option><option>done alone</option><option>done with a nudge</option><option>not done</option></select>
+      <span>Task 2: on the Derive tab, use the Learn task buttons to load the Legacy and Native SegWit paths, then explain why one seed gave two different addresses.</span>
+      <select id="task2"><option value="">--</option><option>done alone</option><option>done with a nudge</option><option>not done</option></select>
+      <span>Task 3: say one thing that would make a seed weak, and one thing you must never do with a seed holding real money.</span>
+      <select id="task3"><option value="">--</option><option>done alone</option><option>done with a nudge</option><option>not done</option></select>
+    </div>
+    <p class="rubric">"Done alone" means it happened with no help from you and no more than the page itself. Record the nudges verbatim in the notes box, they are the most useful output of the whole session.</p>
+  </div>
+
+  <h2>After: same questions again, then the teach back</h2>
+
+  <div class="card">
+    <div class="q">
+      <div class="num">Post 1</div>
+      <label for="post1">Why is the last word of a 12 word phrase special?</label>
+      <textarea id="post1"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Post 2</div>
+      <label for="post2">Two wallets take the same 12 words and show two different Bitcoin addresses. How is that possible?</label>
+      <textarea id="post2"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Post 3</div>
+      <label for="post3">Name one thing that makes a seed weak.</label>
+      <textarea id="post3"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Post 4</div>
+      <label for="post4">What must you never do with a seed that holds real money?</label>
+      <textarea id="post4"></textarea>
+    </div>
+    <div class="q">
+      <div class="num">Post 5</div>
+      <label for="post5">Anything you still do not understand? Say it plainly, this is the most useful answer on the page.</label>
+      <textarea id="post5"></textarea>
+    </div>
+  </div>
+
+  <div class="row">
+    <button id="copy">Copy the whole session</button>
+    <button id="clear" class="secondary">Clear for the next reader</button>
+  </div>
+  <div id="out" aria-live="polite">Nothing copied yet.</div>
+
+  <p class="hint" style="margin-top:22px;">
+    Scoring, for the facilitator only. Post 1 is correct if the reader says the last word contains or is checked against a checksum, so a mistyped phrase is rejected instead of silently becoming a different wallet.
+    Post 2 is correct if they say the derivation path changed, or the account or index changed, or the wallet picked a different default path.
+    Post 4 is correct if they say never type it into a website, never share it, never photograph it, or never store it online.
+    Post 3 is correct if they name weak input, for example words a person chose, a quote, or a passphrase without enough randomness.
+    Pass bar for the page as a whole: 4 of 5 readers complete tasks 1 and 2 alone, and 4 of 5 answer Post 1 and Post 2 correctly. Below that, the lesson did not land and the content is what changes, not the reader.
+  </p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var ids = ["pre1","pre2","pre3","pre4","post1","post2","post3","post4","post5","task1","task2","task3"];
+  var box = document.getElementById("out");
+
+  function report() {
+    var lines = ["KeySense learning check", "reader session report", ""];
+    lines.push("BEFORE");
+    lines.push("  P1 what is a seed phrase: " + val("pre1"));
+    lines.push("  P2 same or different addresses: " + val("pre2"));
+    lines.push("  P3 what makes a seed weak: " + val("pre3"));
+    lines.push("  P4 last word special: " + val("pre4"));
+    lines.push("");
+    lines.push("TASKS");
+    lines.push("  T1 read step 1 and say it back: " + val("task1"));
+    lines.push("  T2 two paths, two addresses: " + val("task2"));
+    lines.push("  T3 weak seed and never do: " + val("task3"));
+    lines.push("");
+    lines.push("AFTER");
+    lines.push("  Q1 why the last word matters: " + val("post1"));
+    lines.push("  Q2 how two addresses from one seed: " + val("post2"));
+    lines.push("  Q3 one thing that makes a seed weak: " + val("post3"));
+    lines.push("  Q4 never do with a real seed: " + val("post4"));
+    lines.push("  Q5 still unclear: " + val("post5"));
+    return lines.join("\n");
+  }
+
+  function val(id) {
+    var el = document.getElementById(id);
+    var v = el && el.value ? el.value.trim() : "";
+    return v ? v.replace(/\s+/g, " ") : "(blank)";
+  }
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var text = report();
+    box.textContent = text;
+    var done = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done = true; });
+      }
+    } catch (e) { done = false; }
+    if (!done) {
+      /* file:// origins often have no clipboard permission. Select the text so
+       * the facilitator can copy it by hand rather than thinking it worked. */
+      box.textContent = text + "\n\n(clipboard unavailable here, select this text and copy it by hand)";
+      var r = document.createRange();
+      r.selectNodeContents(box);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+  });
+
+  document.getElementById("clear").addEventListener("click", function () {
+    ids.forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ""; });
+    box.textContent = "Cleared. Nothing was stored anywhere.";
+  });
+})();
+</script>
+</body>
+</html>

@@ -41,6 +41,18 @@ Runs the full 189 vector suite in Node against the same `src/*.js` files the bro
 
 The app itself collects nothing: no seeds, keys, or addresses ever leave your device, no analytics, no cookies. Theme only is kept in `localStorage`. Hosting still sees routine server traces such as IP and user agent. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
 
+## Research
+
+The Learn Paths tab is built on published research, and the research is done in the open. The plan, the misconception inventory, the learning science brief with its primary sources, the prior art teardown and the reader measurement kit all live in [docs/learn-research](docs/learn-research), and the plain language summary is on the wiki at [wiki/Learn-Research.md](wiki/Learn-Research.md).
+
+Reading level is checked by a gate you can run yourself:
+
+```bash
+npm run test:readability
+```
+
+It measures running prose per teaching segment against a recorded baseline, keeps tables and diagrams in a separate reported bucket, and says plainly when it cannot measure rather than reporting a pass. Nothing in this research is measured on you: the reader session page runs offline and stores nothing. See [PRIVACY.md](PRIVACY.md).
+
 ## Contributing
 
 Issues and ideas are welcome at [https://github.com/withkeshav/KeySense/issues](https://github.com/withkeshav/KeySense/issues). Never paste seeds or private keys in an issue. This is source-available, so propose changes via issues first. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).

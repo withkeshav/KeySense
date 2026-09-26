@@ -21,6 +21,14 @@ Issues and discussions on GitHub are welcome:
 
 Per `AGENTS.md`, do not change derivation logic, address formats, vanity mining, brain wallet flow, presets, or path assembly without explicit `approved` or `go ahead` from the maintainer. If you found a bug there, open an issue with evidence first. Do not publish your own modified version.
 
+## Research and evidence
+
+* A research claim needs a source someone can check in one hop, with the number or the quote and a link. A claim nobody can check is an assertion, not a finding.
+* Say how a number was measured and by whom. A figure produced by hand and a figure produced by a script are different claims, so label them.
+* Learn content changes should hold the reading level at or below the recorded baseline. Run `npm run test:readability`, which reports fine, a regression, or that it could not measure.
+* Reader sessions are voluntary and run from `test/learn-comprehension.html`, a local page with no network access that stores nothing.
+* Research documents live in `docs/learn-research/` and wiki pages in `wiki/`. Publish wiki pages with `bash tools/publish-wiki.sh` once the GitHub wiki has been created.
+
 ## Style
 
 * Plain simple language. No em-dashes.

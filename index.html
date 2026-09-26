@@ -1018,20 +1018,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
         </div>
 
         <!-- Reference: Hardened vs normal -->
+        <!-- The comparison table that used to sit here repeated the one taught in step 4,
+             next to the live "same index, hardened vs normal" widget. One version only, so
+             there is one place to keep correct. Reasoning: docs/learn-research/OUTLINE.md -->
         <div class="card">
           <div class="card-title">Hardened vs normal derivation</div>
-          <p class="hint" style="margin-bottom: 12px;">The apostrophe (<code style="font-family:var(--mono)">'</code>) means <strong>hardened</strong>: child keys require the parent <em>private</em> key, not just an xpub.</p>
-          <div style="overflow-x:auto;">
-          <table class="guide-table">
-            <thead>
-              <tr><th>Type</th><th>Security / UX</th><th>Typical use</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>Hardened</strong> (<code>'</code>)</td><td>Higher isolation; cannot derive from watch-only parent</td><td>purpose, coin_type, account; and Solana last segment</td></tr>
-              <tr><td><strong>Normal</strong></td><td>Derivable from xpub - good for receiving addresses</td><td>change + index on Bitcoin-like chains</td></tr>
-            </tbody>
-          </table>
-        </div>
+          <p class="hint" style="margin-bottom: 0;">Taught in step 4 of Learn Paths, with a live comparison on your own seed. Not repeated here.</p>
         </div>
 
         <!-- Reference: Common scenarios -->

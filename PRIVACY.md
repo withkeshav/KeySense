@@ -28,6 +28,7 @@ What data exists around this tool, why it exists, who touches it, and how long i
 | Anything you type or derive: seeds, passphrases, keys, addresses | nobody | not applicable | never leaves the browser tab | not applicable |
 | Request traces: IP address, time, requested file, user agent, referrer, TLS handshake data | the CDN in front of the site (Cloudflare) and the server that runs it | deliver the page, stop abuse, rate limit | those two systems, never the app | set by them, not by this project |
 | Theme choice, light or dark | the app, on your device only | remember your choice | your browser's `localStorage`, key `hd-tool-theme` | until you clear site data |
+| Reader session answers, if you take part in a research session | nobody by default; the facilitator only if you say them out loud or write them down | improve how the teaching reads | a paper form or the facilitator's own notes, never the app | as long as the facilitator keeps their notes |
 | Anything you post in a GitHub issue | GitHub, and you decide the content | bug reports and questions | on GitHub, publicly visible | until you delete it |
 
 What this means in plain terms:
@@ -39,6 +40,14 @@ What this means in plain terms:
 * Deleting your data: there is nothing stored by the app to delete. Clear site data to remove the theme preference. To avoid leaving server traces at all, use the offline copy, which contacts nothing.
 * Security: the site is served over HTTPS, but the stronger protection here is architectural. The page ships `connect-src 'none'`, so it has no way to send data anywhere even if injected code tried to.
 * Children: the tool is educational and collects nothing from anyone, so there is nothing for it to collect from a child either. The only caution is the subject matter: a child should not type a seed that holds real money.
+
+## Research and how we measure the teaching
+
+This project researches its own teaching and publishes the results in the open, under `docs/learn-research/`. Three things matter for privacy.
+
+* The research measures the teaching material, not the reader. The readability gate reads the page's own text. It has no access to anything you typed.
+* The reader session page, `test/learn-comprehension.html`, runs from a local file with no network access, no cookies, no `localStorage`, and no reporting of any kind. It cannot send anything anywhere, including by accident. The page carries a content policy that forbids network requests.
+* There is no telemetry in this project at all, so it cannot learn that you read the Learn tab, how long you stayed, or what you clicked. Comprehension figures come from people who agreed to take part in a session and were asked questions in person, and they are published as counts, never with names.
 
 ## Your control
 
