@@ -7,7 +7,7 @@
 - **Published research under [docs/learn-research](docs/learn-research).** The plan, a misconception inventory grounded in a 643 person peer reviewed survey (CHI 2025), a learning science brief with 18 primary sources and quoted evidence, a prior art teardown of 8 existing explainers, and the reader measurement kit. Every claim carries its source.
 - **New readability gate, `tools/learn-readability.js`, wired as `npm run test:readability`.** It measures running prose per teaching segment, keeps tables and diagrams in a separate reported bucket so nothing is silently dropped, and ratchets against `tools/learn-readability-baseline.json`. It reports three distinct outcomes: fine, a regression, or that it could not measure at all. A gate that cannot measure never reports a pass.
 - **New reader session page, `test/learn-comprehension.html`.** Runs from a local file, no network, stores nothing, and cannot report anything back.
-- **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet.
+- **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet. The wiki is now live at https://github.com/withkeshav/KeySense/wiki with 6 pages.
 
 ### Changed, Learn tab
 

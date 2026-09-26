@@ -51,7 +51,7 @@ Reading level is checked by a gate you can run yourself:
 npm run test:readability
 ```
 
-It measures running prose per teaching segment against a recorded baseline, keeps tables and diagrams in a separate reported bucket, and says plainly when it cannot measure rather than reporting a pass. Nothing in this research is measured on you: the reader session page runs offline and stores nothing. See [PRIVACY.md](PRIVACY.md).
+It measures running prose per teaching segment against a recorded baseline, keeps tables and diagrams in a separate reported bucket, and says plainly when it cannot measure rather than reporting a pass. Nothing in this research is measured on you: the reader session page runs offline and stores nothing. See [PRIVACY.md](PRIVACY.md) and the wiki at [github.com/withkeshav/KeySense/wiki](https://github.com/withkeshav/KeySense/wiki).
 
 ## Contributing
 

@@ -27,7 +27,7 @@ Per `AGENTS.md`, do not change derivation logic, address formats, vanity mining,
 * Say how a number was measured and by whom. A figure produced by hand and a figure produced by a script are different claims, so label them.
 * Learn content changes should hold the reading level at or below the recorded baseline. Run `npm run test:readability`, which reports fine, a regression, or that it could not measure.
 * Reader sessions are voluntary and run from `test/learn-comprehension.html`, a local page with no network access that stores nothing.
-* Research documents live in `docs/learn-research/` and wiki pages in `wiki/`. Publish wiki pages with `bash tools/publish-wiki.sh` once the GitHub wiki has been created.
+* Research documents live in `docs/learn-research/` and wiki pages in `wiki/`. After changing a wiki page, publish it with `bash tools/publish-wiki.sh`, which pushes every page and then verifies the remote head matches. The wiki is live at https://github.com/withkeshav/KeySense/wiki
 
 ## Style
 
