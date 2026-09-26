@@ -178,9 +178,9 @@ Reconciled against what actually shipped. The stage numbers below are the plan o
 |---|---|---|
 | 1 | Cut and recast: remove the duplicated tables, split the address segment | **Done.** Duplicates removed in 4a51491, split into two segments in 7a78d49. |
 | 2 | Segment 1 new content: the misconceptions, the pretest, the definition box | **Done** in 3da87cd. Its inline diagram moved to stage 5, so the diagram and the words are designed together. |
-| 3 | Segments 2, 3 and 4 recast as predict, do, explain, with definition boxes at first use | **Next.** |
+| 3 | Build the visual system first (primitives plus a fixture page, no content changes), then recast segments 2, 3 and 4 as predict, do, explain with definition boxes at first use, drawing the diagrams as the words are written | **Next.** Building the primitives first is what stops each diagram inventing its own arrows and colours. Detail in `VISUAL-SYSTEM.md`. |
 | 4 | Mixed practice pool across all six segments, teach-back boxes with model answers | Not started. |
-| 5 | The visual layer: informative SVG diagrams, charts, and motion where it shows a change | Not started. Added 2026-09-26 at the operator's request. |
+| 5 | Apply the visual layer to segments 1, 5 and 6, and build the randomness chart | Not started. The primitives themselves are built in stage 3; this stage is the application to the remaining segments. |
 | 6 | Gate and suite on every change, then the reader sessions | Gate and suite are automated and running on every change already. Readers need the operator. |
 
 Four build stages remain, then the reader sessions. Stage 1 was worth doing first because it is pure
