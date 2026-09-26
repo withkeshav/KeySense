@@ -18,6 +18,11 @@
  *     state change.
  *   - Motion never carries information: the end state reads correctly without
  *     having watched anything.
+ *   - Colours are applied as CSS (element.style.stroke), never as SVG
+ *     presentation attributes. var() is not valid in a presentation attribute,
+ *     so `stroke="var(--viz-secret)"` silently paints nothing: the diagram
+ *     renders as unstyled black shapes. A regression test walks a built diagram
+ *     and fails if a var() ever appears in an attribute again.
  *
  * Exposes: window.KeySenseVisuals
  * ========================================================================== */
@@ -68,11 +73,11 @@
       x: x,
       y: y,
       "font-size": opts.size || 12,
-      "font-family": opts.mono ? "var(--mono)" : "var(--font)",
       "text-anchor": opts.anchor || "start",
-      fill: opts.fill || "var(--text)",
       "font-weight": opts.weight || 500
     });
+    t.style.fontFamily = opts.mono ? "var(--mono)" : "var(--font)";
+    t.style.fill = opts.fill || "var(--text)";
     t.textContent = text;
     return t;
   }
@@ -87,27 +92,29 @@
       width: opts.w,
       height: opts.h,
       rx: r.radius,
-      ry: r.radius,
-      fill: opts.fill || "var(--viz-surface)",
-      stroke: r.color,
-      "stroke-width": 1.5
+      ry: r.radius
     });
-    if (r.dash) rect.setAttribute("stroke-dasharray", r.dash);
+    rect.style.fill = opts.fill || "var(--viz-surface)";
+    rect.style.stroke = r.color;
+    rect.style.strokeWidth = "1.5px";
+    if (r.dash) rect.style.strokeDasharray = r.dash;
+    if (r.hatch) rect.style.fill = "url(#vizHatch-" + (opts.role || "warn") + ")";
     g.appendChild(rect);
 
     if (r.double) {
-      g.appendChild(svgEl("rect", {
+      var inner = svgEl("rect", {
         x: opts.x + 3,
         y: opts.y + 3,
         width: Math.max(0, opts.w - 6),
         height: Math.max(0, opts.h - 6),
         rx: r.radius,
-        ry: r.radius,
-        fill: "none",
-        stroke: r.color,
-        "stroke-width": 1,
-        opacity: 0.55
-      }));
+        ry: r.radius
+      });
+      inner.style.fill = "none";
+      inner.style.stroke = r.color;
+      inner.style.strokeWidth = "1px";
+      inner.style.opacity = "0.55";
+      g.appendChild(inner);
     }
 
     var cx = opts.x + opts.w / 2;
@@ -138,14 +145,12 @@
     } else {
       d = "M " + opts.from[0] + " " + opts.from[1] + " L " + opts.to[0] + " " + opts.to[1];
     }
-    var path = svgEl("path", {
-      d: d,
-      fill: "none",
-      stroke: r.color,
-      "stroke-width": opts.width || 1.6,
-      "marker-end": "url(#" + id + ")",
-      "stroke-dasharray": opts.dashed ? "4 4" : null
-    });
+    var path = svgEl("path", { d: d });
+    path.style.fill = "none";
+    path.style.stroke = r.color;
+    path.style.strokeWidth = (opts.width || 1.6) + "px";
+    path.setAttribute("marker-end", "url(#" + id + ")");
+    if (opts.dashed) path.style.strokeDasharray = "4 4";
     if (opts.noMarker) path.removeAttribute("marker-end");
     g.appendChild(path);
 
@@ -181,18 +186,19 @@
   /* A labelled container, for a chain family or an address format group. */
   function group(opts) {
     var g = svgEl("g", { class: "viz-group" });
-    g.appendChild(svgEl("rect", {
+    var frame = svgEl("rect", {
       x: opts.x,
       y: opts.y,
       width: opts.w,
       height: opts.h,
       rx: 10,
-      ry: 10,
-      fill: "none",
-      stroke: "var(--viz-line)",
-      "stroke-width": 1,
-      "stroke-dasharray": "2 4"
-    }));
+      ry: 10
+    });
+    frame.style.fill = "none";
+    frame.style.stroke = "var(--viz-line)";
+    frame.style.strokeWidth = "1px";
+    frame.style.strokeDasharray = "2 4";
+    g.appendChild(frame);
     if (opts.title) {
       g.appendChild(label(opts.title, opts.x + 10, opts.y + 16, { size: 11, weight: 600, fill: "var(--text-muted)" }));
     }
@@ -208,20 +214,19 @@
     (roles || Object.keys(ROLES)).forEach(function (name, i) {
       var r = role(name);
       var y = i * 20;
-      var swatch = svgEl("rect", {
-        x: x,
-        y: y,
-        width: 14,
-        height: 14,
-        rx: r.radius,
-        fill: "none",
-        stroke: r.color,
-        "stroke-width": 1.6
-      });
-      if (r.dash) swatch.setAttribute("stroke-dasharray", r.dash);
+      var swatch = svgEl("rect", { x: x, y: y, width: 14, height: 14, rx: r.radius });
+      swatch.style.fill = "none";
+      swatch.style.stroke = r.color;
+      swatch.style.strokeWidth = "1.6px";
+      if (r.dash) swatch.style.strokeDasharray = r.dash;
       g.appendChild(swatch);
       if (r.double) {
-        g.appendChild(svgEl("rect", { x: x + 3, y: y + 3, width: 8, height: 8, fill: "none", stroke: r.color, "stroke-width": 1, opacity: 0.55 }));
+        var inner = svgEl("rect", { x: x + 3, y: y + 3, width: 8, height: 8 });
+        inner.style.fill = "none";
+        inner.style.stroke = r.color;
+        inner.style.strokeWidth = "1px";
+        inner.style.opacity = "0.55";
+        g.appendChild(inner);
       }
       g.appendChild(label(r.label, x + 22, y + 11, { size: 11, fill: "var(--text-muted)" }));
     });
@@ -250,31 +255,19 @@
       var frac = opts.log10 ? Math.log(Math.max(1, r.value)) / Math.log(Math.max(10, max)) : r.value / max;
       var w = Math.max(2, frac * span);
       g.appendChild(label(r.label, 0, y + 12, { size: 11, fill: "var(--text-muted)" }));
-      g.appendChild(svgEl("rect", {
-        x: padLeft,
-        y: y,
-        width: w,
-        height: 14,
-        rx: 3,
-        ry: 3,
-        fill: role(r.role || (r.mine ? "address" : "hashed")).color,
-        opacity: r.mine ? 1 : 0.72
-      }));
+      var bar = svgEl("rect", { x: padLeft, y: y, width: w, height: 14, rx: 3, ry: 3 });
+      bar.style.fill = role(r.role || (r.mine ? "address" : "hashed")).color;
+      bar.style.opacity = r.mine ? "1" : "0.72";
+      g.appendChild(bar);
       g.appendChild(label(r.display || String(r.value), padLeft + w + 8, y + 12, { size: 11, mono: true, fill: "var(--text)" }));
       if (r.mine) {
         /* The second channel: the reader's own row is outlined and marked, not
          * only coloured differently. */
-        g.appendChild(svgEl("rect", {
-          x: padLeft - 2,
-          y: y - 2,
-          width: w + 4,
-          height: 18,
-          rx: 4,
-          ry: 4,
-          fill: "none",
-          stroke: "var(--text)",
-          "stroke-width": 1
-        }));
+        var outline = svgEl("rect", { x: padLeft - 2, y: y - 2, width: w + 4, height: 18, rx: 4, ry: 4 });
+        outline.style.fill = "none";
+        outline.style.stroke = "var(--text)";
+        outline.style.strokeWidth = "1px";
+        g.appendChild(outline);
         g.appendChild(label("yours", padLeft - 8, y + 12, { size: 10, anchor: "end", fill: "var(--text)" }));
       }
     });
@@ -306,7 +299,8 @@
         markerHeight: 6,
         orient: "auto-start-reverse"
       });
-      var tip = svgEl("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: role(name).color });
+      var tip = svgEl("path", { d: "M 0 0 L 10 5 L 0 10 z" });
+      tip.style.fill = role(name).color;
       marker.appendChild(tip);
       defs.appendChild(marker);
       var hatch = svgEl("pattern", {
@@ -316,8 +310,14 @@
         patternUnits: "userSpaceOnUse",
         patternTransform: "rotate(45)"
       });
-      hatch.appendChild(svgEl("rect", { width: 6, height: 6, fill: "none" }));
-      hatch.appendChild(svgEl("line", { x1: 0, y1: 0, x2: 0, y2: 6, stroke: role(name).color, "stroke-width": 2, opacity: 0.5 }));
+      var hatchBg = svgEl("rect", { width: 6, height: 6 });
+      hatchBg.style.fill = "none";
+      hatch.appendChild(hatchBg);
+      var hatchLine = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: 6 });
+      hatchLine.style.stroke = role(name).color;
+      hatchLine.style.strokeWidth = "2px";
+      hatchLine.style.opacity = "0.5";
+      hatch.appendChild(hatchLine);
       defs.appendChild(hatch);
     });
     svg.appendChild(defs);

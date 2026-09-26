@@ -383,8 +383,8 @@ function checkVisuals() {
   const hashedBox = V.box({ x: 0, y: 0, w: 10, h: 10, label: "h", role: "hashed" });
   rows.push({ group: "visuals", id: "square-vs-rounded-corners", expected: "secret rx 0, public rx 6", actual: "secret " + secretRect.attrs.rx + ", public " + publicBox.children[0].attrs.rx, pass: secretRect.attrs.rx === "0" && publicBox.children[0].attrs.rx === "6" });
   rows.push({ group: "visuals", id: "address-double-border", expected: "2 rects", actual: addressBox.children.filter((c) => c.tagName === "rect").length + " rects", pass: addressBox.children.filter((c) => c.tagName === "rect").length === 2 });
-  rows.push({ group: "visuals", id: "hashed-dashed", expected: "a dash pattern", actual: hashedBox.children[0].attrs["stroke-dasharray"] || "(none)", pass: !!hashedBox.children[0].attrs["stroke-dasharray"] });
-  rows.push({ group: "visuals", id: "role-colour-comes-from-the-token", expected: "var(--viz-secret)", actual: secretRect.attrs.stroke, pass: secretRect.attrs.stroke === "var(--viz-secret)" });
+  rows.push({ group: "visuals", id: "hashed-dashed", expected: "a dash pattern applied as CSS", actual: hashedBox.children[0].style.strokeDasharray || "(none)", pass: !!hashedBox.children[0].style.strokeDasharray });
+  rows.push({ group: "visuals", id: "role-colour-comes-from-the-token", expected: "var(--viz-secret)", actual: secretRect.style.stroke, pass: secretRect.style.stroke === "var(--viz-secret)" });
 
   const arrow = V.arrow({ from: [0, 0], to: [10, 10], role: "public" });
   const arrowPath = arrow.children[0];
@@ -396,7 +396,7 @@ function checkVisuals() {
   ];
   const chart = V.chart({ rows: chartRows, log10: true, width: 400 });
   const bars = chart.children.filter((c) => c.tagName === "rect" && c.attrs.height === "14");
-  const marked = chart.children.filter((c) => c.tagName === "rect" && c.attrs.stroke === "var(--text)");
+  const marked = chart.children.filter((c) => c.tagName === "rect" && c.style.stroke === "var(--text)");
   rows.push({ group: "visuals", id: "chart-draws-one-bar-per-row", expected: 2, actual: bars.length, pass: bars.length === 2 });
   rows.push({ group: "visuals", id: "chart-marks-the-readers-own-value", expected: "1 outlined row plus a label", actual: marked.length + " outlined", pass: marked.length === 1 && chart.children.some((c) => c.textContent === "yours") });
 
@@ -411,6 +411,38 @@ function checkVisuals() {
    * drawings. If someone renames a role and forgets the legend, this fails. */
   const legend = V.legend(["secret"]);
   rows.push({ group: "visuals", id: "legend-text-comes-from-the-role-table", expected: V.ROLES.secret.label, actual: legend.children[1].textContent, pass: legend.children[1].textContent === V.ROLES.secret.label });
+
+  /* The bug this exists for, found by looking at rendered pixels rather than at
+   * the code: var() is not valid in an SVG presentation attribute, so
+   * stroke="var(--viz-secret)" paints nothing and every diagram came out as
+   * unstyled black shapes while all the structural assertions above passed.
+   * Paintable properties must go through CSS, so anything left in an attribute
+   * that mentions var( is a regression. */
+  const painted = [V.diagram({ width: 200, height: 100, ariaLabel: "walk", children: [
+    V.group({ x: 0, y: 0, w: 190, h: 90, title: "g", children: [
+      V.box({ x: 6, y: 20, w: 60, h: 30, label: "secret", role: "secret" }),
+      V.box({ x: 76, y: 20, w: 60, h: 30, label: "address", role: "address" }),
+      V.box({ x: 6, y: 56, w: 60, h: 30, label: "warn", role: "warn" }),
+      V.arrow({ from: [66, 35], to: [76, 35], role: "public", label: "to" }),
+      V.legend(["secret", "public"])
+    ] })
+  ] }), V.chart({ rows: [{ label: "a", value: 1 }, { label: "b", value: 9, mine: true }], width: 200 })];
+  const offences = [];
+  const walk = (node, path) => {
+    if (!node || !node.tagName) return;
+    Object.keys(node.attrs || {}).forEach((k) => {
+      if (String(node.attrs[k]).indexOf("var(") !== -1) offences.push(path + "/" + node.tagName + "@" + k);
+    });
+    if (node.tagName === "text" && !node.style.fill) offences.push(path + "/text without a fill");
+    (node.children || []).forEach((c, i) => walk(c, path + "/" + node.tagName + "[" + i + "]"));
+  };
+  painted.forEach((tree, i) => walk(tree, "tree" + i));
+  rows.push({ group: "visuals", id: "no-var-in-presentation-attributes", expected: "every colour applied as CSS", actual: offences.length ? offences.slice(0, 3).join(", ") : "clean across " + painted.length + " diagrams", pass: offences.length === 0 });
+
+  /* The warn role is the one role whose whole job is to look wrong, so it keeps
+   * the hatch fill as its second channel. */
+  const warnBox = V.box({ x: 0, y: 0, w: 40, h: 20, label: "w", role: "warn" });
+  rows.push({ group: "visuals", id: "warn-role-keeps-its-hatch", expected: "the hatch pattern is used as fill", actual: warnBox.children[0].style.fill, pass: /url\(#vizHatch-warn\)/.test(warnBox.children[0].style.fill || "") });
 
   /* Reduced motion: every primitive must become an instant state change. */
   reduced = true;
