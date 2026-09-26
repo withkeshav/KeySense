@@ -149,12 +149,12 @@ function renderEntropyComparison(hostEl, rows, opts) {
   opts = opts || {};
   hostEl.textContent = "";
 
+  /* Laid out by .entropy-compare-grid in src/styles.css, which stacks the three
+   * columns below 560 pixels. Inline grid columns could not respond: the value
+   * column is a nowrap sentence, wider than a phone on its own, and it dragged
+   * the whole page sideways. */
   var table = document.createElement("div");
-  table.style.display = "grid";
-  table.style.gridTemplateColumns = "minmax(90px, 1.4fr) minmax(60px, 2fr) auto";
-  table.style.gap = "6px 10px";
-  table.style.alignItems = "center";
-  table.style.fontSize = "12px";
+  table.className = "entropy-compare-grid";
 
   rows.forEach(function (r) {
     var bits = Math.max(0, r.bits || 0);
@@ -178,9 +178,7 @@ function renderEntropyComparison(hostEl, rows, opts) {
     table.appendChild(track);
 
     var val = document.createElement("div");
-    val.style.fontFamily = "var(--mono)";
-    val.style.fontSize = "11px";
-    val.style.whiteSpace = "nowrap";
+    val.className = "entropy-compare-value";
     val.style.color = entropyRowColor(r.kind);
     /* One decimal below 10, because rounding 2.585 to "3" overstates a single
      * dice roll by a noticeable fraction of its whole value. */

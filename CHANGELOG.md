@@ -17,6 +17,16 @@
 - **New sample sheet, `test/learn-visuals-sample.html`,** rendering every primitive once for review and screenshots. Not linked from the app. Motion runs only on a button press, never on first paint.
 - **Loaded by `index.html` and `test/self-test.html` together.** The suite's drift guard fails when the two pages load different script sets, so a half-added module cannot ship.
 
+### Fixed, a drawing ran off the edge of its own canvas, and the phone layout
+
+- **The words-to-bits drawing needed 792 pixels in a 760 pixel canvas**, so its fourth box rendered 32 pixels past the right edge and was clipped. Measured in the browser: box 4 at x=624 width=168 ends at 792, and the canvas is 760. Every other drawing fits (nearest is 10 pixels of margin), so this was the only one, and only a reader looking at the right hand end could see it.
+- **The cause was a hardcoded width sitting beside hardcoded boxes.** New `V.flow()` primitive derives the canvas from the row it is given, so the two cannot disagree, and step 1 now takes its size back from the row.
+- **New geometry gate in the suite, 8 checks.** It calls the real drawing builders in node with a stubbed DOM and measures the boxes they produce against the viewBox they were handed. A drawing that produces no canvas is a failure, never a skip. Proven by putting the bug back: `NOT OK wordsToBits ... content ends at 792 by 70 (OVERFLOWS by 32, so it is clipped)`.
+- **The randomness chart read as broken** because its rows were hardcoded 2^30, 2^103, 2^13 with the reader's own row spliced in third, so the bars went long, long, longest, then abruptly short. Rows are now sorted weakest first, which makes it a staircase and puts the reader's own bar last and longest.
+- **The page scrolled 116 pixels sideways on a phone.** Measured at a 390 pixel viewport: the comparison rows used inline grid columns whose value column is a nowrap sentence (`256 bits · beyond any meaningful number`), 311 pixels wide on its own. The grid moved to `.entropy-compare-grid` in the stylesheet, which stacks to one column below 560 pixels.
+- **The drawings were unreadable on a phone.** Measured: scaled to a 390 pixel screen, the words-to-bits labels rendered at 5.1 pixels and the chart's at 5.8. Below 720 pixels the host now scrolls sideways at the drawing's own width (`--viz-natural`) and a one line hint appears; above it the hint is hidden and the whole drawing is visible as before.
+- **The gate also checks that `--viz-natural` equals the canvas width**, so a drawing redrawn wider cannot leave a phone scrolling to the wrong size.
+
 ### Fixed, a deploy could serve old code beside a new page
 
 - **The origin sent no cache headers at all**, so the CDN applied its default, which caches `.js` and `.css` but never `.html`. Measured: `/src/learn-visuals.js` came back `cf-cache-status: HIT, age 418` serving the previous version's bytes while `/index.html` was always fresh, so the page ran old code against new markup and a deploy looked live when it was not.

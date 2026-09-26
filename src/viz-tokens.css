@@ -29,3 +29,32 @@
   --viz-line: rgba(0, 0, 0, 0.28);
   --viz-surface: #ffffff;
 }
+
+    /* ---------------------------------------------------------------- layout --
+     * A drawing is drawn at the width its content needs, and on a narrow screen
+     * it keeps that width and scrolls rather than being scaled to fit. Measured
+     * before this rule: the words-to-bits drawing scaled to a 390 pixel phone
+     * screen rendered its 11 pixel labels at 5.1 pixels, which is not readable,
+     * and the comparison rows pushed the whole page 116 pixels sideways. */
+    .viz-host {
+      max-width: 100%;
+    }
+    .viz-frame-hint {
+      display: none;
+    }
+    @media (max-width: 720px) {
+      .viz-host {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+      .viz-host > .viz-svg {
+        min-width: var(--viz-natural, 640px);
+      }
+      .viz-frame-hint {
+        display: block;
+        margin: 6px 0 0;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+    }

@@ -358,7 +358,7 @@ function checkVisuals() {
   const builtOnLoad = added.length - before;
   rows.push({ group: "visuals", id: "declares-nothing-on-load", expected: "0 elements built at load time", actual: builtOnLoad + " elements built", pass: builtOnLoad === 0 });
 
-  const api = ["box", "arrow", "branch", "group", "legend", "chart", "diagram", "fadeValue", "drawTrace", "pulseOnce", "reducedMotion", "role"];
+  const api = ["box", "arrow", "branch", "group", "flow", "legend", "chart", "diagram", "fadeValue", "drawTrace", "pulseOnce", "reducedMotion", "role"];
   const missing = api.filter((n) => !V || typeof V[n] !== "function");
   rows.push({ group: "visuals", id: "exposes-every-primitive", expected: api.join(", "), actual: missing.length ? "missing " + missing.join(", ") : "all present", pass: missing.length === 0 });
 
@@ -481,6 +481,171 @@ function checkAssetStamps() {
   }
 }
 
+/* ---- drawings fit their canvas ---------------------------------------------
+ * A geometry gate over the real drawing builders, run in node with a stubbed
+ * DOM. It exists because one drawing shipped with 792 pixels of content in a 760
+ * pixel canvas: the fourth box of the words-to-bits flow rendered 32 pixels past
+ * the right edge of its own viewBox and was clipped, and every assertion passed.
+ * The other three boxes were fine, which is why only a reader looking at the
+ * right hand end of that one drawing could see it.
+ *
+ * A drawing that produces no canvas is a FAILURE here, never a skip: an absent
+ * measurement reported as a pass is the defect this gate was written to catch.
+ *
+ * Limits, stated rather than implied: box rectangles are measured, the arrow
+ * paths are not, because their geometry lives in a `d` string whose absolute and
+ * relative commands would need a real parser to read honestly. Rows drawn with
+ * V.flow cannot carry this defect at all, since the canvas comes back from the
+ * row itself.
+ */
+function checkDrawingGeometry() {
+  const rows = [];
+  let makeEl = null;
+  let host = null;
+  let stubWindow = null;
+
+  function element(tag) {
+    const el = {
+      tagName: tag,
+      children: [],
+      attrs: {},
+      style: {},
+      textContent: "",
+      classList: { add() {}, remove() {}, toggle() {} },
+      setAttribute(k, v) { this.attrs[k] = String(v); },
+      getAttribute(k) { return Object.prototype.hasOwnProperty.call(this.attrs, k) ? this.attrs[k] : null; },
+      removeAttribute(k) { delete this.attrs[k]; },
+      appendChild(c) { this.children.push(c); return c; },
+      addEventListener() {},
+      querySelector() { return null; },
+      querySelectorAll() { return []; },
+      getBoundingClientRect() { return { width: 1, height: 1, top: 0, left: 0, right: 1, bottom: 1 }; },
+      get offsetWidth() { return 1; },
+      getTotalLength() { return 100; }
+    };
+    return el;
+  }
+
+  makeEl = element;
+  host = element("div");
+  stubWindow = {
+    matchMedia() { return { matches: false }; },
+    setTimeout() { return 0; },
+    KeySenseVisuals: null
+  };
+
+  const priorWindow = global.window;
+  const priorDocument = global.document;
+  try {
+    global.window = stubWindow;
+    global.document = {
+      createElementNS: (ns, tag) => makeEl(tag),
+      createElement: (tag) => makeEl(tag),
+      getElementById: () => host,
+      querySelector: () => null
+    };
+    const visFile = path.join(root, "src", "learn-visuals.js");
+    delete require.cache[require.resolve(visFile)];
+    require(visFile);
+    /* The drawing builders are plain top level functions in a browser script,
+     * so they are evaluated in this context to become reachable here. */
+    const vm = require("vm");
+    vm.runInThisContext(fs.readFileSync(path.join(root, "src", "learn-live.js"), "utf8"), { filename: "learn-live.js" });
+  } catch (e) {
+    global.window = priorWindow;
+    global.document = priorDocument;
+    rows.push({ group: "drawings", id: "builders-load", expected: "the drawing builders load with a stubbed DOM", actual: String((e && e.message) || e), pass: false });
+    return rows;
+  }
+
+  const breakdown = {
+    valid: true, wordCount: 12, entropyBits: 128, checksumBits: 4,
+    words: [{ word: "abandon", binary: "00000000000" }, { word: "zoo", binary: "11111111111" }]
+  };
+  const mk = { masterPrivateKeyHex: "a".repeat(64), chainCodeHex: "b".repeat(64) };
+  const cmp = { normal: { path: "m/44'/60'/0'/0/0" }, hardened: { path: "m/44'/60'/0'/0'" } };
+  const pipe = {
+    evm: { privateKeyHex: "11".repeat(32), keccakHashHex: "22".repeat(32), address: "0x" + "33".repeat(20) },
+    btc: { privateKeyHex: "44".repeat(32), hash160Hex: "55".repeat(20), address: "bc1q" + "66".repeat(10) }
+  };
+  const builders = [
+    ["wordsToBits", () => global.learnDiagramWordsToBits(host, breakdown)],
+    ["randomnessChart", () => global.learnDiagramRandomnessChart(host, breakdown)],
+    ["seedSplit", () => global.learnDiagramSeedSplit(host, mk)],
+    ["pathLadder", () => global.learnDiagramPathLadder(host, "m/44'/60'/0'/0/0")],
+    ["hardenedBranch", () => global.learnDiagramHardenedBranch(host, cmp, "m/44'/60'/0'/0/0")],
+    ["addressPipeline", () => global.learnDiagramAddressPipeline(host, pipe)],
+    ["formats", () => global.learnDiagramFormats(host)]
+  ];
+
+  function extents(el, acc) {
+    const a = el.attrs || {};
+    if (a.x !== undefined && a.width !== undefined) acc.x = Math.max(acc.x, Number(a.x) + Number(a.width));
+    if (a.y !== undefined && a.height !== undefined) acc.y = Math.max(acc.y, Number(a.y) + Number(a.height));
+    (el.children || []).forEach((c) => extents(c, acc));
+    return acc;
+  }
+
+  let measured = 0;
+  const naturalMissing = [];
+  builders.forEach(([name, build]) => {
+    host.children.length = 0;
+    host.textContent = "";
+    let threw = null;
+    try { build(); } catch (e) { threw = String((e && e.message) || e); }
+    if (threw) {
+      rows.push({ group: "drawings", id: name, expected: "a drawing inside its own canvas", actual: "builder threw: " + threw, pass: false });
+      return;
+    }
+    const svg = host.children.filter((c) => c.tagName === "svg")[0];
+    if (!svg) {
+      rows.push({ group: "drawings", id: name, expected: "a drawing inside its own canvas", actual: "produced no drawing (could not measure)", pass: false });
+      return;
+    }
+    const vb = String(svg.attrs.viewBox || "").split(/\s+/).map(Number);
+    if (vb.length !== 4 || vb.some((n) => !isFinite(n))) {
+      rows.push({ group: "drawings", id: name, expected: "a canvas with a readable viewBox", actual: "viewBox: " + JSON.stringify(svg.attrs.viewBox || null), pass: false });
+      return;
+    }
+    const ext = extents(svg, { x: 0, y: 0 });
+    measured++;
+    /* The phone layout scrolls the host at --viz-natural, so that variable has
+     * to be the canvas width. If a drawing is redrawn wider and the variable is
+     * forgotten, a phone would scroll it to the wrong size. */
+    if (String(svg.attrs.style || "").indexOf("--viz-natural:" + vb[2] + "px") === -1) {
+      naturalMissing.push(name + " (canvas " + vb[2] + ", style " + JSON.stringify(svg.attrs.style || "").slice(0, 60) + ")");
+    }
+    const fitsX = ext.x <= vb[2] + 0.5;
+    const fitsY = ext.y <= vb[3] + 0.5;
+    const far = Math.max(ext.x - vb[2], ext.y - vb[3]);
+    rows.push({
+      group: "drawings", id: name,
+      expected: "content inside a " + vb[2] + " by " + vb[3] + " canvas",
+      actual: "content ends at " + Math.round(ext.x) + " by " + Math.round(ext.y) +
+        (fitsX && fitsY ? " (inside)" : " (OVERFLOWS by " + Math.round(far) + ", so it is clipped)"),
+      pass: fitsX && fitsY
+    });
+  });
+
+  rows.push({
+    group: "drawings", id: "declares-natural-width",
+    expected: "every drawing carries --viz-natural equal to its canvas width",
+    actual: naturalMissing.length ? naturalMissing.join("; ") : "all match",
+    pass: naturalMissing.length === 0
+  });
+
+  rows.push({
+    group: "drawings", id: "all-measured",
+    expected: builders.length + " drawings measured",
+    actual: measured + " measured, " + (builders.length - measured) + " not measured",
+    pass: measured === builders.length
+  });
+
+  global.window = priorWindow;
+  global.document = priorDocument;
+  return rows;
+}
+
 function main() {
   const drift = checkDrift();
   const { ctx, loaded, mathRandomCalls } = loadContext();
@@ -501,7 +666,7 @@ function main() {
       group: "rng", id: "no-math-random-calls", expected: 0,
       actual: mathRandomCalls(), pass: mathRandomCalls() === 0
     });
-    results = results.concat(runRngFailClosed()).concat(checkVendorPins()).concat(checkVisuals()).concat(checkAssetStamps());
+    results = results.concat(runRngFailClosed()).concat(checkVendorPins()).concat(checkVisuals()).concat(checkDrawingGeometry()).concat(checkAssetStamps());
 
     for (const r of results) {
       if (r.group !== group) { group = r.group; console.log("\n# " + group); }

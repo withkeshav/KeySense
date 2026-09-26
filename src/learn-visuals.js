@@ -233,6 +233,51 @@
     return g;
   }
 
+  /* A row of labelled boxes joined by arrows.
+   *
+   * The canvas is DERIVED from the content, and callers take the size back
+   * rather than stating one beside hand-computed boxes. That is the fix for a
+   * real defect: the words-to-bits drawing hardcoded 168 wide boxes and a 760
+   * wide canvas, which needs 792, so the fourth box rendered 32 pixels past the
+   * right edge of its own canvas and was clipped. A width that is computed from
+   * the row cannot disagree with the row.
+   *
+   * nodes: [{ label, sub, role, arrow: { role, label, elbow, dashed, noMarker } }]
+   *   the arrow belongs to the node it points at, and is omitted on the first. */
+  function flow(opts) {
+    opts = opts || {};
+    var nodes = opts.nodes || [];
+    var bw = opts.boxW || 168;
+    var gap = opts.gap || 40;
+    var bh = opts.boxH || 52;
+    var top = opts.top == null ? 18 : opts.top;
+    var margin = opts.margin || 0;
+    var tail = opts.tail == null ? 22 : opts.tail;
+    var children = [];
+    nodes.forEach(function (n, i) {
+      var x = margin + i * (bw + gap);
+      if (i > 0) {
+        var a = n.arrow || {};
+        children.push(arrow({
+          from: [x - gap, top + bh / 2],
+          to: [x, top + bh / 2],
+          role: a.role || n.role,
+          label: a.label,
+          elbow: a.elbow,
+          dashed: a.dashed,
+          noMarker: a.noMarker
+        }));
+      }
+      children.push(box({ x: x, y: top, w: bw, h: bh, label: n.label, sub: n.sub, role: n.role }));
+    });
+    return {
+      width: margin * 2 + nodes.length * bw + Math.max(0, nodes.length - 1) * gap,
+      height: top + bh + tail,
+      count: nodes.length,
+      children: children
+    };
+  }
+
   /* Horizontal bar chart. `log10` exists because the randomness comparison
    * spans 2^9 to 2^128, and a linear axis would make every weak row invisible
    * next to the strong ones, which is the opposite of the lesson. */
@@ -285,8 +330,13 @@
       width: "100%",
       role: "img",
       "aria-label": opts.ariaLabel || "",
+      "class": "viz-svg",
       preserveAspectRatio: "xMidYMid meet",
-      style: "display:block;max-width:" + (opts.width || 620) + "px;margin:16px auto 0;"
+      /* --viz-natural is the width this drawing needs to stay readable. Below
+       * 720 pixels the host scrolls sideways at that width instead of scaling
+       * the labels down to about 5 pixels, which is what fitting 792 pixels of
+       * drawing into a 325 pixel phone screen does. */
+      style: "--viz-natural:" + (opts.width || 620) + "px;display:block;max-width:" + (opts.width || 620) + "px;margin:16px auto 0;"
     });
     var defs = svgEl("defs");
     Object.keys(ROLES).forEach(function (name) {
@@ -375,6 +425,7 @@
     arrow: arrow,
     branch: branch,
     group: group,
+    flow: flow,
     legend: legend,
     chart: chart,
     diagram: diagram,

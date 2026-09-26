@@ -1179,6 +1179,10 @@ function learnDiagramHost(id, caption, svg) {
   var host = document.getElementById(id);
   if (!host) return;
   host.textContent = "";
+  /* Wide drawings scroll on a phone rather than shrinking (see the media query
+   * in src/viz-tokens.css). The hint is hidden wherever the whole drawing fits,
+   * so a desktop reader never sees it. */
+  host.classList.add("viz-host");
   if (caption) {
     var p = document.createElement("p");
     p.className = "hint";
@@ -1186,7 +1190,13 @@ function learnDiagramHost(id, caption, svg) {
     p.textContent = caption;
     host.appendChild(p);
   }
-  if (svg) host.appendChild(svg);
+  if (svg) {
+    host.appendChild(svg);
+    var hint = document.createElement("p");
+    hint.className = "viz-frame-hint";
+    hint.textContent = "On a narrow screen, swipe the drawing sideways to see all of it.";
+    host.appendChild(hint);
+  }
 }
 
 /* Step 1: words to bits, and where the checksum sits. */
@@ -1196,34 +1206,36 @@ function learnDiagramWordsToBits(host, breakdown) {
   var words = breakdown.words;
   var first = words[0];
   var last = words[words.length - 1];
-  var w = 168;
-  var children = [
-    V.box({ x: 0, y: 18, w: w, h: 52, label: first.word, sub: "word 1", role: "secret" }),
-    V.arrow({ from: [w, 44], to: [w + 40, 44], role: "secret", label: "11 bits" }),
-    V.box({ x: w + 40, y: 18, w: w, h: 52, label: first.binary || "?", sub: "its 11-bit index", role: "hashed" }),
-    V.arrow({ from: [w + 40 + w, 44], to: [w + 80 + w, 44], role: "hashed" }),
-    V.box({ x: w + 80 + w, y: 18, w: w, h: 52, label: last.word, sub: "the last word", role: "secret" }),
-    V.arrow({ from: [w + 80 + 2 * w, 44], to: [w + 120 + 2 * w, 44], role: "secret", label: "split" }),
-    V.box({ x: w + 120 + 2 * w, y: 18, w: w, h: 52, label: (11 - breakdown.checksumBits) + " + " + breakdown.checksumBits + " bits",
-           sub: "entropy then checksum", role: "address" })
-  ];
+  /* The size comes back from the row, so the boxes and the canvas cannot
+   * disagree. Four boxes and three gaps is 792 wide, and it says so itself. */
+  var row = V.flow({ nodes: [
+    { label: first.word, sub: "word 1", role: "secret" },
+    { label: first.binary || "?", sub: "its 11-bit index", role: "hashed", arrow: { role: "secret", label: "11 bits" } },
+    { label: last.word, sub: "the last word", role: "secret", arrow: { role: "hashed" } },
+    { label: (11 - breakdown.checksumBits) + " + " + breakdown.checksumBits + " bits",
+      sub: "entropy then checksum", role: "address", arrow: { role: "secret", label: "split" } }
+  ] });
   learnDiagramHost(host,
     "Your own words: " + breakdown.entropyBits + " bits of entropy plus a " + breakdown.checksumBits +
     " bit checksum, which is why " + breakdown.wordCount + " words carry " + (breakdown.wordCount * 11) +
     " bits of information in total.",
-    V.diagram({ width: 760, height: 92, ariaLabel: "Words become 11 bit numbers, and the last word carries the checksum", children: children }));
+    V.diagram({ width: row.width, height: row.height, ariaLabel: "Words become 11 bit numbers, and the last word carries the checksum", children: row.children }));
 }
 
 /* Step 1: how many guesses each way of making a phrase needs. */
 function learnDiagramRandomnessChart(host, breakdown) {
   var V = window.KeySenseVisuals;
   var mine = breakdown && breakdown.valid ? breakdown.entropyBits : null;
+  /* Sorted weakest first, so the bars read as a staircase rather than
+   * long, long, longest, then suddenly short. The reader's own row is outlined
+   * and keeps its marker wherever it lands. */
   var rows = [
+    { label: "One random word", value: 13, display: "about 2^13" },
     { label: "Invented phrase", value: 30, display: "about 2^30" },
-    { label: "Eight random words", value: 103, display: "about 2^103" },
-    { label: "One random word", value: 13, display: "about 2^13" }
+    { label: "Eight random words", value: 103, display: "about 2^103" }
   ];
-  if (mine) rows.splice(2, 0, { label: "Your phrase", value: mine, display: "about 2^" + mine, mine: true });
+  if (mine) rows.push({ label: "Your phrase", value: mine, display: "about 2^" + mine, mine: true });
+  rows.sort(function (a, b) { return a.value - b.value; });
   learnDiagramHost(host,
     mine
       ? "Your own phrase sits on this scale. Longer bars are harder to guess, and the axis is logarithmic, so a small step up the screen is a huge step in effort."

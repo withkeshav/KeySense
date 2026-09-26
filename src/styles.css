@@ -1346,6 +1346,32 @@
       100% { transform: rotateY(1080deg) translateY(0); }
     }
 
+    /* Comparison rows: name, bar, number. Three columns while there is room,
+     * one column on a phone. */
+    .entropy-compare-grid {
+      display: grid;
+      grid-template-columns: minmax(90px, 1.4fr) minmax(60px, 2fr) auto;
+      gap: 6px 10px;
+      align-items: center;
+      font-size: 12px;
+      max-width: 100%;
+    }
+    .entropy-compare-value {
+      font-family: var(--mono);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    @media (max-width: 560px) {
+      .entropy-compare-grid {
+        grid-template-columns: 1fr;
+        gap: 2px 0;
+      }
+      .entropy-compare-value {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        margin-bottom: 6px;
+      }
+    }
     /* Progress bar */
     .entropy-bar-wrap {
       width: 100%;
