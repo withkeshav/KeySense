@@ -172,15 +172,57 @@ result is an indication and must be reported as one.
 
 ## 9. Effort and order
 
-| Stage | Work | Effort |
-|---|---|---|
-| 1 | Cut and recast: remove the two duplicated tables and the asides, split segment 5. No new content. | half a day |
-| 2 | Segment 1 new content: the two misconceptions, the storage scenario, the pretest, one inline SVG. | one day |
-| 3 | Segments 2 to 4 recast as predict, do, explain; depth gating. | one day |
-| 4 | Mixed practice pool, teach-back boxes with model answers, inline definition boxes. | one day |
-| 5 | Run the gate, the suite, then the reader sessions. | gate and suite automated, readers need the operator |
+Reconciled against what actually shipped. The stage numbers below are the plan of record.
 
-Stage 1 alone is worth doing first because it is pure subtraction and the gate can prove it.
+| Stage | Work | State |
+|---|---|---|
+| 1 | Cut and recast: remove the duplicated tables, split the address segment | **Done.** Duplicates removed in 4a51491, split into two segments in 7a78d49. |
+| 2 | Segment 1 new content: the misconceptions, the pretest, the definition box | **Done** in 3da87cd. Its inline diagram moved to stage 5, so the diagram and the words are designed together. |
+| 3 | Segments 2, 3 and 4 recast as predict, do, explain, with definition boxes at first use | **Next.** |
+| 4 | Mixed practice pool across all six segments, teach-back boxes with model answers | Not started. |
+| 5 | The visual layer: informative SVG diagrams, charts, and motion where it shows a change | Not started. Added 2026-09-26 at the operator's request. |
+| 6 | Gate and suite on every change, then the reader sessions | Gate and suite are automated and running on every change already. Readers need the operator. |
+
+Four build stages remain, then the reader sessions. Stage 1 was worth doing first because it is pure
+subtraction and the gate can prove it. It did: segment 5 went from 955 prose words in one click to
+116, and segment 6 now carries the cross-chain material.
+
+## 11. The visual layer
+
+Added at the operator's request: diagrams, charts and motion rather than text alone. What the
+evidence supports, and where I have to stop.
+
+- **Diagrams that carry information help.** Spatial contiguity 0.48 (Mayer and Moreno 2003), and the
+  prior art teardown found that every deep source reviewed uses a small labelled figure, while this
+  page currently has none.
+- **Signalling helps.** 0.74 for cues that point at the part being explained: labels, arrows,
+  numbered marks, a highlight on the segment under discussion.
+- **Decoration does not.** Sung and Mayer 2012: decorative graphics raised how much people liked the
+  material and not how much they recalled. So no mascots, no background art, no animation for its
+  own sake.
+- **Motion: I have no evidence that animation improves learning, and I will not claim it does.** What
+  it can honestly do is show a transformation the reader would otherwise have to picture, such as a
+  word becoming eleven bits, or a key becoming an address. So motion is allowed only where it shows
+  a value changing, never on first paint, never delaying the text, and it is switched off entirely
+  for anyone whose browser asks for reduced motion.
+- **Colour as a second channel only.** The teardown flagged the one source that tracks a value in
+  colour as using colour as its only channel. Every colour cue here gets a text or shape equivalent,
+  so it survives colour blindness and a black and white print.
+
+Concrete pieces, one per segment: words to bits to checksum with the reader's own last word marked;
+the 512-bit seed splitting into two halves; the path as a labelled ladder with the reader's own path
+lit; hardened against normal as two branches showing what an xpub can and cannot reach; the key to
+address pipeline as a labelled flow per chain; and the multi-chain grid plus the four Bitcoin address
+formats, one shape per family. The randomness chart gets axis labels, a stated scale, and a marker
+for the reader's own value.
+
+**How it gets verified, because the readability gate does not measure beauty and will not be asked
+to.** No new dependencies; still works offline and from `file://`. Rendered in a real browser at
+desktop and mobile widths, in both themes, with a screenshot kept per segment. A contrast check on
+every new colour pairing. The print stylesheet still correct, since the paper wallet path depends on
+it. Reduced motion proven by loading with the media feature forced and confirming nothing transitions.
+And the reading gate re-run after every visual change, because a diagram can add words as easily as
+it can replace them.
 
 ## 10. What needs your decision
 

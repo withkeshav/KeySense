@@ -242,6 +242,22 @@ Phase B and D can run in parallel. Phase F must not start before the operator ap
 
 ## 9. Progress log (newest first)
 
+**2026-09-26, stage 3 done (the address split).** Shipped in 7a78d49.
+
+- Segment 5 was 955 prose words plus 596 non-prose in one click, close to half the walkthrough. It is
+  now segment 5 (116 prose words, the pipeline with the reader's own values) and segment 6 (963
+  words, the format and cross-chain material). The stepper derives its count from the page, so the
+  sixth dot needed no script change: verified live at "6 of 6" with all six labels.
+- Each half now opens with a predict item about what it teaches, and segment 5 closes by asking where
+  the two Ethereum and Bitcoin routes part company.
+- Cut the address_index repeat in the reference appendix. What remains is segment 3's own statement
+  of the idea, the Derive tab's tooltip, and two static path templates.
+- Remaining volume: segment 6 at 963 prose words is now the largest single segment, and its five
+  chain cards carry the most prose. That is the next cut, inside stage 3's follow-up or stage 5.
+- Total panel prose is unchanged by a split, which is the honest way to report it: segmentation
+  reduces the load faced at one time (effect 1.36), it does not remove words. Removing words is
+  subtraction, and it is still available.
+
 **2026-09-26, stage 2 done.** Segment 1 rewritten around the measured misconceptions and shipped.
 
 - What changed: the three beliefs the research ranked highest (the password model, the reset belief, coins in the app) are now the opening of the segment, asked before any explanation. Entropy is defined at first use. The deeper material moved behind disclosures. Two quiz questions added for the new material.
