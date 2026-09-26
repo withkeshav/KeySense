@@ -37,6 +37,14 @@ npm test
 
 Runs the full 189 vector suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP maintainer fixtures for every chain, the entropy lab, the brain wallet including custom path vectors, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 20 and 22 for every push and PR, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
 
+## Privacy
+
+The app itself collects nothing: no seeds, keys, or addresses ever leave your device, no analytics, no cookies. Theme only is kept in `localStorage`. Hosting still sees routine server traces such as IP and user agent. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
+
+## Contributing
+
+Issues and ideas are welcome at [https://github.com/withkeshav/KeySense/issues](https://github.com/withkeshav/KeySense/issues). Never paste seeds or private keys in an issue. This is source-available, so propose changes via issues first. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+
 ## Deploy on a VPS
 
 ```bash

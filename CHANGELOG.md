@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added, privacy and participation
+
+- **New `PRIVACY.md`.** The app collects nothing, no analytics, no cookies, theme only in `localStorage`. Hosting still sees routine server traces. Offline and `file://` use documented.
+- **New `CONTRIBUTING.md`.** Issues welcome at `https://github.com/withkeshav/KeySense/issues`. Never share seeds or keys. Source-available rules kept: propose via issues first.
+- **Footer links in `index.html`.** Privacy, Security, Report an issue, plus testing only disclaimer.
+
 ### Added, brain custom path
 
 - **Optional custom path override in the Brain Wallet tab.** Type a path into `brainCustomPath` to derive one extra address for comparison. The 5 fixed paths are always derived unchanged. `brainSyncPathBtn` fills the input from the account and index fields. `deriveBrainCustomAddress` in `src/brain-wallet-service.js` resolves the path, infers purpose and coin type, and auto-hardens Ed25519 paths for SLIP-0010 with a note when the resolved path differs. Empty input means no override. Locked by 2 frozen vectors.

@@ -50,7 +50,15 @@ KeySense License 1.0. Free to download and use, including commercially, unmodifi
 
 ## Disclaimer
 
-For testing and educational purposes only. See `README.md:103`.
+For testing and educational purposes only. Not a custodian or wallet provider. Always verify with an independent tool before sending real funds. See `README.md:103`.
+
+## Privacy
+
+The app collects nothing. Hosting sees routine server traces only. See `PRIVACY.md` and `wiki/Security.md`.
+
+## Participate
+
+Found an issue or idea. Open an issue at `https://github.com/withkeshav/KeySense/issues`. Never share seeds or private keys. See `CONTRIBUTING.md`.
 
 ## More pages
 
