@@ -9,6 +9,8 @@
     "test": "node test/node-harness.js",
     "test:readability": "node tools/learn-readability.js",
     "test:viz": "node tools/viz-contrast.js",
+    "stamp": "node tools/stamp-assets.js",
+    "stamp:check": "node tools/stamp-assets.js --check",
     "test:build": "bash tools/build-crypto.sh --check"
   },
   "author": "Keshav Maheshwari (https://www.withkeshav.com)",

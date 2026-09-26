@@ -17,6 +17,13 @@
 - **New sample sheet, `test/learn-visuals-sample.html`,** rendering every primitive once for review and screenshots. Not linked from the app. Motion runs only on a button press, never on first paint.
 - **Loaded by `index.html` and `test/self-test.html` together.** The suite's drift guard fails when the two pages load different script sets, so a half-added module cannot ship.
 
+### Fixed, a deploy could serve old code beside a new page
+
+- **The origin sent no cache headers at all**, so the CDN applied its default, which caches `.js` and `.css` but never `.html`. Measured: `/src/learn-visuals.js` came back `cf-cache-status: HIT, age 418` serving the previous version's bytes while `/index.html` was always fresh, so the page ran old code against new markup and a deploy looked live when it was not.
+- **Two fixes, belt and braces.** `tools/stamp-assets.js` gives every local script and stylesheet a `?v=<content hash>` stamp, so a changed asset has a new URL and no cached copy of the old one is reachable; the suite runs the same checker and fails with the exact reference when a stamp is forgotten. And nginx now sends a policy instead of nothing: `no-cache` (revalidate) for `index.html` and the app's own js and css, `immutable` for the vendored libraries whose filenames carry their version, five minutes for docs. Proven by editing an asset without re-stamping: the suite reports `STALE ... ./src/styles.css ?v=7400a4ec to ?v=98eec4bb` and goes green again once restamped.
+- **No cache purge is needed after a deploy**, which matters because neither Cloudflare token on this box holds the Cache Purge permission. The edge would otherwise have served a stale asset for up to the remainder of its TTL after developer mode was turned off.
+- **The live nginx config is now versioned with the code** at `docs/deploy/nginx-keysense.conf`, with the deploy and rollback procedure in `docs/deploy/README.md`.
+
 ### Changed, the walkthrough rewritten for ESL readers and drawn
 
 - **Every segment now opens with a predict question** and ends with retrieval, per the evidence in `docs/learn-research/LEARNING-SCIENCE.md`. The predict items carry no answer: the answer belongs at the bottom of the segment, and an earlier draft that put it in the summary was both a spoiler and word bloat.

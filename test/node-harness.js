@@ -40,17 +40,19 @@ const EXPECTED_DIFF = new Set(["src/main.js", "src/ui.js", "src/paper-wallet.js"
 
 function scriptSrcList(html) {
   const out = [];
-  const re = /<script[^>]*\ssrc="([^"]+)"/g;
+  const re = /<script[^>]+src="([^"]+)"/g;
   let m;
-  while ((m = re.exec(html))) out.push(m[1].replace(/^\.\//, ""));
+  /* The ?v=<hash> stamp is a caching detail, not a different asset, so it is
+   * stripped before comparison. */
+  while ((m = re.exec(html))) out.push(m[1].replace(/\?v=[0-9a-f]+$/, "").replace(/^\.\//, ""));
   return out;
 }
 
 function styleSrcList(html) {
   const out = [];
-  const re = /<link[^>]+href="([^"]+\.css)"/g;
+  const re = /<link[^>]+href="([^"]+\.css)/g;
   let m;
-  while ((m = re.exec(html))) out.push(m[1].replace(/^\.\//, ""));
+  while ((m = re.exec(html))) out.push(m[1].replace(/\?v=[0-9a-f]+$/, "").replace(/^\.\//, ""));
   return out;
 }
 
@@ -465,6 +467,20 @@ function checkVisuals() {
   return rows;
 }
 
+/* The stamps are what stop a cached old asset being reachable, so a forgotten
+ * re-stamp is a shipping hazard, not a style nit. This runs the same checker the
+ * deploy uses, in check mode. */
+function checkAssetStamps() {
+  const { execFileSync } = require("child_process");
+  try {
+    execFileSync(process.execPath, [path.join(root, "tools", "stamp-assets.js"), "--check"], { stdio: "pipe" });
+    return [{ group: "assets", id: "stamps-current", expected: "every asset stamp matches its file", actual: "all current", pass: true }];
+  } catch (e) {
+    const out = String((e.stdout || "") + (e.stderr || "")).trim().split("\n").slice(0, 3).join(" / ");
+    return [{ group: "assets", id: "stamps-current", expected: "every asset stamp matches its file", actual: out || "checker failed", pass: false }];
+  }
+}
+
 function main() {
   const drift = checkDrift();
   const { ctx, loaded, mathRandomCalls } = loadContext();
@@ -485,7 +501,7 @@ function main() {
       group: "rng", id: "no-math-random-calls", expected: 0,
       actual: mathRandomCalls(), pass: mathRandomCalls() === 0
     });
-    results = results.concat(runRngFailClosed()).concat(checkVendorPins()).concat(checkVisuals());
+    results = results.concat(runRngFailClosed()).concat(checkVendorPins()).concat(checkVisuals()).concat(checkAssetStamps());
 
     for (const r of results) {
       if (r.group !== group) { group = r.group; console.log("\n# " + group); }
