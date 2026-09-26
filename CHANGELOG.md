@@ -9,6 +9,12 @@
 - **New reader session page, `test/learn-comprehension.html`.** Runs from a local file, no network, stores nothing, and cannot report anything back.
 - **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet. The wiki is now live at https://github.com/withkeshav/KeySense/wiki with 6 pages.
 
+### Changed, Learn walkthrough is now six segments
+
+- **Split the address segment in two.** Segment 5 was 955 prose words plus 596 non-prose, close to half the walkthrough in one click. It is now segment 5, "From Private Key to Address" (116 prose words), and segment 6, "One Key, Many Addresses" (963 words, the format and cross-chain material). Segmentation is the largest design effect in the learning research at 1.36.
+- **Each half opens with a predict item** about the thing it teaches, and segment 5 closes by asking where the two routes part company.
+- **Cut a repeat in the reference appendix** where the address_index explanation restated what segment 3 already teaches.
+
 ### Changed, Learn step 1, the seed phrase
 
 - **Rewrote the segment around the three misconceptions the research measured**: the password model, the belief that a lost phrase can be reset, and the belief that coins live in the app or the device. They are now asked before any explanation, as predict-before-reveal items, with the source cited.

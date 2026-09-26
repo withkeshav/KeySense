@@ -677,6 +677,11 @@
               <div class="step-dot">5</div>
               <div class="step-label">Address</div>
             </div>
+            <div class="learn-connector"></div>
+            <div class="learn-step" data-step="6">
+              <div class="step-dot">6</div>
+              <div class="step-label">Formats</div>
+            </div>
           </div>
 
           <!-- Step 1 -->
@@ -953,7 +958,14 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <!-- Step 5 -->
           <div class="learn-content" data-step="5" style="display:none;">
             <h3 class="learn-heading">5. From Private Key to Address</h3>
-            <p class="hint">The private key produces a public key, which is then encoded into an address format specific to each blockchain.</p>
+            <p class="hint">The private key produces a public key. The public key is then hashed and encoded into an address. This segment follows that route for the two chains most people meet first.</p>
+
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">Before you read on</div>
+              <details class="quiz-item"><summary>Is an address just your public key, written out?</summary><p class="hint">No. It is a hash of the public key, shortened and then encoded. You cannot get the key back out of the address.</p></details>
+              <details class="quiz-item"><summary>Does your private key leave this page to work out an address?</summary><p class="hint">No. The arithmetic runs in this browser tab, using libraries served from this same site.</p></details>
+            </div>
+
             <div style="margin-top:14px;">
               <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
                 <strong style="color:var(--accent);">Ethereum / EVM</strong>
@@ -963,7 +975,26 @@ Child keys: CKD(parent, index) - child private key + child chain code
                 <strong style="color:var(--accent);">Bitcoin</strong>
                 <p class="hint" style="margin-top:6px;margin-bottom:0;">Private key - secp256k1 public key - SHA-256 - RIPEMD-160 - encode with version byte + checksum - address varies by purpose (P2PKH, P2SH, Bech32, Bech32m)</p>
               </div>
-              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:10px;">
+            </div>
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
+              <div id="learnStep5Live"></div>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
+              <details class="quiz-item"><summary>Can you work backwards, from an address to the public key?</summary><p class="hint">No. Hashing runs one way on purpose. That is what makes an address safe to publish while the key behind it stays private.</p></details>
+              <details class="quiz-item"><summary>Both routes above start with a secp256k1 public key. Where do they part company?</summary><p class="hint">At the hash. Ethereum takes Keccak-256 and keeps the last 20 bytes. Bitcoin takes SHA-256 and then RIPEMD-160, then adds a version byte and a checksum before encoding.</p></details>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="learn-content" data-step="6" style="display:none;">
+            <h3 class="learn-heading">6. One Key, Many Addresses</h3>
+            <p class="hint">The same words give a different looking address on every chain. Here is why that happens, and how to check that you are looking at the right one.</p>
+
+            <div style="margin-top:14px;">
+              <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
                 <strong style="color:var(--accent);">Solana</strong>
                 <p class="hint" style="margin-top:6px;margin-bottom:0;">Private key (Ed25519) - public key (32 bytes) - Base58 encode - address</p>
               </div>
@@ -984,10 +1015,6 @@ Child keys: CKD(parent, index) - child private key + child chain code
                 <p class="hint" style="margin-top:6px;margin-bottom:0;">Ed25519 key (SLIP-0010). This tool shows the legacy address: <code>0x</code> + SHA3-256(32-byte public key || <code>0x00</code> scheme byte), which is the SDK and wallet default. Aptos also has SingleKey (unified) accounts from the same seed with a different address. SHA3-256 is not Keccak-256. Hashing uses a vendored SHA3-256 (Web Crypto has no SHA3).</p>
               </div>
             </div>
-            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
-              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your seed</div>
-              <div id="learnStep5Live"></div>
-            </div>
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">One seed, nine chains</h3>
@@ -1005,7 +1032,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
 
           <div class="learn-nav">
             <button type="button" class="btn-secondary" id="learnPrev" disabled>Previous</button>
-            <span class="learn-progress" id="learnProgress">1 / 5</span>
+            <span class="learn-progress" id="learnProgress">1 / 6</span>
             <button type="button" class="btn-secondary" id="learnNext">Next</button>
           </div>
         </div>
@@ -1059,7 +1086,6 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <div class="card-title">Common scenarios</div>
           <div style="padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
             <strong style="color:var(--accent);">MetaMask Account 1, 2, 3...</strong>
-            <p class="hint" style="margin-top:8px;margin-bottom:0;">Often increments the final <strong>address_index</strong> (not account):</p>
             <code style="display:block;margin-top:10px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/0</code>
             <code style="display:block;margin-top:4px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/1</code>
             <code style="display:block;margin-top:4px;font-family:var(--mono);color:var(--warning);">m/44'/60'/0'/0/2</code>
