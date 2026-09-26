@@ -681,14 +681,34 @@
 
           <!-- Step 1 -->
           <div class="learn-content" data-step="1">
-            <h3 class="learn-heading">1. The BIP39 Seed Phrase</h3>
-            <p class="hint">A mnemonic seed phrase is a human-readable encoding of random entropy. It is the root of your entire wallet tree.</p>
-            <ul class="list-plain" style="margin-top:12px;">
-              <li><strong>12 words</strong> = 128 bits of entropy + 4-bit checksum</li>
-              <li><strong>24 words</strong> = 256 bits of entropy + 8-bit checksum</li>
-              <li>The last word is partially determined by the checksum of all previous words</li>
-              <li>The wordlist has exactly 2048 words (2<sup>11</sup>) - each word encodes 11 bits</li>
-            </ul>
+            <h3 class="learn-heading">1. The Seed Phrase</h3>
+            <p class="hint">A seed phrase is the wallet. Twelve ordinary looking words are the whole thing. Whoever has them can spend everything, and nobody can reset them for you.</p>
+
+            <!-- Pretest: the three beliefs that cause the most loss, asked before any explanation is given. -->
+            <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">Before you read on: which of these are true?</div>
+              <p class="hint" style="margin-bottom:10px;">Answer each one in your head first, then open it. Being wrong here is normal.</p>
+              <details class="quiz-item"><summary>I can choose my own seed phrase, the way I choose a password.</summary><p class="hint">No. A computer generates it from randomness. If you pick the words yourself, you hand the guessing to whoever guesses like you. In one survey of 643 wallet users, 58 percent believed they could choose their phrase the way they choose a password.</p></details>
+              <details class="quiz-item"><summary>If I lose my seed phrase, someone can reset it for me.</summary><p class="hint">No. There is no account and no reset, for anyone. The words are the wallet, not a login for it.</p></details>
+              <details class="quiz-item"><summary>My coins are in the app, or on the device I use.</summary><p class="hint">No. Coins sit on the blockchain. The app and the device only read the words you hold. Among people who already run their own wallet, three quarters of what they described never mentioned protecting the phrase.</p></details>
+              <p class="hint" style="margin-top:10px;margin-bottom:0;">Those figures come from one study of 643 wallet users plus 20 interviews (<a href="https://doi.org/10.1145/3706598.3713209" target="_blank" rel="noopener" style="color:var(--accent);">CHI 2025</a>). The same study found that only 43 percent of people could pick a seed phrase out of a set of images.</p>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
+              <h3 class="learn-heading" style="margin-top:0;">What the words actually are</h3>
+              <p class="hint">Your phrase is a written form of one long random number. That number is called <strong>entropy</strong>. Everything else in this walkthrough is arithmetic on it.</p>
+              <div style="margin-top:12px;padding:12px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div class="card-title" style="font-size:12px;margin-bottom:6px;">A word you will keep meeting: entropy</div>
+                <p class="hint" style="margin-bottom:0;">Entropy means randomness, counted in bits. One bit is one yes or no question. Every extra bit doubles the number of guesses an attacker needs. So 128 bits is not twice as strong as 64 bits. It is 2<sup>64</sup> times as strong.</p>
+              </div>
+              <ul class="list-plain" style="margin-top:12px;">
+                <li><strong>12 words</strong> carry 128 bits of entropy, plus 4 bits of checksum.</li>
+                <li><strong>24 words</strong> carry 256 bits of entropy, plus 8 bits of checksum.</li>
+                <li>The last word is partly decided by the checksum of the words before it.</li>
+                <li>The word list holds exactly 2048 words, so each word carries 11 bits.</li>
+              </ul>
+            </div>
+
             <div class="learn-visual" style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
               <code style="display:block;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;">
 Entropy (128-256 bits)
@@ -728,14 +748,18 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <div id="learnBitExplorer"></div>
             </div>
 
-            <div class="warning-box" style="margin-top:14px;">
-              <p><strong>Bring your own randomness:</strong> By default this tool uses the browser's CSPRNG, which is not a plain software RNG. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as the CPU's on-die thermal-noise generator and interrupt timing. If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab (enable Expert mode) and type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy instead. The value of real dice is not that they are more random than the CPU, it is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what matter.</p>
-            </div>
+            <details class="quiz-item" style="margin-top:14px;">
+              <summary>Go deeper: where the randomness comes from, and why dice still matter</summary>
+              <div class="warning-box" style="margin-top:10px;">
+                <p>By default this tool uses the browser CSPRNG. That is not a plain software random number generator. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as thermal noise in the CPU and interrupt timing.</p>
+                <p style="margin-top:8px;">If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Derive tab with Expert mode on. Type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy.</p>
+                <p style="margin-top:8px;">The value of real dice is not that they are more random than the CPU. It is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what count.</p>
+              </div>
+            </details>
 
-            <!-- How much randomness is actually behind each way of making a seed. -->
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">How much randomness is really in there?</h3>
-              <p class="hint" style="margin-bottom:12px;">Every one of these produces a valid seed phrase that looks exactly as convincing as the others. What differs is how many guesses stand between an attacker and your coins. Type a passphrase to see where your own idea would land.</p>
+              <p class="hint" style="margin-bottom:12px;">Every option below makes a phrase that looks equally convincing. What differs is how many guesses stand between an attacker and your coins. Type a passphrase to see where your own idea would land.</p>
 
               <label for="compareInput" style="font-size:11px;">Try a passphrase you might have invented</label>
               <input id="compareInput" type="text" autocomplete="off" spellcheck="false" placeholder="Tr0ub4dor&amp;3" style="margin-top:6px;margin-bottom:14px;font-family:var(--mono);font-size:13px;">
@@ -745,51 +769,55 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <div style="margin-top:14px;">
                 <label for="compareRateSlider" style="font-size:11px;">Attacker speed: <span id="compareRateLabel"></span></label>
                 <input id="compareRateSlider" type="range" min="9" max="15" step="1" value="14" style="width:100%;margin-top:6px;">
-                <p class="hint" style="margin-top:4px;margin-bottom:0;">Move this and watch every row above change. The point is what stays true regardless: 128 bits stays absurd at any of these speeds, while the weak rows do not need a fast attacker to fall, only a patient one.</p>
+                <p class="hint" style="margin-top:4px;margin-bottom:0;">Move this and watch every row change. Notice what stays true at any speed. 128 bits stays out of reach, while the weak rows fall to a patient attacker rather than a fast one.</p>
               </div>
 
-              <div class="warning-box" style="margin-top:16px;">
-                <p>To reach 128 bits using random words you could actually memorise, you need <strong>ten</strong> Diceware words: 7776<sup>10</sup> is about 2<sup>129</sup>. But if you can memorise ten random words, you can memorise a twelve word BIP39 phrase, which is the same strength, carries a checksum that catches typos, and is restorable in every wallet. That is the whole argument against inventing your own: it is not merely riskier, it is worse at the one job it was supposed to do.</p>
-              </div>
+              <details class="quiz-item" style="margin-top:16px;">
+                <summary>Go deeper: why inventing your own phrase is worse, not just riskier</summary>
+                <div class="warning-box" style="margin-top:10px;">
+                  <p>Ten random words from a 7776 word list would reach about 2<sup>129</sup>, which is the same strength as twelve BIP39 words.</p>
+                  <p style="margin-top:8px;">But if you can memorise ten random words, you can memorise a twelve word BIP39 phrase. That phrase carries a checksum, which catches typos, and every wallet can restore it. So inventing your own is not merely riskier. It is worse at the one job it was supposed to do.</p>
+                </div>
+              </details>
             </div>
 
-            <!-- Same words, different passphrase: two unrelated wallets. -->
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Same 12 words, different passphrase</h3>
-              <p class="hint" style="margin-bottom:12px;">The BIP39 passphrase is a second, separate secret, not a strengthening of the first. The same words with no passphrase and with any passphrase are two completely unrelated wallets. Forgetting this "25th word" is the most common reason people believe a restored wallet is empty - it usually is not, it is just the wrong branch.</p>
+              <p class="hint" style="margin-bottom:12px;">The BIP39 passphrase is a second, separate secret. It does not strengthen the first one. The same words with no passphrase and with a passphrase are two unrelated wallets.</p>
+              <p class="hint" style="margin-bottom:12px;">Forgetting this "25th word" is the most common reason people think a restored wallet is empty. It usually is not empty. It is on the wrong branch.</p>
               <label for="passphraseBranchInput" style="font-size:11px;">Try a passphrase</label>
               <input id="passphraseBranchInput" type="text" autocomplete="off" spellcheck="false" placeholder="x" style="margin-top:6px;margin-bottom:10px;font-family:var(--mono);font-size:13px;max-width:220px;">
               <div id="passphraseBranchHost"></div>
             </div>
 
-            <!-- Real-world case study: weak entropy is not a hypothetical risk. -->
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">This is not hypothetical</h3>
-              <p class="hint">In July 2026, a hardware Bitcoin wallet lost roughly $116M this way. A firmware build flag was checked for whether it <em>existed</em> rather than what it was <em>set to</em>, which silently routed seed generation to a poorly-seeded software random number generator instead of the device's hardware source. Effective entropy collapsed from 128 bits to as little as 40. The output still looked like a completely normal, valid, checksummed recovery phrase - there was no visual tell, the same way there was no visual tell in this tool's own Sui bug. The bug sat in open-source code for five years before anyone noticed.</p>
-              <p class="hint" style="margin-top:8px;">The maker's own advice to affected users: seeds built from real dice rolls were never at risk, because that path never touched the broken code. That is exactly the Physical entropy lab above. This tool's own randomness is checked for the equivalent failure on every load; see the note in the entropy lab if you want the detail.</p>
+              <p class="hint">In July 2026 a hardware Bitcoin wallet lost roughly $116M this way. One firmware flag was checked for whether it existed, not for what it was set to. That silently sent seed generation to a poorly seeded software generator instead of the device hardware source.</p>
+              <p class="hint" style="margin-top:8px;">Effective entropy fell from 128 bits to as little as 40, and the output still looked like a normal, checksummed phrase. There was no visual tell, the same way there was no visual tell in this tool's own Sui bug. The flaw sat in open source code for five years.</p>
+              <p class="hint" style="margin-top:8px;">The maker's advice: seeds built from real dice rolls were never at risk, because that path never touched the broken code. This tool checks its own randomness for the same class of failure on every load.</p>
             </div>
 
-            <!-- 3a: which defences actually help, and when. -->
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
-              <h3 class="learn-heading" style="margin-top:0;">When defences actually help</h3>
-              <p class="hint">After an incident like that one, the useful question is not "what is safest" but "which defence protects against which failure, at which moment". These are the ones that matter, and their limits:</p>
+              <h3 class="learn-heading" style="margin-top:0;">Which defence stops which failure</h3>
+              <p class="hint">After an incident like that one, the useful question is not what is safest. It is which defence protects against which failure, and at which moment. These are the ones that matter, with their limits:</p>
               <ul class="list-plain" style="margin-top:12px;">
-                <li><strong>Own entropy (dice) protects at creation time only.</strong> Mixing real dice rolls into the seed means no software bug on your device - then or later - could have predicted it. It says nothing about any seed generated before or after by other means.</li>
-                <li><strong>A passphrase selects a different wallet. It does not repair a weak one.</strong> If the underlying entropy is guessable, an attacker sweeping the seed can also sweep every passphrase branch. Strength comes from entropy, not from a memorable word on top of it.</li>
-                <li><strong>Updates cannot fix an already-created seed.</strong> A seed generated while a random source was broken stays weak forever, whatever firmware ships afterwards. The only remedy is moving funds to a freshly generated seed - which is why "was my device affected" questions are so urgent after RNG disclosures.</li>
-                <li><strong>Verification catches bugs before they cost you.</strong> Deriving the same seed in two independent tools and comparing addresses is the cheapest end-to-end check that exists. This page verifies itself against the official BIP test vectors live - see the <em>This page verifies itself</em> card below this walkthrough.</li>
-                <li><strong>Failing closed beats failing quietly.</strong> A tool whose randomness is unavailable should refuse to generate anything (this one does - it is tested in CI), because a plausible-looking phrase from a broken source is worse than an honest error.</li>
+                <li><strong>Your own dice protect at creation time only.</strong> Dice rolls mixed into the seed cannot be predicted by any software bug on your device, then or later. They say nothing about seeds made another way.</li>
+                <li><strong>A passphrase selects a different wallet. It does not repair a weak one.</strong> If the entropy is guessable, an attacker who sweeps the seed also sweeps every passphrase branch.</li>
+                <li><strong>An update cannot fix a seed you already made.</strong> It stays weak forever. The remedy is a fresh seed, then moving the funds. Questions about whether a device was affected are urgent after any random number disclosure.</li>
+                <li><strong>Verification catches bugs before they cost you.</strong> Deriving one seed in two independent tools and comparing addresses is the cheapest end-to-end check there is. This page verifies itself against the official BIP vectors live.</li>
+                <li><strong>Failing closed beats failing quietly.</strong> A tool with no working randomness should refuse to generate anything, and this one does. A convincing phrase from a broken source is worse than an honest error.</li>
               </ul>
             </div>
 
-            <!-- 3c: retrieval quiz, step 1 -->
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Check your understanding</h3>
               <p class="hint" style="margin-bottom:10px;">Answer in your head first, then open the question. Recalling an answer before seeing it is what makes it stick.</p>
-              <details class="quiz-item"><summary>How many bits of real entropy are in a 12-word phrase?</summary><p class="hint">128. Twelve words carry 132 bits and the last 4 are checksum, so the secret part is 128 bits. 24-word phrases carry 256.</p></details>
-              <details class="quiz-item"><summary>You restore your wallet and mistype one word. What happens?</summary><p class="hint">Almost always the wallet refuses: the checksum no longer matches. There is a 1-in-16 chance (12 words) or 1-in-256 (24 words) the mistake still passes and silently derives a different, empty wallet - which is why typing words carefully matters.</p></details>
-              <details class="quiz-item"><summary>Does adding a strong passphrase make a weakly generated seed safe?</summary><p class="hint">No. The passphrase selects a different branch of a tree whose root is still the guessable entropy. Why this matters: an attacker who sweeps the seed can sweep the passphrase branches too.</p></details>
-              <details class="quiz-item"><summary>Why is it never safe to type your seed into a website that offers to check it?</summary><p class="hint">Because the words are the wallet itself, not a login name. Why this matters: anyone who receives them can derive every key and spend everything within minutes.</p></details>
+              <details class="quiz-item"><summary>Where is your wallet, really?</summary><p class="hint">In the words. The app and the device only read them, and so does any other wallet you later restore them into. Why this matters: anything that asks for the words is asking for the wallet.</p></details>
+              <details class="quiz-item"><summary>How many bits of real entropy are in a 12-word phrase?</summary><p class="hint">128. Twelve words carry 132 bits, and the last 4 are the checksum, so the secret part is 128 bits. A 24-word phrase carries 256.</p></details>
+              <details class="quiz-item"><summary>You restore your wallet and mistype one word. What happens?</summary><p class="hint">Almost always the wallet refuses, because the checksum no longer matches. There is a 1 in 16 chance with 12 words, or 1 in 256 with 24 words, that the mistake still passes and derives a different, empty wallet. That is why typing carefully matters.</p></details>
+              <details class="quiz-item"><summary>Could you reset or recover your phrase if you lost it?</summary><p class="hint">No. Nobody holds a copy, including this tool. Your real options are backing the words up properly, or moving funds to a new wallet with a new phrase.</p></details>
+              <details class="quiz-item"><summary>Does adding a strong passphrase make a weakly generated seed safe?</summary><p class="hint">No. The passphrase selects a different branch of a tree whose root is still guessable. Why this matters: an attacker who sweeps the seed can sweep the passphrase branches too.</p></details>
+              <details class="quiz-item"><summary>Why is it never safe to type your seed into a website that offers to check it?</summary><p class="hint">Because the words are the wallet itself, not a login name. Why this matters: whoever receives them can derive every key and spend everything within minutes.</p></details>
             </div>
           </div>
 

@@ -9,6 +9,15 @@
 - **New reader session page, `test/learn-comprehension.html`.** Runs from a local file, no network, stores nothing, and cannot report anything back.
 - **New wiki page [wiki/Learn-Research.md](wiki/Learn-Research.md)** explaining the research in plain language, plus `wiki/_Sidebar.md` and `tools/publish-wiki.sh`, a CLI publisher that fails loudly instead of pretending to publish when the wiki does not exist yet. The wiki is now live at https://github.com/withkeshav/KeySense/wiki with 6 pages.
 
+### Changed, Learn step 1, the seed phrase
+
+- **Rewrote the segment around the three misconceptions the research measured**: the password model, the belief that a lost phrase can be reset, and the belief that coins live in the app or the device. They are now asked before any explanation, as predict-before-reveal items, with the source cited.
+- **Reading grade fell from 8.53 to 5.85** and the longest sentence from 53 words to 31. Target is 8.0 or below.
+- **Entropy is now defined at first use** in a small definition box, instead of being used 22 times on the assumption the reader already knows it.
+- **Deeper material moved behind disclosures**: where the randomness comes from and why dice matter, and why inventing your own word list is worse rather than merely riskier.
+- **Two questions added to the retrieval quiz**, one on where the wallet really is, and one on whether a phrase can be reset.
+- **Prose volume in the segment rose 5.4 percent**, from 1024 to 1079 words, because the misconception material is new. The gate flagged the first attempt as a 12 percent rise, so the section was tightened twice rather than accepted as it stood.
+
 ### Changed, Learn tab
 
 - **Removed a duplicated hardened vs normal comparison table** from the Learn reference appendix. The same table is taught in step 4; the appendix repeated it verbatim. This is the coherence principle applied, and the first change of the rebuild.

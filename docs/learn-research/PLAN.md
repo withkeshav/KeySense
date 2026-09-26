@@ -44,29 +44,32 @@ recorded rather than quietly replaced.
 
 | Step | Prose FK | Prose words | Prose sentences | Longest prose sentence | Non-prose words, excluded and reported |
 |---|---|---|---|---|---|
-| 1. Seed phrase | 8.53 | 1,024 | 63 | 53 | 71 |
+| 1. Seed phrase | 5.85, was 8.53 before the stage 2 rewrite | 1,079, was 1,024 | 91, was 63 | 31, was 53 | 307, was 71 |
 | 2. Master key | 6.88 | 173 | 12 | 43 | 44 |
 | 3. Derivation path | 5.97 | 204 | 20 | 22 | 104 |
 | 4. Hardened vs normal | 7.25 | 256 | 22 | 22 | 42 |
-| 5. Private key to address | 7.83 | 953 | 68 | 32 | 625 |
+| 5. Private key to address | 7.72, was 7.83 before the stage 1 subtraction | 955, was 953 | 69, was 68 | 32 | 596, was 625 |
 
 The last column is text the gate routes to a separate bucket (reference tables, ASCII pipeline
 art, path cards, glossary, arithmetic fragments) and prints, so the split stays auditable rather
 than being hidden by whichever filter flatters the number.
 
-Three conclusions, and they change what the work should be:
+Four conclusions, and they change what the work should be:
 
-1. Only step 1 is above the 8.0 target (8.53), and most of that gap is one merged formula line
-   inside a list item. Its genuine prose tail runs 35 and 33 words.
+1. Every segment is now at or below the 8.0 target. Segment 1 was the only one above it, at 8.53,
+   and the stage 2 rewrite brought it to 5.85.
 2. Steps 2 to 5 already read between grade 6.0 and 7.8. The earlier impression that steps 2 and 4
-   were the worst came from the crude extractor, not from the prose. Grade level is not the
+   were the worst came from the crude extractor, not from the prose. Grade level was never the
    problem in those steps.
-3. The real load is volume and jargon, not reading level. Step 5 carries 953 prose words plus 625
-   non-prose, and the panel repeats entropy 25 times, hardened 22, checksum 15 and xpub 14. That
-   is what an 8th grade reader has to hold, and it is what the depth and simplicity work should
-   target first.
+3. The real load is volume and jargon, not reading level. Step 5 still carries 955 prose words plus
+   596 non-prose, and the panel repeats entropy 22 times, hardened 20, checksum 15 and xpub 12.
+   That is what a reader has to hold, and it is what the depth work should target next.
+4. Growth is as much a risk as grade level. The stage 2 rewrite traded grade for volume: adding the
+   three measured misconceptions raised segment 1 prose by 5.4 percent, from 1,024 words to 1,079.
+   The gate rejected the first attempt at 12 percent, which is the ratchet working. Any content
+   added from here should displace something rather than sit on top of it.
 
-Jargon load inside the Learn panel, counted today: entropy 25, hardened 23, checksum 15, xpub 14,
+Jargon load inside the Learn panel, counted today: entropy 22, hardened 20, checksum 15, xpub 12,
 chain code 9, BIP39 9, Ed25519 8, SLIP-0010 7, secp256k1 6, mnemonic 6, derivation path 6,
 PBKDF2 5, HMAC 5, SHA-512 5, Bech32 5, Keccak 4, BIP32 2, BIP44 2, HRP 2, xprv 2, WIF 1.
 
@@ -238,6 +241,13 @@ Phase B and D can run in parallel. Phase F must not start before the operator ap
 4. Do you want the "go deeper" depth preserved verbatim, or edited down as well?
 
 ## 9. Progress log (newest first)
+
+**2026-09-26, stage 2 done.** Segment 1 rewritten around the measured misconceptions and shipped.
+
+- What changed: the three beliefs the research ranked highest (the password model, the reset belief, coins in the app) are now the opening of the segment, asked before any explanation. Entropy is defined at first use. The deeper material moved behind disclosures. Two quiz questions added for the new material.
+- Measured effect: segment 1 prose grade 8.53 to 5.85, longest sentence 53 words to 31, jargon use 25 to 22. Prose volume 1,024 to 1,079 words, a 5.4 percent rise, because the misconception material is new content.
+- The gate did its job: the first attempt was rejected at rc 1 for a 12 percent volume rise, so the defence list, the case study and the randomness intro were tightened twice before the change was accepted. The number that rose is stated here rather than hidden by a re-baseline.
+- Baseline re-locked at the new measured state, deliberately, so drift upward is caught from here.
 
 **2026-09-26, later still.** Phase B is done and verified; Phase C is drafted.
 

@@ -4,17 +4,17 @@
   "measured_by": "tools/learn-readability.js",
   "steps": {
     "1": {
-      "prose_fk": 8.53,
-      "prose_words": 1024,
-      "prose_sentences": 63,
-      "longest_sentence": 53,
-      "visual_fk": 8.43,
-      "visual_words": 71,
-      "full_fk": 8.61,
+      "prose_fk": 5.85,
+      "prose_words": 1079,
+      "prose_sentences": 91,
+      "longest_sentence": 31,
+      "visual_fk": 4.33,
+      "visual_words": 307,
+      "full_fk": 5.59,
       "jargon": {
-        "entropy": 14,
+        "entropy": 11,
         "checksum": 10,
-        "mnemonic": 3,
+        "mnemonic": 2,
         "PBKDF2": 1,
         "BIP39": 5
       }
