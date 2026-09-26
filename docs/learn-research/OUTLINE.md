@@ -187,6 +187,12 @@ lands, so nothing waits on a later approval. The visual system it uses is alread
 | 7 | A mixed practice pool across all six segments, and teach-back boxes with model answers | against the misconception list |
 | 8 | The ESL sentence ceiling added to the gate, at the level the content now holds | gate exits 0, and exits 1 when a long sentence is put back |
 
+All eight landed in one session on 2026-09-26. Verified after deploy: seven drawings
+present in the live Learn tab with the reader's real values (path segments 44/60/0/0/0, the
+three branch nodes, eight pipeline nodes), resolved colours, six labelled drawings, no
+reproducible JavaScript error. Drawings are exercised in the suite too, with a stubbed DOM,
+including the check that nothing is built at load time.
+
 Two things stay outside this pass, and neither is a matter of effort:
 
 - **The reader sessions.** Five readers at the grade 8 ESL level. A page with no network and no
