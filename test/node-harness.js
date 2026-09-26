@@ -279,6 +279,137 @@ function checkVendorPins() {
   return rows;
 }
 
+
+/* ---------------------------------------------------------------- visuals --
+ * The visual system primitives are DOM builders, so they get a stubbed DOM and
+ * structural assertions rather than a browser: what each primitive actually
+ * emits is what the diagrams depend on. The last check is the one that matters
+ * most, because it is the rule the design rests on: loading the module must
+ * build nothing, so nothing can animate on first paint.
+ */
+function checkVisuals() {
+  const rows = [];
+  const added = [];
+  let reduced = false;
+
+  function makeEl(tag) {
+    return {
+      tagName: tag,
+      children: [],
+      attrs: {},
+      textContent: "",
+      style: {},
+      open: false,
+      setAttribute(k, v) { this.attrs[k] = String(v); },
+      removeAttribute(k) { delete this.attrs[k]; },
+      appendChild(c) { added.push(c); this.children.push(c); return c; },
+      get offsetWidth() { return 1; },
+      getTotalLength() { return 100; },
+      getBoundingClientRect() { return { width: 1 }; }
+    };
+  }
+
+  const stubWindow = {
+    matchMedia() { return { matches: reduced }; },
+    setTimeout(fn) { return 0; }
+  };
+  const stubDocument = { createElementNS: (ns, tag) => makeEl(tag) };
+
+  const before = added.length;
+  const priorWindow = global.window;
+  const priorDocument = global.document;
+  let V = null;
+  try {
+    global.window = stubWindow;
+    global.document = stubDocument;
+    const file = path.join(root, "src", "learn-visuals.js");
+    delete require.cache[require.resolve(file)];
+    require(file);
+    V = stubWindow.KeySenseVisuals;
+  } catch (e) {
+    rows.push({ group: "visuals", id: "module-loads", expected: "loads with a stubbed DOM", actual: String(e && e.message || e), pass: false });
+    global.window = priorWindow;
+    global.document = priorDocument;
+    return rows;
+  }
+
+  const builtOnLoad = added.length - before;
+  rows.push({ group: "visuals", id: "declares-nothing-on-load", expected: "0 elements built at load time", actual: builtOnLoad + " elements built", pass: builtOnLoad === 0 });
+
+  const api = ["box", "arrow", "branch", "group", "legend", "chart", "diagram", "fadeValue", "drawTrace", "pulseOnce", "reducedMotion", "role"];
+  const missing = api.filter((n) => !V || typeof V[n] !== "function");
+  rows.push({ group: "visuals", id: "exposes-every-primitive", expected: api.join(", "), actual: missing.length ? "missing " + missing.join(", ") : "all present", pass: missing.length === 0 });
+
+  const roles = V ? Object.keys(V.ROLES) : [];
+  rows.push({ group: "visuals", id: "five-roles", expected: 5, actual: roles.length, pass: roles.length === 5 });
+
+  /* Every role needs a shape rule, or colour becomes the only channel and the
+   * drawing stops working in greyscale, for a colour blind reader, and in a
+   * black and white print. */
+  const shapeLess = roles.filter((r) => {
+    const cfg = V.ROLES[r];
+    return !(cfg.radius !== undefined || cfg.dash || cfg.double || cfg.hatch);
+  });
+  rows.push({ group: "visuals", id: "every-role-has-a-second-channel", expected: "a shape rule per role", actual: shapeLess.length ? "naked: " + shapeLess.join(", ") : "all five carry one", pass: shapeLess.length === 0 });
+
+  const grammar = V ? Object.keys(V.MOTION).sort().join(",") : "";
+  rows.push({ group: "visuals", id: "motion-grammar-is-fixed", expected: "micro,trace,value = 120,240,600", actual: grammar + " = " + (V ? Object.values(V.MOTION).join(",") : ""), pass: V && grammar === "micro,trace,value" && V.MOTION.micro === 120 && V.MOTION.value === 240 && V.MOTION.trace === 600 });
+
+  /* Shape channels, checked on the output rather than the table. */
+  const secret = V.box({ x: 0, y: 0, w: 10, h: 10, label: "s", role: "secret" });
+  const secretRect = secret.children[0];
+  const publicBox = V.box({ x: 0, y: 0, w: 10, h: 10, label: "p", role: "public" });
+  const addressBox = V.box({ x: 0, y: 0, w: 10, h: 10, label: "a", role: "address" });
+  const hashedBox = V.box({ x: 0, y: 0, w: 10, h: 10, label: "h", role: "hashed" });
+  rows.push({ group: "visuals", id: "square-vs-rounded-corners", expected: "secret rx 0, public rx 6", actual: "secret " + secretRect.attrs.rx + ", public " + publicBox.children[0].attrs.rx, pass: secretRect.attrs.rx === "0" && publicBox.children[0].attrs.rx === "6" });
+  rows.push({ group: "visuals", id: "address-double-border", expected: "2 rects", actual: addressBox.children.filter((c) => c.tagName === "rect").length + " rects", pass: addressBox.children.filter((c) => c.tagName === "rect").length === 2 });
+  rows.push({ group: "visuals", id: "hashed-dashed", expected: "a dash pattern", actual: hashedBox.children[0].attrs["stroke-dasharray"] || "(none)", pass: !!hashedBox.children[0].attrs["stroke-dasharray"] });
+  rows.push({ group: "visuals", id: "role-colour-comes-from-the-token", expected: "var(--viz-secret)", actual: secretRect.attrs.stroke, pass: secretRect.attrs.stroke === "var(--viz-secret)" });
+
+  const arrow = V.arrow({ from: [0, 0], to: [10, 10], role: "public" });
+  const arrowPath = arrow.children[0];
+  rows.push({ group: "visuals", id: "arrow-carries-its-marker", expected: "marker-end on the public marker", actual: arrowPath.attrs["marker-end"], pass: arrowPath.attrs["marker-end"] === "url(#vizArrow-public)" });
+
+  const chartRows = [
+    { label: "weak", value: 30, display: "2^30" },
+    { label: "mine", value: 128, display: "2^128", mine: true }
+  ];
+  const chart = V.chart({ rows: chartRows, log10: true, width: 400 });
+  const bars = chart.children.filter((c) => c.tagName === "rect" && c.attrs.height === "14");
+  const marked = chart.children.filter((c) => c.tagName === "rect" && c.attrs.stroke === "var(--text)");
+  rows.push({ group: "visuals", id: "chart-draws-one-bar-per-row", expected: 2, actual: bars.length, pass: bars.length === 2 });
+  rows.push({ group: "visuals", id: "chart-marks-the-readers-own-value", expected: "1 outlined row plus a label", actual: marked.length + " outlined", pass: marked.length === 1 && chart.children.some((c) => c.textContent === "yours") });
+
+  const dia = V.diagram({ width: 100, height: 50, ariaLabel: "test", children: [] });
+  const defs = dia.children[0];
+  const markers = defs.children.filter((c) => c.tagName === "marker").length;
+  const hatches = defs.children.filter((c) => c.tagName === "pattern").length;
+  rows.push({ group: "visuals", id: "defs-cover-every-role", expected: "5 markers and 5 patterns", actual: markers + " markers, " + hatches + " patterns", pass: markers === 5 && hatches === 5 });
+  rows.push({ group: "visuals", id: "diagram-is-labelled-for-screen-readers", expected: "role img with the given label", actual: dia.attrs.role + " / " + dia.attrs["aria-label"], pass: dia.attrs.role === "img" && dia.attrs["aria-label"] === "test" });
+
+  /* Legend text is generated from the same table, so it cannot drift from the
+   * drawings. If someone renames a role and forgets the legend, this fails. */
+  const legend = V.legend(["secret"]);
+  rows.push({ group: "visuals", id: "legend-text-comes-from-the-role-table", expected: V.ROLES.secret.label, actual: legend.children[1].textContent, pass: legend.children[1].textContent === V.ROLES.secret.label });
+
+  /* Reduced motion: every primitive must become an instant state change. */
+  reduced = true;
+  const tracePath = makeEl("path");
+  V.drawTrace(tracePath);
+  const faded = makeEl("div");
+  V.fadeValue(faded);
+  rows.push({ group: "visuals", id: "reduced-motion-is-instant", expected: "no dash offset animation, opacity set at once", actual: "dasharray " + JSON.stringify(tracePath.style.strokeDasharray) + ", opacity " + faded.style.opacity, pass: tracePath.style.strokeDasharray === "" && faded.style.opacity === "1" });
+  rows.push({ group: "visuals", id: "reduced-motion-is-detected", expected: true, actual: V.reducedMotion(), pass: V.reducedMotion() === true });
+  reduced = false;
+
+  /* Hand the real globals back only now: the primitives resolve document and
+   * window at call time, so restoring them earlier would break the assertions
+   * above rather than the module. */
+  global.window = priorWindow;
+  global.document = priorDocument;
+  return rows;
+}
+
 function main() {
   const drift = checkDrift();
   const { ctx, loaded, mathRandomCalls } = loadContext();
@@ -299,7 +430,7 @@ function main() {
       group: "rng", id: "no-math-random-calls", expected: 0,
       actual: mathRandomCalls(), pass: mathRandomCalls() === 0
     });
-    results = results.concat(runRngFailClosed()).concat(checkVendorPins());
+    results = results.concat(runRngFailClosed()).concat(checkVendorPins()).concat(checkVisuals());
 
     for (const r of results) {
       if (r.group !== group) { group = r.group; console.log("\n# " + group); }
