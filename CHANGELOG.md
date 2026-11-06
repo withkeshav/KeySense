@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Keep hosted analytics enabled with a visible notice and a detailed disclosure
+  of URL, visitor ID, page activity, device and performance collection.
+
 - Read hosted analytics settings from a git-ignored local file. Keep public
   packaging code generic and exclude that file from both downloads and deployment.
 

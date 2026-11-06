@@ -55,6 +55,8 @@ with tempfile.TemporaryDirectory(prefix='keysense-release-') as temp:
     assert sorted(str(p.relative_to(hosted)) for p in hosted.rglob('*') if p.is_file()) == sorted(FILES)
     hosted_html = (hosted / 'index.html').read_text()
     tracker = '<script defer src="https://analytics.example.test/script.js?siteId=public-test-site"></script>'
+    assert 'id="analyticsNotice"' not in original_page
+    assert hosted_html.count('id="analyticsNotice"') == 1
     assert hosted_html.count(tracker) == 1
     assert tracker in hosted_html.split('</head>')[0]
     assert "script-src 'self' https://analytics.example.test https://beacon.example.test;" in hosted_html

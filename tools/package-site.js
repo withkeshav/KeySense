@@ -48,6 +48,7 @@ if (hosted) {
     .replace(scriptPolicy + ';', scriptPolicy + ' ' + scriptOrigins + ';')
     .replace(connectPolicy + ';', 'connect-src ' + connectOrigins + ';')
     .replace(/  <!-- A meta CSP[\s\S]*?-->/, '  <!-- Hosted CSP: allow configured analytics scripts and collection. Local packages block connections. -->')
+    .replace('</footer>', '<p class="hint" id="analyticsNotice">This hosted site measures visits and page use, including URLs, device details, time on page and tab visibility. It stores a visitor ID. Do not put wallet secrets in URLs. <a href="./PRIVACY.md">Read what analytics collects</a>.</p>\n</footer>')
     .replace('</head>', '  <script defer src="' + escapedUrl + '"></script>\n</head>');
 }
 const output = path.resolve(destinations[0] || path.join(root, 'dist'));

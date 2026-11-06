@@ -29,13 +29,27 @@ release downloads contain no tracker. Analytics is enabled only by the explicit
 not included in GitHub downloads. The generated hosted HTML exposes the public
 tracker URL and site ID.
 
-InsightFlare is cookieless, but that does not mean no data or browser storage is
-used. The script inspected on 2026-11-06 uses localStorage, and its configuration
-enables URL query strings, URL fragments and performance sampling. It is set to
-ignore the browser's Do Not Track preference. Requests also disclose connection
-metadata to the analytics service. Do not put wallet secrets in URLs. KeySense
-adds no wallet-input, quiz-answer or navigation-event reporting to this tracker.
-The service handles navigation itself.
+InsightFlare is cookieless, but the current integration is not entry-only tracking.
+The script and configuration inspected on 2026-11-06 send:
+
+- Page visits, hostname, path, page title, referrer, URL query strings and fragments.
+- Visit timestamps, duration, and when the page becomes visible or hidden.
+- Page-load and interaction timing measurements, not the contents of interactions.
+- Browser/device details, language, timezone and screen dimensions.
+- A random visitor ID stored in localStorage, which can link repeat visits.
+
+The current configuration enables performance sampling for all visits, disables
+automatic outbound-link tracking, and ignores the browser's Do Not Track setting.
+Requests also disclose connection metadata to the analytics service. Do not put
+wallet secrets or personal information in URLs, which are included in visit data.
+
+KeySense does not call the tracker's custom-event or identify functions and has
+no tracker-marked form or click elements. In the script inspected, we found no
+reading or submission of seed fields, passphrases, keys, addresses, quiz answers,
+or generated results, and no screen recording. This is a review of the current
+code, not a guarantee about future versions of the remotely served script.
+The tracker automatically observes URL changes; the app's current section switches
+do not change the URL. Its visibility and timing events still describe page activity.
 
 The hosted policy permits scripts and connections to stats.withkeshav.com.
 It also permits Cloudflare Web Analytics scripts from static.cloudflareinsights.com
