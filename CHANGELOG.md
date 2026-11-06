@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Allow Cloudflare Web Analytics in the hosted CSP while retaining InsightFlare
+  script and collection access. Allow same-origin connections for /cdn-cgi/rum.
+  Default downloads keep their offline policy.
+
 ## 1.0.3 - 2026-11-06
 
 - Add explicit hosted-only InsightFlare packaging; keep default downloads and test

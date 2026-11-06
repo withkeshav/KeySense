@@ -47,8 +47,8 @@ with tempfile.TemporaryDirectory(prefix='keysense-release-') as temp:
     tracker = '<script defer src="https://stats.withkeshav.com/script.js?siteId=ae9805a9-791b-44f0-b518-19288926c8a8"></script>'
     assert hosted_html.count(tracker) == 1
     assert tracker in hosted_html.split('</head>')[0]
-    assert "script-src 'self' https://stats.withkeshav.com;" in hosted_html
-    assert 'connect-src https://stats.withkeshav.com;' in hosted_html
+    assert "script-src 'self' https://stats.withkeshav.com https://static.cloudflareinsights.com;" in hosted_html
+    assert "connect-src 'self' https://stats.withkeshav.com https://cloudflareinsights.com;" in hosted_html
     import re
     assert re.findall(r'<script[^>]+src="(\./[^"]+)"', hosted_html) == re.findall(r'<script[^>]+src="(\./[^"]+)"', original_page)
     assert page.read_text() == original_page

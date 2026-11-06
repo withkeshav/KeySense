@@ -36,6 +36,9 @@ adds no wallet-input, quiz-answer or navigation-event reporting to this tracker.
 The service handles navigation itself.
 
 The hosted policy permits scripts and connections to stats.withkeshav.com.
+It also permits Cloudflare Web Analytics scripts from static.cloudflareinsights.com
+and connections to cloudflareinsights.com and the same-origin /cdn-cgi/rum endpoint
+when the hosting service injects its beacon.
 Remote JavaScript runs with access to the page, including its inputs. This is an
 additional trust dependency; cookieless analytics does not isolate it from wallet
 data. The remote script can change independently of this repository. Analytics

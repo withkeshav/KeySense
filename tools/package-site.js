@@ -25,9 +25,9 @@ if (hosted) {
     throw new Error('Review the document head and CSP before enabling hosted analytics.');
   }
   releaseHtml = html
-    .replace(scriptPolicy + ';', scriptPolicy + ' https://stats.withkeshav.com;')
-    .replace(connectPolicy + ';', 'connect-src https://stats.withkeshav.com;')
-    .replace(/  <!-- A meta CSP[\s\S]*?-->/, '  <!-- Hosted CSP: allow InsightFlare scripts and collection. Local packages block connections. -->')
+    .replace(scriptPolicy + ';', scriptPolicy + ' https://stats.withkeshav.com https://static.cloudflareinsights.com;')
+    .replace(connectPolicy + ';', "connect-src 'self' https://stats.withkeshav.com https://cloudflareinsights.com;")
+    .replace(/  <!-- A meta CSP[\s\S]*?-->/, '  <!-- Hosted CSP: allow InsightFlare and Cloudflare analytics scripts and collection. Local packages block connections. -->')
     .replace('</head>', '  <script defer src="https://stats.withkeshav.com/script.js?siteId=ae9805a9-791b-44f0-b518-19288926c8a8"></script>\n</head>');
 }
 const output = path.resolve(destinations[0] || path.join(root, 'dist'));
