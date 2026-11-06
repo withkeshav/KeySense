@@ -72,3 +72,27 @@ are the ones you intend, then push a tag.
 10. The scheduled `vendor-check` runs against the default branch, not a release tag.
     To verify a past release, check out its tag separately and rerun the vendor checks.
     Confirm scheduled checks stay green, and review upstream advisories separately.
+
+## Local hosted analytics settings
+
+The hosted build reads `private/hosted-analytics.json`. This file is git-ignored,
+required only with `--hosted`, and never copied into the public package. Keep a
+private backup for deployment recovery. A fresh clone can create a tracker-free
+package without this file. The generated hosted HTML necessarily exposes the
+tracker URL and public site ID to visitors; this is not a way to hide credentials.
+
+Create the local file using this schema, replacing the example values:
+
+```json
+{
+  "scriptUrl": "https://analytics.example.test/script.js?siteId=YOUR_PUBLIC_SITE_ID",
+  "scriptOrigins": ["https://analytics.example.test"],
+  "connectOrigins": ["'self'", "https://analytics.example.test"]
+}
+```
+
+Add any other required beacon script and collection origins to those arrays.
+Only exact HTTPS origins are accepted; `connectOrigins` also accepts `'self'`.
+Run the hosted package command above locally, then upload only its generated files.
+Do not upload the private settings file or the repository checkout. Public tests
+use fictional example settings and do not need the deployment configuration.

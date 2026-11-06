@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Read hosted analytics settings from a git-ignored local file. Keep public
+  packaging code generic and exclude that file from both downloads and deployment.
+
 - Allow Cloudflare Web Analytics in the hosted CSP while retaining InsightFlare
   script and collection access. Allow same-origin connections for /cdn-cgi/rum.
   Default downloads keep their offline policy.

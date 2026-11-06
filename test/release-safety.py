@@ -39,16 +39,26 @@ with tempfile.TemporaryDirectory(prefix='keysense-release-') as temp:
     assert not (temp / 'unlisted').exists()
     page.write_text(original_page)
     # Analytics is opt-in, once in the public head, with a narrow CSP exception.
-    assert 'stats.withkeshav.com' not in (output / 'index.html').read_text()
+    assert 'analytics.example.test' not in (output / 'index.html').read_text()
     hosted = temp / 'hosted'
+    assert run('node', str(source / 'tools/package-site.js'), str(hosted), '--hosted').returncode != 0
+    assert not hosted.exists()
+    config_file = source / 'private/hosted-analytics.json'
+    config = {
+        'scriptUrl': 'https://analytics.example.test/script.js?siteId=public-test-site',
+        'scriptOrigins': ['https://analytics.example.test', 'https://beacon.example.test'],
+        'connectOrigins': ["'self'", 'https://analytics.example.test', 'https://metrics.example.test'],
+    }
+    config_file.write_text(json.dumps(config))
     result = run('node', str(source / 'tools/package-site.js'), str(hosted), '--hosted')
     assert result.returncode == 0, result.stderr
+    assert sorted(str(p.relative_to(hosted)) for p in hosted.rglob('*') if p.is_file()) == sorted(FILES)
     hosted_html = (hosted / 'index.html').read_text()
-    tracker = '<script defer src="https://stats.withkeshav.com/script.js?siteId=ae9805a9-791b-44f0-b518-19288926c8a8"></script>'
+    tracker = '<script defer src="https://analytics.example.test/script.js?siteId=public-test-site"></script>'
     assert hosted_html.count(tracker) == 1
     assert tracker in hosted_html.split('</head>')[0]
-    assert "script-src 'self' https://stats.withkeshav.com https://static.cloudflareinsights.com;" in hosted_html
-    assert "connect-src 'self' https://stats.withkeshav.com https://cloudflareinsights.com;" in hosted_html
+    assert "script-src 'self' https://analytics.example.test https://beacon.example.test;" in hosted_html
+    assert "connect-src 'self' https://analytics.example.test https://metrics.example.test;" in hosted_html
     import re
     assert re.findall(r'<script[^>]+src="(\./[^"]+)"', hosted_html) == re.findall(r'<script[^>]+src="(\./[^"]+)"', original_page)
     assert page.read_text() == original_page
@@ -56,7 +66,11 @@ with tempfile.TemporaryDirectory(prefix='keysense-release-') as temp:
     assert run('node', str(source / 'tools/package-site.js'), str(temp / 'duplicate'), '--hosted').returncode != 0
     assert not (temp / 'duplicate').exists()
     page.write_text(original_page)
-    print('PASS hosted analytics is opt-in, once in head, with unchanged local script order')
+    config_file.write_text(json.dumps(config | {'connectOrigins': ['https://example.test; script-src *']}))
+    assert run('node', str(source / 'tools/package-site.js'), str(temp / 'unsafe'), '--hosted').returncode != 0
+    assert not (temp / 'unsafe').exists()
+    config_file.write_text(json.dumps(config))
+    print('PASS hosted analytics uses local-only settings, rejects missing/unsafe config, and never packages it')
     victim = source / 'src/styles.css'
     victim.unlink()
     victim.symlink_to(source / 'private/note.txt')
@@ -125,7 +139,7 @@ finally:
     server.server_close()
 print('PASS preview blocks private paths and directory listings')
 
-for name in ['private/session.json', '.codex/state.json', '.env', '.env.production', 'wallet.keystore', 'test-results/report.json', 'dist/index.html']:
+for name in ['private/hosted-analytics.json', 'private/session.json', '.codex/state.json', '.env', '.env.production', 'wallet.keystore', 'test-results/report.json', 'dist/index.html']:
     assert run('git', 'check-ignore', '-q', name).returncode == 0, name
 for name in ['.env.example', 'test/vectors.js', 'docs/learn-research/PLAN.md', 'package-lock.json']:
     assert run('git', 'check-ignore', '-q', name).returncode == 1, name

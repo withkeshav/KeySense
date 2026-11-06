@@ -25,7 +25,9 @@ The hosted package for keysense.withkeshav.com loads InsightFlare once from
 stats.withkeshav.com. The site ID is public and shared with other withkeshav.com
 apps; the dashboard separates traffic by hostname. Repository copies and default
 release downloads contain no tracker. Analytics is enabled only by the explicit
-`--hosted` packaging option.
+`--hosted` packaging option, using locally stored deployment settings that are
+not included in GitHub downloads. The generated hosted HTML exposes the public
+tracker URL and site ID.
 
 InsightFlare is cookieless, but that does not mean no data or browser storage is
 used. The script inspected on 2026-11-06 uses localStorage, and its configuration

@@ -140,7 +140,8 @@ Made and maintained by <a href="https://www.withkeshav.com" target="_blank" rel=
 Default: `npm run package:site -- /tmp/keysense-offline` produces a tracker-free
 public package. For keysense.withkeshav.com only, use
 `npm run package:site -- /tmp/keysense-hosted --hosted`.
-This inserts the supplied InsightFlare tag exactly once in the generated document
+This requires the git-ignored `private/hosted-analytics.json` settings file
+(see [RELEASE.md](RELEASE.md)) and inserts its configured tracker tag exactly once in the generated document
 head and allows stats.withkeshav.com in both `script-src` and `connect-src`.
 It does not modify the source page or add tracking to tests or internal tools.
 The site ID is public, not a secret. Do not distribute the hosted package as the
