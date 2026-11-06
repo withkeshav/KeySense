@@ -43,7 +43,7 @@
   <meta name="twitter:image:alt" content="KeySense - Web3 Key, Path and Security Workbench">
 
   <link rel="stylesheet" href="./src/viz-tokens.css?v=7fbf9894">
-  <link rel="stylesheet" href="./src/styles.css?v=4f549ee0">
+  <link rel="stylesheet" href="./src/styles.css?v=8a7487fb">
 
 </head>
 <body>
@@ -792,8 +792,8 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
               <h3 class="learn-heading" style="margin-top:0;">Same 12 words, different passphrase</h3>
-              <p class="hint" style="margin-bottom:12px;">The BIP39 passphrase is a second, separate secret. It does not strengthen the first one. The same words with no passphrase and with a passphrase are two unrelated wallets.</p>
-              <p class="hint" style="margin-bottom:12px;">Forgetting this "25th word" is the most common reason people think a restored wallet is empty. It usually is not empty. It is on the wrong branch.</p>
+              <p class="hint" style="margin-bottom:12px;">The BIP39 passphrase is a second, separate secret. It does not change the randomness of those words. The same words with no passphrase and with a passphrase are two unrelated wallets.</p>
+              <p class="hint" style="margin-bottom:12px;">A wrong passphrase can make a restored wallet look empty. Each passphrase opens a different wallet. There is no wrong-passphrase warning.</p>
               <label for="passphraseBranchInput" style="font-size:11px;">Try a passphrase</label>
               <input id="passphraseBranchInput" type="text" autocomplete="off" spellcheck="false" placeholder="x" style="margin-top:6px;margin-bottom:10px;font-family:var(--mono);font-size:13px;max-width:220px;">
               <div id="passphraseBranchHost"></div>
@@ -810,8 +810,8 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <h3 class="learn-heading" style="margin-top:0;">Which defence stops which failure</h3>
               <p class="hint">After an incident like that one, the useful question is not what is safest. It is which defence protects against which failure, and at which moment. These are the ones that matter, with their limits:</p>
               <ul class="list-plain" style="margin-top:12px;">
-                <li><strong>Your own dice protect at creation time only.</strong> Dice rolls mixed into the seed cannot be predicted by any software bug on your device, then or later. They say nothing about seeds made another way.</li>
-                <li><strong>A passphrase selects a different wallet. It does not repair a weak one.</strong> If the entropy is guessable, an attacker who sweeps the seed also sweeps every passphrase branch.</li>
+                <li><strong>Your own dice protect at creation time only.</strong> Real rolls add a source outside the browser. Malware can still read them when typed. They cannot fix seeds made earlier.</li>
+                <li><strong>A passphrase selects a different wallet. It does not repair a weak one.</strong> A strong, secret passphrase adds a barrier. A guessed or exposed passphrase does not. Do not rely on it to rescue weak words.</li>
                 <li><strong>An update cannot fix a seed you already made.</strong> It stays weak forever. The remedy is a fresh seed, then moving the funds. Questions about whether a device was affected are urgent after any random number disclosure.</li>
                 <li><strong>Verification catches bugs before they cost you.</strong> Deriving one seed in two independent tools and comparing addresses is the cheapest end-to-end check there is. This page verifies itself against the official BIP vectors live.</li>
                 <li><strong>Failing closed beats failing quietly.</strong> A tool with no working randomness should refuse to generate anything, and this one does. A convincing phrase from a broken source is worse than an honest error.</li>
@@ -1081,6 +1081,105 @@ Child keys: CKD(parent, index) - child private key + child chain code
             <details class="quiz-item"><summary>Explain to someone who has never used a wallet why writing the words down, in order, on paper, is the whole job.</summary><p class="hint">A model answer: those words are not a password to an account that someone else holds. They are the account. Every address and every key on every chain is worked out from them, so whoever has them has the money, and whoever loses them loses the money. A screen can fail, and a phone can be lost. A cloud copy can be read by someone you never met. So the safest copy is one on paper, in order, kept away from the internet. Nothing else is needed, and nothing else can rescue them.</p></details>
             <details class="quiz-item"><summary>Explain why a wallet can show an empty balance even when your words are correct.</summary><p class="hint">A model answer: the words do not lead to one wallet. They lead to a tree, and a wallet only looks at the branches it knows about. Two wallets can default to a different branch from the same words, so each one shows a different set of addresses. The funds are not lost. They are on a branch you are not looking at. So the first thing to check is the path, and then whether a passphrase was mixed in.</p></details>
           </div>
+        </div>
+
+        <div class="card learn-recovery" id="recoveryDetective">
+          <h2 class="card-title">Recovery Detective: find the old address</h2>
+          <p class="hint">You restored a practice wallet, but its address differs from your old record. Find the setting that brings that address back.</p>
+          <p class="warning-box">Public example only. Never send funds to these addresses. This exercise accepts no real seed phrases.</p>
+<section aria-labelledby="rd-clues">
+<div class="section-head">
+<h2 id="rd-clues">Your clues.</h2>
+<span>About 2 minutes.</span>
+</div>
+<div class="clue-grid">
+<div>
+<p class="label">OLD ADDRESS RECORD</p>
+<code class="rd-address">bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu</code>
+<p>The old wallet used native SegWit, a Bitcoin address format that starts with <code>bc1q</code>.</p>
+</div>
+<div>
+<p class="label">WHAT STAYED THE SAME</p>
+<ul>
+<li>Same 12 example words.</li>
+<li>No extra passphrase.</li>
+<li>Bitcoin main network.</li>
+<li>Account 0, first receiving address.</li>
+</ul>
+</div>
+</div>
+<details>
+<summary>See the public example words</summary>
+<pre class="words">abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about</pre>
+<p>These well-known test words are public. They cannot protect money.</p>
+</details>
+</section>
+<section aria-labelledby="rd-investigate">
+<h2 id="rd-investigate">1. Try a different address format</h2>
+<p>A derivation path is the route from the seed to one key. The choices below use common wallet paths. Pick one and compare its address.</p>
+<fieldset class="rd-options">
+<legend>Bitcoin address format</legend>
+<div class="choices">
+<label>
+<input type="radio" name="rd-format" value="legacy" checked>
+<span>Legacy<small>Starts with 1</small>
+</span>
+</label>
+<label>
+<input type="radio" name="rd-format" value="native">
+<span>Native SegWit<small>Starts with bc1q</small>
+</span>
+</label>
+<label>
+<input type="radio" name="rd-format" value="taproot">
+<span>Taproot<small>Starts with bc1p</small>
+</span>
+</label>
+</div>
+</fieldset>
+<button id="rd-compare" class="btn-primary">Compare with the old record</button>
+<button id="rd-hint" class="secondary">Show a hint</button>
+<p id="rd-hintText" hidden>Look at the old address: it starts with bc1q. Which format has that prefix?</p>
+<div id="rd-result" class="result" aria-live="polite">
+<p class="label">CURRENT PRACTICE ADDRESS</p>
+<code id="rd-address" class="rd-address">
+</code>
+<p class="label">PATH</p>
+<code id="rd-path">
+</code>
+<p id="rd-match">Compare the current address with your old record.</p>
+</div>
+</section>
+<section id="rd-explain" hidden aria-labelledby="rd-explainHeading">
+<h2 id="rd-explainHeading">2. Explain what changed</h2>
+<p>You found the old address. What caused the first address to differ?</p>
+<fieldset>
+<legend>Choose an explanation</legend>
+<label class="answer">
+<input type="radio" name="rd-reason" value="route">The same words led to a different key because the path changed.</label>
+<label class="answer">
+<input type="radio" name="rd-reason" value="network">The app moved coins to another address.</label>
+<label class="answer">
+<input type="radio" name="rd-reason" value="wrong">The first address proved the seed words were wrong.</label>
+</fieldset>
+<button id="rd-check" class="btn-primary">Check my explanation</button>
+<p id="rd-feedback" role="status">
+</p>
+</section>
+<section id="rd-complete" class="completion" hidden>
+<p class="eyebrow">CASE CLOSED</p>
+<h2>You recovered the address match.</h2>
+<p id="rd-completionNote">
+</p>
+<p>
+<strong>The lesson:</strong> the same seed can lead to many addresses. Matching the wallet's settings matters.</p>
+<p>An address match does not prove there are funds. This exercise uses fixed examples and never checks a blockchain.</p>
+</section>
+<div class="rd-footer">
+<button id="rd-reset" class="secondary">Start again</button>
+<p>No accounts, tracking or saved progress. Closing this page clears the session.</p>
+</div>
+
         </div>
 
           <div class="learn-nav">
@@ -1367,7 +1466,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
        parties who can alter key generation down to one, makes the page work with
        no network at all, and lets a reader diff what this server sends against
        the GitHub source. See SECURITY.md for the upstream URLs and hashes. -->
-  <script src="./src/vendor/ethers-5.7.2.umd.min.js?v=a66293a6"></script>
+  <script src="./src/vendor/ethers-5.8.0.umd.min.js?v=755f1f8a"></script>
   <script src="./src/vendor/qrcode-1.5.1.min.js?v=95a7172c"></script>
   <!-- TweetNaCl: classic script = reliable global; avoids ESM "class without new" interop bugs with bundled tweetnacl -->
   <script src="./src/vendor/tweetnacl-1.0.3-nacl-fast.min.js?v=3ec535c0"></script>
@@ -1377,23 +1476,24 @@ Child keys: CKD(parent, index) - child private key + child chain code
   <script src="./src/bip39-wordlists.js?v=704bf197"></script>
   <script src="./src/constants.js?v=7c6d1ce9"></script>
   <script src="./src/html-escape.js?v=bf756224"></script>
-  <script src="./src/secure-random.js?v=047c8ff8"></script>
+  <script src="./src/secure-random.js?v=7eb43414"></script>
   <script src="./src/crypto-utils.js?v=f2ab2601"></script>
-  <script src="./src/slip10-ed25519.js?v=1fa536fb"></script>
+  <script src="./src/slip10-ed25519.js?v=0e3eb191"></script>
   <script src="./src/hd-paths.js?v=eca40647"></script>
-  <script src="./src/vanity-service.js?v=6607d8d2"></script>
-  <script src="./src/address-service.js?v=27a5441b"></script>
+  <script src="./src/vanity-service.js?v=687f471d"></script>
+  <script src="./src/address-service.js?v=0cbcadea"></script>
   <script src="./src/brain-wallet-service.js?v=fa3fa242"></script>
   <script src="./src/bip39-helper.js?v=22dc12ef"></script>
-  <script src="./src/entropy-generator.js?v=c58a7faa"></script>
+  <script src="./src/entropy-generator.js?v=1adbdc78"></script>
   <script src="./src/entropy-compare.js?v=21777731"></script>
   <script src="./src/learn-visuals.js?v=f9a41535"></script>
+  <script src="./src/learn-recovery.js?v=b9775b8d"></script>
   <script src="./src/learn-live.js?v=1d41a998"></script>
   <script src="./src/path-recovery.js?v=749e9a0f"></script>
   <script src="./src/tree-inspector.js?v=730b6dec"></script>
   <script src="./src/paper-wallet.js?v=11b44532"></script>
   <script src="./src/ui.js?v=6c35c342"></script>
-  <script src="./src/main.js?v=f45f11ef"></script>
+  <script src="./src/main.js?v=a85ffa7d"></script>
 
 </body>
 </html>

@@ -55,14 +55,16 @@ indication, never as a pass.
 
 | Item | Correct if the reader says |
 |---|---|
-| Post 1, why the last word matters | the last word carries a checksum, so a mistyped phrase is rejected rather than silently becoming a different wallet |
-| Post 2, two addresses from one seed | the path changed, or the account or index changed, or the wallet picked a different default path |
+| Post 1, why the last word matters | the last word contains randomness and checksum bits; the checksum catches many mistakes, but some wrong phrases still pass |
+| Post 2, two addresses from one seed | the path, account, index or BIP39 passphrase changed, or the wallet picked a different default path |
 | Post 3, what makes a seed weak | weak input: words a person chose, a quote, a passphrase, not enough randomness |
 | Post 4, never do with a real seed | never type it into a website, never share it, never photograph it, never store it online |
 
 Pass bar for the page as a whole, fixed in advance so the result cannot be reinterpreted after the
 fact: **4 of 5 readers complete tasks 1 and 2 alone, and 4 of 5 answer Post 1 and Post 2
-correctly.** Below that, the content is what failed, not the reader.
+correctly, and 4 of 5 answer Post 3 and Post 4 correctly.** Any answer suggesting that
+a predictable seed is safe, or that a real seed may be shared, must be reported separately
+and corrected before a release. Below that, the content is what failed, not the reader.
 
 Falsifier, stated before the run: if 5 of 5 readers pass on the page as it stands today, this
 plan's premise is wrong and the correct action is to stop, not to build a Learn v3.
@@ -76,3 +78,26 @@ plan's premise is wrong and the correct action is to stop, not to build a Learn 
   design should build on. Keep their sentence.
 - Do not average away a single failure. One reader out of five failing on the last word is the
   finding.
+
+## Next-version evaluation
+
+Use public test phrases only. For the path task, hold the phrase and BIP39 passphrase
+constant so a changed path is the only cause of the changed address. Ask an additional
+question about why a different passphrase can also produce a different wallet.
+
+A 12-word phrase has four checksum bits. A checksum is a mistake check, not proof of
+ownership or security; some incorrect phrases pass it. See the
+[BIP39 specification](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki).
+
+The expanded safety pass bar above applies to new sessions. Keep earlier results labelled
+with the rubric used at the time. Five readers can reveal usability failures; they do not
+prove effectiveness for every reader. Follow up later with a short explanation task to
+check what readers remember. Keep raw notes private and publish only consented,
+de-identified totals. No completed reader study is claimed by this protocol.
+
+## Recovery Detective observation
+
+The Learn Paths exercise uses fixed public fixtures and changes only the example
+wallet path. Ask the reader to match the old address, then explain the cause.
+Record hint use and corrected answers separately from an unaided explanation.
+Its completion message is local feedback, not evidence of a completed reader study.

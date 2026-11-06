@@ -16,22 +16,30 @@
         "practice (new)",
         "panel-extra (new)"
       ]
+    },
+    {
+      "at": "2026-11-06",
+      "reason": "Add the approved Recovery Detective exercise as a separately measured teaching block. Report its format controls and public seed as non-prose; keep the grade and sentence limits unchanged.",
+      "moved": [
+        "1: FK 5.78 to 5.56, words 1094 to 1091",
+        "recovery (new)"
+      ]
     }
   ],
   "steps": {
     "1": {
-      "prose_fk": 5.78,
-      "prose_words": 1094,
-      "prose_sentences": 94,
+      "prose_fk": 5.56,
+      "prose_words": 1091,
+      "prose_sentences": 97,
       "longest_sentence": 25,
       "sentences_over_guideline": 0,
       "sentences_over_ceiling": 0,
       "share_over_guideline": 0,
       "visual_fk": 4.33,
       "visual_words": 307,
-      "full_fk": 5.53,
+      "full_fk": 5.36,
       "jargon": {
-        "entropy": 11,
+        "entropy": 10,
         "checksum": 10,
         "mnemonic": 2,
         "PBKDF2": 1,
@@ -151,6 +159,21 @@
         "xpub": 2,
         "chain code": 1,
         "hardened": 3,
+        "derivation path": 1
+      }
+    },
+    "recovery": {
+      "prose_fk": 5,
+      "prose_words": 277,
+      "prose_sentences": 35,
+      "longest_sentence": 28,
+      "sentences_over_guideline": 1,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0.029,
+      "visual_fk": 21.78,
+      "visual_words": 26,
+      "full_fk": 6.46,
+      "jargon": {
         "derivation path": 1
       }
     },

@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### Local preview and public documentation
+
+- Document the styled local preview at `http://127.0.0.1:8731`, its Python requirement,
+  and how to stop it. Explain why a detached HTML file or attachment preview can lose
+  styles and scripts even though the complete offline site works in a browser.
+- Update Recovery Detective instructions and the six-step Learn Paths guide.
+- Remove hosting-token permission details and references to unpublished internal notes
+  from the current public documents. Keep research sources and test evidence public.
+
+### Learning practice
+
+- Improve Recovery Detective's answer readability, touch targets and keyboard focus
+  indicators. Use the existing primary-button style for its two main actions.
+- Added Recovery Detective to Learn Paths: match a public example address by choosing
+  a wallet path, then explain the result. Hints, feedback and restart work offline.
+- The exercise uses fixed public fixtures, never reads the active seed and stores no
+  progress. Browser tests verify example addresses and exercise outcomes.
+
+### Security and release verification
+
+- Block random seed generation, vanity mining, simulated rolls and fresh mixed-entropy
+  generation after a failed random-source check. Check both probe buffers and catch source
+  errors. Keep deterministic educational replays unchanged.
+- Update ethers from 5.7.2 to 5.8.0 with the upstream release hash and unchanged address fixtures.
+- Verify both local and downloaded vendor bytes; reject failed downloads and tampering.
+- Build the hash bundle in an isolated temporary directory and verify the downloaded source tarball.
+- Package only approved public files, retain library notices, and restrict local preview access.
+- Add release-boundary and Chrome tests, including broken random sources and hosted output.
+  Pin CI actions, limit CI permissions, and check readability and contrast on every change.
+- Remove workstation paths from current public documents and clarify security limits.
+- Correct passphrase and dice safety explanations; score unsafe beliefs in the reader study.
+  Human reader validation remains pending.
+
 ### Added, research in the open
 
 - **Published research under [docs/learn-research](docs/learn-research).** The plan, a misconception inventory grounded in a 643 person peer reviewed survey (CHI 2025), a learning science brief with 18 primary sources and quoted evidence, a prior art teardown of 8 existing explainers, and the reader measurement kit. Every claim carries its source.
@@ -31,8 +64,8 @@
 
 - **The origin sent no cache headers at all**, so the CDN applied its default, which caches `.js` and `.css` but never `.html`. Measured: `/src/learn-visuals.js` came back `cf-cache-status: HIT, age 418` serving the previous version's bytes while `/index.html` was always fresh, so the page ran old code against new markup and a deploy looked live when it was not.
 - **Two fixes, belt and braces.** `tools/stamp-assets.js` gives every local script and stylesheet a `?v=<content hash>` stamp, so a changed asset has a new URL and no cached copy of the old one is reachable; the suite runs the same checker and fails with the exact reference when a stamp is forgotten. And nginx now sends a policy instead of nothing: `no-cache` (revalidate) for `index.html` and the app's own js and css, `immutable` for the vendored libraries whose filenames carry their version, five minutes for docs. Proven by editing an asset without re-stamping: the suite reports `STALE ... ./src/styles.css ?v=7400a4ec to ?v=98eec4bb` and goes green again once restamped.
-- **No cache purge is needed after a deploy**, which matters because neither Cloudflare token on this box holds the Cache Purge permission. The edge would otherwise have served a stale asset for up to the remainder of its TTL after developer mode was turned off.
-- **The live nginx config is now versioned with the code** at `docs/deploy/nginx-keysense.conf`, with the deploy and rollback procedure in `docs/deploy/README.md`.
+- **Asset URLs change when file content changes.** Verify that the hosting cache respects query strings and the configured cache headers.
+- **An example nginx config is versioned with the code** at `docs/deploy/nginx-keysense.conf`, with the deploy and rollback procedure in `docs/deploy/README.md`.
 
 ### Changed, the walkthrough rewritten for ESL readers and drawn
 
@@ -113,7 +146,7 @@
 
 ### Governance
 
-- `AGENTS.md` (untracked) now codifies the validate-first-then-ask exception path for protected-area changes, the discipline this project already followed for its Sui and Taproot fixes.
+- Protected-area changes require evidence and explicit approval, the discipline this project already followed for its Sui and Taproot fixes. See `CONTRIBUTING.md`.
 
 ### Added, learning round 2
 

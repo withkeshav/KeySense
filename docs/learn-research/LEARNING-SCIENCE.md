@@ -2,7 +2,7 @@
 
 Status: research only. No repo file was changed. This brief answers RQ3 of
 `docs/learn-research/PLAN.md` and feeds deliverable D2.
-Repo: `/mnt/ai-archive/other-tools/keysense`, master at `c4ea8da`, 2026-09-26.
+Repo: `KeySense`, master at `c4ea8da`, 2026-09-26.
 
 ## 1. Question and filter
 

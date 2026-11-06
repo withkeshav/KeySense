@@ -16,7 +16,7 @@
         box.appendChild(title);
         var detail = document.createElement("p");
         detail.style.marginTop = "6px";
-        detail.textContent = result.reason + " Do not generate or trust any seed on this device " +
+        detail.textContent = result.reason + " Random generation is blocked. Do not trust any seed on this device " +
           "until this is resolved: try a different, up to date browser, and check for any browser " +
           "extension that could be intercepting crypto.getRandomValues.";
         box.appendChild(detail);
@@ -511,8 +511,13 @@
         var wordCountSelect = document.getElementById("mnemonicWordCount");
         var langSelect = document.getElementById("mnemonicLang");
         if (genBtn) genBtn.addEventListener("click", function () {
-          setMnemonic(randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value));
-          syncSeedBar();
+          clearFeatureError(errorDiv);
+          try {
+            setMnemonic(randomMnemonic(parseInt(wordCountSelect.value, 10), langSelect.value));
+            syncSeedBar();
+          } catch (e) {
+            showFeatureError(errorDiv, "Generate", e);
+          }
         });
 
         /* Seed bar Hide/Show and Clear. The toggle masks the displayed phrase

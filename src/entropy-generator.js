@@ -110,6 +110,7 @@ function entropyToMnemonic(diceInput, coinInput, wordCount, lang, opts) {
           "mixed in. Tick reproducible mode to use your rolls alone."
         );
       }
+      requireSecureRandom();
       var salt = new Uint8Array(32);
       crypto.getRandomValues(salt);
       saltHex = "";

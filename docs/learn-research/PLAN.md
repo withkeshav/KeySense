@@ -1,8 +1,12 @@
 # Learning Experience Research Plan (Learn Paths, KeySense)
 
-Status: APPROVED by the maintainer and in progress. The published copy of this plan is the one in the repository; the working notes live outside it.
-Date: 2026-09-26. Repo: /mnt/ai-archive/other-tools/keysense (master, 7c4e306).
-Prior art that must not be duplicated: the earlier Learn rounds 1 and 2, both shipped (internal notes, not published).
+Status: APPROVED by the maintainer and in progress. This repository contains the public research plan.
+Current status (2026-11-06): the teaching interface and visual checks are implemented.
+The reader-session protocol is ready; comprehension has not yet been validated with readers.
+Run `npm run test:readability` for current measurements.
+
+Date: 2026-09-26. Repo: KeySense (master, 7c4e306).
+Prior art that must not be duplicated: the earlier Learn rounds 1 and 2, both shipped; see CHANGELOG.md.
 
 **Goal:** make the Learn tab teach, so a reader with no crypto background and no help can do two
 things: explain in their own words what a seed phrase is and why the last word is special, and
@@ -11,7 +15,7 @@ available on demand. "Understood" is proven by measurement, not by assertion.
 
 ---
 
-## 1. Baseline, measured today (not from memory)
+## 1. Historical baseline (2026-09-26)
 
 Learn panel extracted from the shipped `index.html`, prose paragraph text only.
 
@@ -25,7 +29,7 @@ Learn panel extracted from the shipped `index.html`, prose paragraph text only.
 | Interactive | 9 buttons, 7 inputs/sliders, 3 tables, 20 live-value hosts | markup count |
 | Teaching blocks | 5 steps, bit explorer, checksum demo, path builder, 2 task buttons, verify card, glossary (12 terms), FAQ, scenario cards | `wiki/Learn-Paths.md` + markup |
 
-Tooling: `/mnt/ai-data/projects/agent-hermes/home/cache/scratch/learn-audit.py`.
+Tooling: an early exploratory script, superseded by the public `tools/learn-readability.js` gate below.
 
 Two honest caveats on that table.
 
@@ -90,7 +94,7 @@ this whole RQ returns nothing and the work moves to RQ2 only.
 Method: mine sources where people arrive confused, not where experts explain: Trezor and Ledger
 support threads and their "restored wallet is empty" articles, Bitcoin StackExchange top-voted
 questions, r/Bitcoin and r/CryptoCurrency recurring questions, and the incident record already in
-the internal security audit note (not published). Count how often each misconception recurs.
+public maintainer security disclosures. Count how often each misconception recurs.
 Falsifier: if the top five are already each answered inside the current Learn tab in plain words,
 RQ2 is closed and the FAQ gets no new content.
 
@@ -182,7 +186,7 @@ imply an answer.
 - **Protected areas stay untouched.** No change to derivation math, address formats, the brain
   wallet SHA-256 to BIP39 flow, or presets. `src/learn-live.js` computes live values that the test
   suite locks, and the drift guard ties `test/self-test.html` to `index.html`, so any edit there
-  must leave `npm test` at 189 passed, 0 failed.
+  must leave `npm test` at 0 failed.
 - **Plain language, no dashes of the decorative kind**, and no claim on the page that the tool
   cannot back with a computation it performs in front of the reader.
 

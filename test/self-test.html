@@ -9,7 +9,7 @@
   <title>KeySense self test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../src/viz-tokens.css?v=7fbf9894">
-  <link rel="stylesheet" href="../src/styles.css?v=4f549ee0">
+  <link rel="stylesheet" href="../src/styles.css?v=8a7487fb">
 </head>
 <body>
   <div class="container" style="max-width:1000px;margin:0 auto;padding:24px 16px;">
@@ -34,24 +34,25 @@
   <!-- Same load order as index.html. main.js, ui.js and paper-wallet.js are the
        only files that touch the DOM at load, so they are the only ones left out.
        node-harness.js enforces that this list does not drift. -->
-  <script src="../src/vendor/ethers-5.7.2.umd.min.js?v=a66293a6"></script>
+  <script src="../src/vendor/ethers-5.8.0.umd.min.js?v=755f1f8a"></script>
   <script src="../src/vendor/qrcode-1.5.1.min.js?v=95a7172c"></script>
   <script src="../src/vendor/tweetnacl-1.0.3-nacl-fast.min.js?v=3ec535c0"></script>
   <script src="../src/vendor/keysense-hashes.js?v=4bf748c1"></script>
   <script src="../src/bip39-wordlists.js?v=704bf197"></script>
   <script src="../src/constants.js?v=7c6d1ce9"></script>
   <script src="../src/html-escape.js?v=bf756224"></script>
-  <script src="../src/secure-random.js?v=047c8ff8"></script>
+  <script src="../src/secure-random.js?v=7eb43414"></script>
   <script src="../src/crypto-utils.js?v=f2ab2601"></script>
-  <script src="../src/slip10-ed25519.js?v=1fa536fb"></script>
+  <script src="../src/slip10-ed25519.js?v=0e3eb191"></script>
   <script src="../src/hd-paths.js?v=eca40647"></script>
-  <script src="../src/vanity-service.js?v=6607d8d2"></script>
-  <script src="../src/address-service.js?v=27a5441b"></script>
+  <script src="../src/vanity-service.js?v=687f471d"></script>
+  <script src="../src/address-service.js?v=0cbcadea"></script>
   <script src="../src/brain-wallet-service.js?v=fa3fa242"></script>
   <script src="../src/bip39-helper.js?v=22dc12ef"></script>
-  <script src="../src/entropy-generator.js?v=c58a7faa"></script>
+  <script src="../src/entropy-generator.js?v=1adbdc78"></script>
   <script src="../src/entropy-compare.js?v=21777731"></script>
   <script src="../src/learn-visuals.js?v=f9a41535"></script>
+  <script src="../src/learn-recovery.js?v=b9775b8d"></script>
   <script src="../src/learn-live.js?v=1d41a998"></script>
   <script src="../src/path-recovery.js?v=749e9a0f"></script>
   <script src="../src/tree-inspector.js?v=730b6dec"></script>

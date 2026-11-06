@@ -8,11 +8,11 @@ There is none beyond loading the page itself.
 
 Every library is vendored into `src/vendor/` and served from the same origin as the page, so nothing is fetched from a CDN or any other third party. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry of any kind. Once the page has loaded you can disconnect the network entirely and everything still works, on every tab and every chain.
 
-The page also ships a Content-Security-Policy that includes `connect-src 'none'`. Even if a bug allowed script execution on the page, that script would have no way to send your seed anywhere.
+The page also ships a Content-Security-Policy that includes `connect-src 'none'`. This blocks connections through interfaces such as fetch and WebSocket, but does not block every form of navigation. It is not a guarantee against malicious scripts, browser extensions, a compromised host or a compromised device. See [MDN's connect-src reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/connect-src). Disconnecting the network prevents network transmission while disconnected; it does not make a compromised device safe.
 
-The optional Brain Wallet custom path input is display only and never leaves the device.
+The optional Brain Wallet custom path selects a locally derived address and is not sent by the app.
 
-Opening the page as a `file://` URL works for everything, including Solana, Sui and Aptos. There is no dynamic `import()` and nothing requires a secure context, so the whole tool runs from a USB stick on a machine with no network stack. This is verified in CI-style by `npm test` plus a headless `file://` run.
+Opening the page as a `file://` URL works for everything, including Solana, Sui and Aptos. There is no dynamic `import()` and nothing requires a secure context, so the whole tool runs from a USB stick on a machine with no network stack. `npm test` checks the vectors; `npm run test:browser` checks the page in headless Chrome from both `file://` and a locally served release.
 
 ## Verifying the vendored libraries
 
@@ -20,7 +20,7 @@ The vendored copies were downloaded from the upstream sources below. To check th
 
 | File | Upstream | SHA-384 (base64) |
 |---|---|---|
-| `src/vendor/ethers-5.7.2.umd.min.js` | `https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js` | `Htz1SE4Sl5aitpvFgr2j0sfsGUIuSXI6t8hEyrlQ93zflEF3a29bH2AvkUROUw7J` |
+| `src/vendor/ethers-5.8.0.umd.min.js` | `https://cdn.jsdelivr.net/npm/ethers@5.8.0/dist/ethers.umd.min.js` | `KpyAXoFibPIUEi79EsnN1EtEWCCrOQ8MtGsa4IrVxeZo514PYarFXujnjyu0DzgC` |
 | `src/vendor/qrcode-1.5.1.min.js` | `https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js` | `kgapoJ184YmO0XnbSIH1J6dSp5rSYForqfjCgDat5yiSr8gjCnuTdRRCJXcVZ+pi` |
 | `src/vendor/tweetnacl-1.0.3-nacl-fast.min.js` | `https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js` | `05+sicyRJQ56XpL4U9HJ8YbtSzFDvAg7apPKOGV6A0JsAJKFM68jp5oLnUjG5mEp` |
 
@@ -34,11 +34,10 @@ Or run all three at once:
 bash tools/verify-vendor.sh
 ```
 
-**Do this before every release, not just once.** A hash checked once is only proof for the moment
-it was checked; it says nothing about whether the file still matches upstream a year later. That
-gap, code being open and checkable but nobody actually re-checking it on a schedule, is exactly
-what let a real hardware wallet's firmware RNG bug go unnoticed for five years in July 2026. See
-`.progress/SECURITY-AUDIT.md`'s Coldcard case study for the full incident this guards against.
+**Do this before every release, not just once.** The script compares both the local files
+and fresh upstream downloads with the pinned hashes. A failed download or either mismatch
+fails verification. Matching hashes establish file identity, not freedom from vulnerabilities;
+review upstream security advisories separately.
 
 ### The one generated file
 
@@ -58,7 +57,7 @@ Verify it reproduces from those inputs, with no trust in whoever built it:
 bash tools/build-crypto.sh --check
 ```
 
-esbuild output is a pure function of (version, input bytes, flags): no timestamps, no randomness, no machine identifiers. The one thing that would change the bytes is running it from somewhere other than the repository root, because esbuild writes each input path into the output as a comment. The script enforces that.
+esbuild output is a pure function of (version, input bytes, flags): no timestamps, no randomness, no machine identifiers. The one thing that would change the bytes is running it from somewhere other than the repository root, because esbuild writes each input path into the output as a comment. The script copies the entry point into an isolated temporary build directory with the same relative layout. It checks the downloaded noble tarball against its pinned hash and leaves the checkout dependencies untouched.
 
 If you would rather not run a build at all, `audit/reference/noble-hashes-1.5.0/` holds the seven upstream ESM files verbatim, with their MIT license. The page never loads them; they are there so the bundle can be read against its sources by eye.
 
@@ -74,10 +73,12 @@ Seeds from the **Generate** button come from `crypto.getRandomValues`, by way of
 silently returning degenerate output (identical draws, all-zero, or a single repeated byte)
 before anything trusts it for key material. It cannot prove the source is strong, only catch the
 specific way a broken or substituted one tends to fail. If it ever fails, a warning appears at the
-top of the page and nothing should be generated until it is understood. See `src/secure-random.js`
-and the Coldcard case study in `.progress/SECURITY-AUDIT.md` for why this exists.
+top of the page. Random seed generation, vanity mining, simulated rolls and fresh browser
+randomness for mixed entropy are blocked. Reproducible typed inputs and explicit-salt
+replays do not use browser randomness and remain available for learning. This check cannot
+prove a device safe or detect every weak source. See `src/secure-random.js`.
 
-The **physical entropy lab** is there for people who would rather not depend on that. Type real dice rolls or coin flips and they are hashed into the entropy, together with 32 fresh CSPRNG bytes unless you tick reproducible mode. Mixing means the result is never weaker than the better of your dice and the browser: if any one input is unpredictable, the digest is unpredictable, even if an attacker chose all the others. The lab also refuses to mint a phrase claiming more bits than you actually supplied, which takes 50 dice rolls for 12 words and 100 for 24. The point of real dice is not that they are more random than a hardware RNG. It is that they do not depend on your machine, so malware on it cannot predict them. The **Simulate** buttons in that panel draw from the browser CSPRNG, so they show the pipeline working rather than replacing it.
+The **physical entropy lab** is there for people who would rather not depend on that. Type real dice rolls or coin flips and they are hashed into the entropy, together with 32 fresh CSPRNG bytes unless you tick reproducible mode. Mixing means the result is never weaker than the better of your dice and the browser: if any one input is unpredictable, the digest is unpredictable, even if an attacker chose all the others. The lab also refuses to mint a phrase claiming more bits than you actually supplied, which takes 50 dice rolls for 12 words and 100 for 24. The point of real dice is not that they are more random than a hardware RNG. They provide a source independent of the browser, but malware can read the rolls once you type them into the machine. The **Simulate** buttons in that panel draw from the browser CSPRNG, so they show the pipeline working rather than replacing it.
 
 ## Reporting a Vulnerability
 
@@ -94,3 +95,26 @@ Nothing about this changes how the page runs: still zero network calls after loa
 KeySense is intended for learning, experimentation, and educational use. Do not use it to generate wallets that hold significant value without independent verification. Always test derived addresses against known-good tools before relying on them.
 
 If you want to use a local version, download it from [https://github.com/withkeshav/KeySense](https://github.com/withkeshav/KeySense).
+
+## Dependency maintenance
+
+Library hashes prove which bytes are present, not that those bytes have no bugs.
+Review upstream advisories before each release and during the weekly vendor review:
+
+| Runtime package | Version | Upstream security information |
+|---|---|---|
+| ethers | 5.8.0 | [Release notes](https://github.com/ethers-io/ethers.js/releases/tag/v5.8.0) |
+| tweetnacl | 1.0.3 | [Security](https://github.com/dchest/tweetnacl-js/security) |
+| qrcode | 1.5.1 | [Security](https://github.com/soldair/node-qrcode/security) |
+| @noble/hashes | 1.5.0, blake2b and sha3 subset | [Security](https://github.com/paulmillr/noble-hashes/security) |
+
+The ethers 5.8 release updates elliptic and ws. Its maintainer states that the cited
+elliptic issues do not affect ethers; this app does not use WebSocket providers.
+The upgrade is maintenance, not evidence that earlier KeySense seeds were compromised.
+The four top-level package/version queries to OSV returned no advisories on 2026-11-06.
+That result is time-bound and does not cover every bundled component or prove safety.
+`npm audit` on the app's package.json does not inspect these committed browser bundles.
+
+The optional build uses esbuild 0.28.1. Runtime library notices are retained in
+`src/vendor/NOTICES.txt`. Never automatically replace a cryptographic library: review
+its changes, update the hash, and rerun known-answer and browser checks first.

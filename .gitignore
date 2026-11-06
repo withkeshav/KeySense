@@ -27,3 +27,25 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Private local work and machine credentials
+/.codex/
+/.agents/
+/.worktrees/
+/private/
+/artifacts/private/
+/.npmrc
+/.netrc
+*.p12
+*.jks
+*.keystore
+# Only reviewed, fake placeholders belong in this public example.
+!.env.example
+
+# Disposable browser test output
+/test-results/
+/playwright-report/
+
+# Public release output (regenerate from reviewed inputs)
+/dist/
+__pycache__/

@@ -22,6 +22,10 @@
 
 set -euo pipefail
 
+# npm run exports user config into the child environment. Keep this optional
+# build independent of machine-specific package-script allowlists.
+unset npm_config_allow_scripts NPM_CONFIG_ALLOW_SCRIPTS
+
 NOBLE_VERSION="1.5.0"
 NOBLE_INTEGRITY="sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA=="
 ESBUILD_VERSION="0.28.1"
@@ -33,7 +37,7 @@ if [ ! -f package.json ] || [ ! -f tools/crypto-entry.mjs ]; then
 fi
 
 echo "verifying @noble/hashes@${NOBLE_VERSION} against the pinned npm integrity hash"
-ACTUAL_INTEGRITY=$(npm view "@noble/hashes@${NOBLE_VERSION}" dist.integrity)
+ACTUAL_INTEGRITY=$(npm --userconfig=/dev/null view "@noble/hashes@${NOBLE_VERSION}" dist.integrity)
 if [ "$ACTUAL_INTEGRITY" != "$NOBLE_INTEGRITY" ]; then
   echo "error: npm integrity mismatch" >&2
   echo "  expected ${NOBLE_INTEGRITY}" >&2
@@ -41,17 +45,31 @@ if [ "$ACTUAL_INTEGRITY" != "$NOBLE_INTEGRITY" ]; then
   exit 1
 fi
 
-rm -rf node_modules/@noble
-npm install --no-save --no-audit --no-fund --ignore-scripts "@noble/hashes@${NOBLE_VERSION}" >/dev/null
+# Isolate build inputs from the checkout and local npm configuration.
+# Verify the downloaded tarball itself, not only registry metadata.
+REPO_ROOT="$PWD"
+BUILD_DIR=$(mktemp -d)
+trap 'rm -rf "$BUILD_DIR"' EXIT
+mkdir -p "$BUILD_DIR/tools"
+cp tools/crypto-entry.mjs "$BUILD_DIR/tools/crypto-entry.mjs"
+cd "$BUILD_DIR"
+npm --userconfig=/dev/null pack --ignore-scripts "@noble/hashes@${NOBLE_VERSION}" --silent >/dev/null
+ACTUAL_BYTES="sha512-$(openssl dgst -sha512 -binary "noble-hashes-${NOBLE_VERSION}.tgz" | openssl base64 -A)"
+if [ "$ACTUAL_BYTES" != "$NOBLE_INTEGRITY" ]; then
+  echo "error: downloaded noble tarball does not match pinned integrity" >&2
+  exit 1
+fi
+npm --userconfig=/dev/null install --no-save --package-lock=false --no-audit --no-fund --ignore-scripts \
+  "./noble-hashes-${NOBLE_VERSION}.tgz" "esbuild@${ESBUILD_VERSION}" >/dev/null
 
-TARGET="$OUT"
+TARGET="$REPO_ROOT/$OUT"
 TMP=""
 if [ "${1:-}" = "--check" ]; then
-  TMP=$(mktemp)
+  TMP="$BUILD_DIR/rebuilt.js"
   TARGET="$TMP"
 fi
 
-npx --yes "esbuild@${ESBUILD_VERSION}" tools/crypto-entry.mjs \
+node node_modules/esbuild/bin/esbuild tools/crypto-entry.mjs \
   --bundle \
   --format=iife \
   --global-name=KeySenseHashes \
@@ -64,7 +82,7 @@ npx --yes "esbuild@${ESBUILD_VERSION}" tools/crypto-entry.mjs \
   --outfile="$TARGET" >/dev/null
 
 if [ -n "$TMP" ]; then
-  if diff -u "$OUT" "$TMP"; then
+  if diff -u "$REPO_ROOT/$OUT" "$TMP"; then
     echo "OK: ${OUT} reproduces byte for byte from the pinned inputs"
     rm -f "$TMP"
   else
@@ -73,6 +91,7 @@ if [ -n "$TMP" ]; then
     exit 1
   fi
 else
+  cd "$REPO_ROOT"
   echo "wrote ${OUT} ($(wc -c < "$OUT") bytes)"
   echo "sha384-$(openssl dgst -sha384 -binary "$OUT" | openssl base64 -A)"
 fi

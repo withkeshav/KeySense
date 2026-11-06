@@ -1,23 +1,30 @@
 # Deploying KeySense
 
-The site is a static, no-build single page served by nginx straight out of the
-checkout. There is no build step, no bundler and no minifier, so a deploy is a
-pull and nothing else.
+KeySense is a static site. Keep the repository checkout separate from the public web root.
+`.gitignore` does not prevent a web server from exposing ignored files.
 
-## The deploy
+## Prepare a release
 
-    ssh <vps>
-    cd /apps/keysense
-    git rev-parse HEAD          # record this first, it is the rollback point
-    git pull --ff-only origin master
-    git status --porcelain      # must be empty
+1. Start from a reviewed commit with a clean working tree. Record its commit ID.
+2. Run `npm test`, `npm run test:readability`, `npm run test:viz`,
+   `npm run test:release`, `npm run test:browser`,
+   `bash tools/verify-vendor.sh` and `npm run test:build`.
+3. Run `npm run package:site`. This creates a new `dist/` directory containing only
+   files listed in `tools/site-files.json`. It refuses an existing output directory
+   or any symlink input. For a later release, choose a new directory with
+   `npm run package:site -- /path/to/new-release`. Review the file list, then deploy
+   that output directory. Public privacy/security pages and library notices are included.
+4. Never copy `.git`, private notes, environment files, local tooling, test reports or
+   credential files. Do not use `cp -r .` or serve the checkout directly.
+5. Serve that directory over HTTPS. The adjacent nginx file is an example for a server
+   behind an HTTPS proxy; replace its generic domain and public-directory placeholders.
+   Configure TLS separately when nginx is exposed directly.
+6. Check the deployed page, asset responses and framing protections. Requests for
+   `/.git/HEAD`, `/.env`, `/AGENTS.md` and private notes must return 403 or 404.
+7. Keep the previous release directory so rollback can switch to it without rewriting
+   or deleting the development checkout.
 
-No restart and no reload: nginx reads the files from disk on each request.
-
-## Rollback
-
-    cd /apps/keysense
-    git reset --hard <sha recorded before the deploy>
+Do not put actual hostnames, server paths, access tokens or operational notes into public docs.
 
 ## Caching, and why the asset names carry a hash
 
@@ -38,18 +45,17 @@ Two changes fix it, and they are deliberately belt and braces:
    Forgetting is not silent: the suite runs the same checker in `--check` mode
    and fails with the exact reference and both hashes.
 
-2. **nginx sends a policy rather than nothing** (live copy: `nginx-keysense.conf`
+2. **nginx sends a policy rather than nothing** (example: `nginx-keysense.conf`
    beside this file):
 
    - `/index.html` and the app's own `/src/*.js` and `/src/*.css`: `no-cache`,
      which means revalidate, not "do not store". A 304 is cheap and a deploy is
      visible immediately.
    - `/src/vendor/*`: `public, max-age=31536000, immutable`, because those
-     filenames carry their version (ethers-5.7.2, qrcode-1.5.1, tweetnacl-1.0.3).
+     filenames carry their version (ethers-5.8.0, qrcode-1.5.1, tweetnacl-1.0.3).
      The stamp is still applied, which covers the one vendored file whose name
      does not carry a version, `keysense-hashes.js`.
    - Documentation and gate output (`*.md`, `*.txt`, `*.json`): `public,
      max-age=300`.
 
-With both in place no cache purge is needed after a deploy, which matters
-because the available API tokens do not hold the Cache Purge permission.
+Verify the cache policy at the hosting provider too; it can override origin headers.

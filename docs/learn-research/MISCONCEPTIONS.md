@@ -1,7 +1,7 @@
 # Misconception inventory: seed phrases and wallet keys (RQ2)
 
 Status: research brief. Nothing here is built. No repo file was changed.
-Date: 2026-09-26. Repo: /mnt/ai-archive/other-tools/keysense.
+Date: 2026-09-26. Repo: KeySense.
 Feeds: `LEARNING-RESEARCH-PLAN.md` RQ2 and deliverable D3.
 Audience for the lesson this brief serves: a reader with no crypto background, reading in
 English, target US grade 8.
@@ -518,5 +518,5 @@ independent tool before real funds move anywhere.
 
 - Oobit, "Lost or locked out" survey, 1,000 US holders.
   https://oobit.com/lost-or-locked-out
-- KeySense internal note (not published), for the 24 words versus 12 words entropy
-  conclusion and the Coldcard case study.
+- [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki), for the entropy and checksum sizes of 12-word and 24-word phrases.
+- [COLDCARD security status](https://coldcard.com/security/status), for the incident discussion.

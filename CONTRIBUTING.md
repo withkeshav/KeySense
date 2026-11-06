@@ -19,7 +19,7 @@ Issues and discussions on GitHub are welcome:
 
 ## What needs prior approval
 
-Per `AGENTS.md`, do not change derivation logic, address formats, vanity mining, brain wallet flow, presets, or path assembly without explicit `approved` or `go ahead` from the maintainer. If you found a bug there, open an issue with evidence first. Do not publish your own modified version.
+Do not change derivation logic, address formats, vanity mining, brain wallet flow, presets, or path assembly without explicit `approved` or `go ahead` from the maintainer. If you found a bug there, open an issue with evidence first. Do not publish your own modified version.
 
 ## Research and evidence
 
@@ -35,3 +35,15 @@ Per `AGENTS.md`, do not change derivation logic, address formats, vanity mining,
 * DOM output via `textContent`, never `innerHTML` with user input.
 * Keep offline and `file://` working. No new network calls. No new storage of secrets.
 * Run `npm test` and include the tail in your report. For vendor or crypto changes also run `bash tools/build-crypto.sh --check` and `bash tools/verify-vendor.sh`.
+
+## Before publishing files
+
+Keep credentials, local machine paths, deployment notes, raw reader-session records and
+private review reports outside the public file set. `.gitignore` does not remove tracked
+files or erase history. Review `git status --short` and `git diff` before committing.
+Use public, labelled test phrases only; never publish a real seed or private wallet backup.
+
+Run `npm run test:release` to check the public package boundary and ignored paths. Deploy
+only a fresh `npm run package:site` output, never the repository checkout. Review a secret
+scanner's findings before release; hashes, public fixtures and vendored code may need
+manual classification. If a real credential was previously committed, rotate it.

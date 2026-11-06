@@ -1,7 +1,7 @@
 # Learn v3 outline (D5)
 
 Status: APPROVED by the maintainer. Stage 1, the subtraction pass, is done; the remaining stages are in progress.
-Date: 2026-09-26. Repo: /mnt/ai-archive/other-tools/keysense.
+Date: 2026-09-26. Repo: KeySense.
 Inputs, all verified by the parent before use:
 `docs/learn-research/MISCONCEPTIONS.md`, `LEARNING-SCIENCE.md`,
 `learn-rq4-prior-art.md`, `learn-rq6-measurement-kit.md`, and the measured baseline in
@@ -152,8 +152,8 @@ are named in RQ4 as devices the field's best explainers use.
 ## 7. What must not change
 
 Derivation logic, address formats, presets, the brain wallet flow, and `src/learn-live.js`'s
-computations, which the test suite locks at 189 vectors. Teaching copy and layout are documentation
-and cosmetic work under AGENTS.md; anything touching computed values is not, and will be raised
+computations, which the test suite covers with known-answer vectors. Teaching copy and layout are documentation
+and cosmetic work under `CONTRIBUTING.md`; anything touching computed values is not, and will be raised
 before it is touched. The boundary sentence per segment stays: this tool is not a wallet, verify an
 address with an independent tool before real funds move.
 
@@ -161,7 +161,7 @@ address with an independent tool before real funds move.
 
 1. `node tools/learn-readability.js` reports prose FK at or below 8.0 for every segment, with
    `--fail-above-target` passing.
-2. `npm test` stays at 189 passed, 0 failed, drift guard included.
+2. `npm test` stays at 0 failed, drift guard included.
 3. Five readers, the protocol in `learn-rq6-measurement-kit.md`: 4 of 5 complete the two tasks alone
    and answer the last-word and two-addresses questions correctly.
 4. Jargon at first use: every one of the terms now counted (entropy 25 uses, hardened 22, checksum

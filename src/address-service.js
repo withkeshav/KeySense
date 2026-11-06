@@ -225,6 +225,7 @@ async function applyDevOutputFormat(mnemonic, path, passphrase, secpPrivateKeyHe
 }
 
 function randomMnemonic(words, lang) {
+  requireSecureRandom();
   var entropyBytes = {12:16, 15:20, 18:24, 21:28, 24:32}[words] || 16;
   var ent = ethers.utils.randomBytes(entropyBytes);
   var wordlist = ethers.wordlists[lang] || ethers.wordlists.en;

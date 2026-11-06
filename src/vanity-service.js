@@ -123,6 +123,7 @@ function createVanityMiner(options) {
 
   return {
     start: function (normalizedPattern, selectedMode) {
+      requireSecureRandom();
       pattern = normalizedPattern;
       mode = selectedMode;
       attempts = 0;

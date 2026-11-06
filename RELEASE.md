@@ -18,7 +18,9 @@ are the ones you intend, then push a tag.
      reproduces byte for byte from its pinned inputs.
    A mismatch means: either upstream rotated a file at the same URL, or the
    local copy changed. Understand which before shipping.
-3. **Browser smoke test.** Open `index.html` and confirm:
+3. **Browser and release checks.** Run `npm run test:browser` with Chrome installed
+   (or set `CHROME_BIN` to its executable). Run `npm run test:release`,
+   `npm run test:readability` and `npm run test:viz`. Then open `index.html` and confirm:
    - Generate a 12-word and a 24-word seed; the sticky seed bar updates.
    - Seed bar Hide masks the phrase, Show reveals it, Clear empties it and
      resets every derived result.
@@ -32,6 +34,22 @@ are the ones you intend, then push a tag.
 5. **Confirm CI is green** on the branch: push and check the `ci` workflow. The
    weekly `vendor-check` job re-runs step 2 on a schedule, so an unreleased
    drift is caught within a week even if you miss it at release time.
+
+## Public artifact and privacy
+
+- `npm run package:site` creates a new public folder from `tools/site-files.json`.
+  Deploy only that folder. Never deploy the checkout or ignored local files.
+- Review `git status --short`, `git diff` and `git ls-files --cached --others --exclude-standard`, including new documents, for credentials,
+  workstation paths and operational notes. Ignore rules do not remove tracked history.
+- Check upstream dependency advisories separately from byte verification.
+- Review Git history separately from the current files. Removing text in a new commit
+  does not remove it from older commits, tags or existing copies of the repository.
+  Keep detailed findings outside the public checkout. If a real credential is found,
+  revoke or rotate it before considering history cleanup. Rewriting published history
+  requires a separate, coordinated decision because it changes commit identifiers and
+  affects other contributors' copies.
+- Test the deployed security headers and private-path denials in the deployment guide.
+- Reader-session scores require real readers; automated checks are not comprehension evidence.
 
 ## Tag and announce
 
@@ -47,6 +65,6 @@ are the ones you intend, then push a tag.
 
 ## Post-release
 
-10. Within a week, the CI `vendor-check` cron runs `verify-vendor.sh` and
-    `build-crypto.sh --check` against the tagged commit. Confirm it stays green;
-    that is the automated proof the shipped vendors have not changed upstream.
+10. The scheduled `vendor-check` runs against the default branch, not a release tag.
+    To verify a past release, check out its tag separately and rerun the vendor checks.
+    Confirm scheduled checks stay green, and review upstream advisories separately.

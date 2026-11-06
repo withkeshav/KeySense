@@ -4,14 +4,17 @@
   "private": true,
   "description": "Crypto key math is confusing, but we make it simple and understandable.",
   "scripts": {
-    "dev": "npx serve .",
-    "start": "npx serve .",
+    "dev": "python3 tools/devserver.py",
+    "start": "python3 tools/devserver.py",
     "test": "node test/node-harness.js",
     "test:readability": "node tools/learn-readability.js",
     "test:viz": "node tools/viz-contrast.js",
     "stamp": "node tools/stamp-assets.js",
     "stamp:check": "node tools/stamp-assets.js --check",
-    "test:build": "bash tools/build-crypto.sh --check"
+    "test:build": "bash tools/build-crypto.sh --check",
+    "package:site": "node tools/package-site.js",
+    "test:release": "python3 test/release-safety.py",
+    "test:browser": "node test/browser-smoke.cjs"
   },
   "author": "Keshav Maheshwari (https://www.withkeshav.com)",
   "license": "SEE LICENSE IN LICENSE"

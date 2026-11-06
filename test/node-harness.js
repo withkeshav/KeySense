@@ -31,6 +31,7 @@ const APP_FILES = [
   "src/entropy-generator.js",
   "src/entropy-compare.js",
   "src/learn-live.js",
+  "src/learn-recovery.js",
   "src/path-recovery.js",
   "src/tree-inspector.js"
 ];
@@ -107,14 +108,12 @@ function makeCountingMath() {
  * matters because secureRandomCanaryCheck caches its result. */
 function buildContext(overrides) {
   overrides = overrides || {};
-  const ethersMod = require(path.join(root, "src/vendor/ethers-5.7.2.umd.min.js"));
   const nacl = require(path.join(root, "src/vendor/tweetnacl-1.0.3-nacl-fast.min.js"));
   const counter = makeCountingMath();
 
   const base = {
-    ethers: ethersMod.ethers || ethersMod,
     nacl,
-    console, crypto, TextEncoder, TextDecoder,
+    console, crypto, TextEncoder, TextDecoder, atob, btoa,
     Promise, BigInt, Uint8Array, Uint32Array, ArrayBuffer, DataView,
     Array, String, Number, Boolean, Object, JSON, Math: counter.math, Date, Error, RegExp, Symbol,
     parseInt, parseFloat, isNaN, isFinite, setTimeout, clearTimeout,
@@ -125,6 +124,11 @@ function buildContext(overrides) {
   const ctx = vm.createContext(base);
   ctx.globalThis = ctx;
   ctx.window = undefined;
+  ctx.self = ctx;
+  // Evaluate the browser bundle inside this context so it sees the same
+  // substituted random source as the application, not Node's healthy source.
+  vm.runInContext(read("src/vendor/ethers-5.8.0.umd.min.js"), ctx,
+    { filename: "src/vendor/ethers-5.8.0.umd.min.js" });
 
   const loaded = [];
   for (const f of APP_FILES) {
@@ -145,8 +149,7 @@ function loadContext() {
 
 /* ---- RNG fail-closed suite ----
  *
- * The Coldcard case study (.progress/SECURITY-AUDIT.md) is about a CSPRNG
- * silently being replaced by something weaker and nobody noticing for years.
+ * A random source can silently fail or be replaced by something weaker.
  * secure-random.js is written to fail closed, but that is only a claim until a
  * test forces every failure mode and watches it refuse to produce output.
  *
@@ -165,6 +168,7 @@ try { var b = secureRandomByte(); byteOk = Number.isInteger(b) && b >= 0 && b <=
 out.push(["byte-is-integer-0-255", true, byteOk]);
 var canary = secureRandomCanaryCheck();
 out.push(["canary-ok", true, canary.ok]);
+out.push(["random-mnemonic-valid", true, ethers.utils.isValidMnemonic(randomMnemonic(12, "en"))]);
 var mixed = null, mixedThrew = false;
 try { mixed = entropyToMnemonic(RNG_D50, "", 12, "en", {}); } catch (e) { mixedThrew = true; }
 out.push(["mixed-mode-works", true, !mixedThrew && !!mixed && !!mixed.phrase]);
@@ -211,6 +215,29 @@ var out = [];
 var canary = secureRandomCanaryCheck();
 out.push(["canary-not-ok", false, canary.ok]);
 out.push(["reason-pattern", true, new RegExp(CANARY_REASON).test(canary.reason || "")]);
+out;
+`;
+
+const RNG_BLOCKED_GENERATION_BODY = `
+var out = [];
+var draws = 0;
+function blocked(name, fn) {
+  var threw = false;
+  try { fn(); } catch (e) { threw = true; }
+  out.push([name, true, threw]);
+}
+blocked("random-mnemonic-blocked", function () { randomMnemonic(12, "en"); });
+blocked("simulated-die-blocked", function () { secureDieFace(); });
+blocked("simulated-coin-blocked", function () { secureCoinFace(); });
+blocked("mixed-entropy-blocked", function () { entropyToMnemonic(RNG_D50, "", 12, "en", {}); });
+var miner = createVanityMiner({ onFound: function () { draws++; } });
+blocked("vanity-start-blocked", function () { miner.start("0xa", "prefix"); });
+out.push(["vanity-not-running", false, miner.isRunning()]);
+out.push(["vanity-no-result", 0, draws]);
+var replay = entropyToMnemonic(RNG_D50, "", 12, "en", { deterministic: true });
+out.push(["typed-replay-works", true, ethers.utils.isValidMnemonic(replay.phrase)]);
+var salted = entropyToMnemonic(RNG_D50, "", 12, "en", { saltHex: "01".repeat(32) });
+out.push(["explicit-salt-replay-works", true, ethers.utils.isValidMnemonic(salted.phrase)]);
 out;
 `;
 
@@ -268,6 +295,22 @@ function runRngFailClosed() {
   const repeatedStub = { getRandomValues: (b) => { b.fill((n++ % 2 === 0) ? 0x42 : 0x43); return b; } };
   rows.push.apply(rows, rngSubCase("grv-repeated-byte", repeatedStub, RNG_CANARY_BODY, "repeated byte"));
 
+  const brokenSources = [
+    ["blocked-absent", undefined],
+    ["blocked-missing", {}],
+    ["blocked-throws", { getRandomValues: () => { throw new Error("unavailable"); } }],
+    ["blocked-zero", { getRandomValues: b => { b.fill(0); return b; } }],
+    ["blocked-identical", { getRandomValues: b => { for (let i = 0; i < b.length; i++) b[i] = i; return b; } }]
+  ];
+  let repeatCall = 0, secondCall = 0;
+  brokenSources.push(["blocked-repeated-byte", { getRandomValues: b => { b.fill(++repeatCall); return b; } }]);
+  brokenSources.push(["blocked-second-draw-zero", { getRandomValues: b => {
+    for (let i = 0; i < b.length; i++) b[i] = secondCall ? 0 : i;
+    secondCall++; return b;
+  } }]);
+  for (const [name, source] of brokenSources) {
+    rows.push.apply(rows, rngSubCase(name, source, RNG_BLOCKED_GENERATION_BODY));
+  }
   return rows;
 }
 

@@ -73,7 +73,7 @@ function looksLikeDiagram(line) {
  * A table row has no full stop, so counting it as a sentence distorts the
  * grade level in both directions. What is excluded here is counted and
  * reported separately as `visual`, never silently dropped. */
-const NON_PROSE_CLASSES = ["learn-visual", "guide-table", "tree-container", "path-preview", "learn-segment", "glossary", "learn-connector"];
+const NON_PROSE_CLASSES = ["rd-options", "learn-visual", "guide-table", "tree-container", "path-preview", "learn-segment", "glossary", "learn-connector"];
 const NON_PROSE_TAGS = ["table", "pre", "thead", "tbody", "tr", "td", "th"];
 const VOID_TAGS = new Set(["br", "img", "input", "meta", "link", "hr", "source", "col"]);
 
@@ -190,6 +190,8 @@ function extractSteps(html) {
   while ((m = stepRe.exec(panel))) hits.push({ step: m[1], at: m.index });
   const practiceRe = /class="[^"]*learn-practice/g;
   if ((m = practiceRe.exec(panel))) hits.push({ step: "practice", at: m.index });
+  const recoveryRe = /class="[^"]*learn-recovery/g;
+  if ((m = recoveryRe.exec(panel))) hits.push({ step: "recovery", at: m.index });
   const sharedRe = /class="learn-nav"/g;
   if ((m = sharedRe.exec(panel))) hits.push({ step: "panel-extra", at: m.index });
   if (!hits.length) return null;

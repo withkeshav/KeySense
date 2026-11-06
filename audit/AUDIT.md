@@ -23,7 +23,7 @@ does not store keys, does not sign transactions, and makes no network requests a
 
 ### Out of scope, beyond confirming provenance
 
-`src/vendor/ethers-5.7.2.umd.min.js`, `src/vendor/tweetnacl-1.0.3-nacl-fast.min.js`,
+`src/vendor/ethers-5.8.0.umd.min.js`, `src/vendor/tweetnacl-1.0.3-nacl-fast.min.js`,
 `src/vendor/qrcode-1.5.1.min.js`, and the `@noble/hashes` source contained inside
 `keysense-hashes.js`.
 
@@ -61,7 +61,7 @@ ethers". That is correct and expected.
 | DOM XSS through mnemonic, passphrase, or custom path input | CSP `script-src 'self'` with no `'unsafe-inline'` and no `'unsafe-eval'`. Sinks that take user input build DOM nodes rather than HTML strings. `escapeHtml` in `src/html-escape.js` for the remaining string-built HTML. |
 | Exfiltration after any script execution | CSP `connect-src 'none'`. The app makes no legitimate network calls, so this costs nothing and makes exfiltration structurally impossible rather than merely unlikely. |
 | Weak or predictable entropy | `crypto.getRandomValues` only. `Math.random` appears nowhere near key material. Rejection sampling for the simulated dice, so no modulo bias. The entropy lab refuses to mint a phrase claiming more bits than the input supplied. A one-time runtime canary (`src/secure-random.js`) checks that `crypto.getRandomValues` is not returning degenerate output before anything trusts it. |
-| A malicious browser extension patching `window.crypto.getRandomValues` before this page's own scripts run | Distinct from the DOM-access threat below: this needs no DOM read access at all, only to run first and silently substitute a weak or deterministic generator behind the same-looking API. This is the closest real analog to the July 2026 Coldcard firmware entropy failure (see `SECURITY-AUDIT.md` in `.progress/` for the full case study), a silent substitution producing normal-looking output. The runtime canary above is a partial mitigation: it would catch an obviously degenerate substitute (constant or repeating output) but cannot prove a subtly weakened one is strong. Not fully mitigated, named here rather than left out. |
+| A malicious browser extension patching `window.crypto.getRandomValues` before this page's own scripts run | Distinct from the DOM-access threat below: this needs no DOM read access at all, only to run first and silently substitute a weak or deterministic generator behind the same-looking API. This is the closest real analog to the July 2026 Coldcard firmware entropy failure, a silent substitution producing normal-looking output. The runtime canary above is a partial mitigation: it would catch an obviously degenerate substitute (constant or repeating output) but cannot prove a subtly weakened one is strong. Not fully mitigated, named here rather than left out. |
 | A user talked into pasting a hostile "seed phrase" | The mnemonic typo checker deliberately runs on *invalid* input, so it is the one place a mnemonic reaches the DOM without validation. It builds nodes, never markup. This was a live XSS before 2026-08-04 and is worth re-checking. |
 
 ### Explicitly out of scope

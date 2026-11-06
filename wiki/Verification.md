@@ -6,7 +6,7 @@
 npm test
 ```
 
-This runs `node test/node-harness.js` (see `package.json:9`). It loads the shipped `src/*.js` files in Node and checks them against `test/vectors.js`. Currently 189 vectors pass. `test/self-test.html` runs the identical suite in the browser under the same CSP the app uses, with a drift guard that fails if the test page stops loading the same scripts as `index.html`.
+This runs `node test/node-harness.js` (see `package.json:9`). It loads the shipped `src/*.js` files in Node and checks them against `test/vectors.js`. The current check count is printed by `npm test`. `test/self-test.html` runs the identical suite in the browser under the same CSP the app uses, with a drift guard that fails if the test page stops loading the same scripts as `index.html`.
 
 ## build-crypto check
 

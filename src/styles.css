@@ -1609,3 +1609,40 @@ dl.glossary dd {
   background: var(--code-bg);
   color: var(--text-muted);
 }
+
+/* Fixed-example recovery exercise. Theme colours stay shared with Learn Paths. */
+.learn-recovery section { padding: 20px 0; border-bottom: 1px solid var(--border); }
+.learn-recovery h2 { font-size: 18px; margin-bottom: 12px; }
+.learn-recovery p { line-height: 1.6; margin: 10px 0; }
+.learn-recovery .section-head { display: flex; justify-content: space-between; gap: 12px; }
+.learn-recovery .section-head span, .learn-recovery .label { color: var(--text-muted); font-size: 12px; }
+.learn-recovery .clue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.learn-recovery code, .learn-recovery .words { font-family: var(--mono); overflow-wrap: anywhere; font-size: 13px; }
+.learn-recovery .rd-address { display: block; color: var(--viz-public); }
+.learn-recovery ul { padding-left: 20px; line-height: 1.8; }
+.learn-recovery details { margin-top: 12px; }
+.learn-recovery summary { cursor: pointer; color: var(--viz-public); }
+.learn-recovery fieldset { border: 0; padding: 0; margin: 16px 0; min-width: 0; }
+.learn-recovery legend { margin-bottom: 10px; }
+.learn-recovery .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.learn-recovery .choices label { padding: 14px; border: 1px solid var(--border-strong); border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.learn-recovery .choices label:has(input:checked) { border-color: var(--viz-public); background: var(--accent-soft); }
+.learn-recovery .choices small { display: block; color: var(--text-muted); }
+.learn-recovery input[type="radio"] { width: 18px; min-width: 18px; margin: 0; accent-color: var(--accent); }
+.learn-recovery button { min-height: 44px; margin: 6px 8px 6px 0; }
+.learn-recovery .secondary { background: var(--surface-elevated); color: var(--text); border: 1px solid var(--border-strong); }
+.learn-recovery .result { background: var(--code-bg); padding: 16px; margin-top: 12px; border-left: 3px solid var(--border-strong); }
+.learn-recovery .result.matched { border-left-color: var(--viz-address); }
+.learn-recovery .answer { display: flex; gap: 10px; align-items: baseline; margin: 14px 0; cursor: pointer; }
+.learn-recovery .completion { border-left: 3px solid var(--viz-address); padding-left: 16px; }
+.learn-recovery .rd-footer { margin-top: 16px; color: var(--text-muted); }
+.learn-recovery [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .learn-recovery .clue-grid, .learn-recovery .choices { grid-template-columns: 1fr; }
+  .learn-recovery .section-head { display: block; }
+}
+
+.learn-recovery .words { white-space: pre-wrap; }
+.learn-recovery .choices label, .learn-recovery .answer { font-size: 14px; line-height: 1.5; }
+.learn-recovery .answer { min-height: 44px; align-items: center; }
+.learn-recovery :is(button, input, summary):focus-visible { outline: 2px solid var(--viz-public); outline-offset: 3px; }

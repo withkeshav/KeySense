@@ -11,7 +11,7 @@
  * (safe-buffer, cipher-base, hash-base, create-hmac, create-hash, sha.js,
  * ripemd160, inherits twice, tweetnacl). That whole graph existed to provide
  * HMAC-SHA512 through a Node shaped API, carrying a Buffer polyfill to reach a
- * function ethers 5.7.2 already ships. Removing it also removed the last
+ * function ethers 5.8.0 already ships. Removing it also removed the last
  * dynamic import() in the codebase, which is what blocked Solana, Sui and
  * Aptos from working on a file:// origin.
  *

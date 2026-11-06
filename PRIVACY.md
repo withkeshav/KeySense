@@ -46,12 +46,14 @@ What this means in plain terms:
 This project researches its own teaching and publishes the results in the open, under `docs/learn-research/`. Three things matter for privacy.
 
 * The research measures the teaching material, not the reader. The readability gate reads the page's own text. It has no access to anything you typed.
-* The reader session page, `test/learn-comprehension.html`, runs from a local file with no network access, no cookies, no `localStorage`, and no reporting of any kind. It cannot send anything anywhere, including by accident. The page carries a content policy that forbids network requests.
+* The reader session page, `test/learn-comprehension.html`, runs from a local file with no network access, no cookies, no `localStorage`, and no reporting of any kind. It contains no reporting code. Its content policy restricts network requests; this is not a guarantee against a compromised browser or device.
 * There is no telemetry in this project at all, so it cannot learn that you read the Learn tab, how long you stayed, or what you clicked. Comprehension figures come from people who agreed to take part in a session and were asked questions in person, and they are published as counts, never with names.
+
+Recovery Detective uses fixed public examples and keeps its exercise state only in memory. It does not read the active seed or save progress.
 
 ## Your control
 
-* Use the page offline or from a local copy for maximum privacy: clone `https://github.com/withkeshav/KeySense`, open `index.html` directly, or serve it with `python3 -m http.server`.
+* Use the page offline or from a local copy for maximum privacy: clone `https://github.com/withkeshav/KeySense`, open `index.html` directly, or use the restricted local preview with `python3 tools/devserver.py` and open `http://127.0.0.1:8731`.
 * Clear the sticky seed bar with Clear when done on a shared screen. Print output is paper only.
 * Contact through GitHub issues. Do not paste seeds or private keys anywhere, including issues.
 

@@ -24,12 +24,12 @@ Paper Wallet printing and the Physical entropy lab live inside the Derive tab fl
 ## Quick start
 
 ```bash
-npx serve .
+npm run dev
 # or
-python3 -m http.server 8080
+python3 tools/devserver.py
 ```
 
-Then open in a browser. The whole tool also works straight from `file://` with no server and no network. Open `index.html` from a USB stick on an air-gapped machine and it works. See `README.md:22-30`.
+Open `http://127.0.0.1:8731` in your browser while the server is running. Python 3.9 or newer is required. Keep the full folder together for offline `file://` use; an HTML attachment preview may not load its sibling assets. See the README Quick Start.
 
 ## Tests
 
@@ -37,7 +37,7 @@ Then open in a browser. The whole tool also works straight from `file://` with n
 npm test
 ```
 
-Runs the full vector suite in Node against the same `src/*.js` files the browser loads. Currently 189 vectors passing. See `README.md:32-38`.
+Runs the full vector suite in Node against the same `src/*.js` files the browser loads. The current check count is printed by `npm test`. See `README.md:32-38`.
 
 Other checks:
 

@@ -1,7 +1,7 @@
 /* Entry point for the only build artifact in this repository.
  *
  * Everything else the tool needs is already provided by the vendored ethers
- * 5.7.2 and tweetnacl 1.0.3 classic scripts:
+ * 5.8.0 and tweetnacl 1.0.3 classic scripts:
  *
  *   HMAC-SHA512  ethers.utils.computeHmac("sha512", ...)   SLIP-0010
  *   ed25519      nacl.sign.keyPair.fromSeed                Solana, Sui, Aptos

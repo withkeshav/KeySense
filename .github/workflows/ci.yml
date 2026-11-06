@@ -8,6 +8,9 @@ on:
     - cron: '0 3 * * 0'  # Sundays 03:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: npm test (node ${{ matrix.node }})
@@ -15,17 +18,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22]
+        node: [22, 24]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node }}
       - name: Run test suite
         run: npm test
+      - name: Check learning and release safety
+        run: |
+          npm run test:readability
+          npm run test:viz
+          npm run test:release
+      - name: Browser smoke tests
+        if: matrix.node == 24
+        run: npm run test:browser
 
   # Weekly re-verification of the vendored supply chain. This is the scheduled
-  # part of the fail-closed story from .progress/SECURITY-AUDIT.md: a hash
+  # check of the shipped dependency bytes: a hash
   # checked once during an audit is only proof for that day. These two scripts
   # re-check the copied vendors against their pinned upstream hashes and prove
   # the built hashes file still reproduces from its pinned inputs.
@@ -34,8 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
       - name: Verify copied vendor hashes vs pinned upstream

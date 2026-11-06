@@ -14,7 +14,7 @@ The page ships a Content-Security-Policy that includes `connect-src 'none'`. Eve
 
 Every dependency is vendored into `src/vendor/` and served from the same origin. See `README.md:67-72`.
 
-- ethers.js 5.7.2: BIP39 mnemonic, BIP32 HD derivation, EVM addresses.
+- ethers.js 5.8.0: BIP39 mnemonic, BIP32 HD derivation, EVM addresses.
 - tweetnacl 1.0.3: Ed25519 key pairs (Solana, Sui, Aptos).
 - qrcode 1.5.1: QR code rendering.
 - `@noble/hashes` 1.5.0: `blake2b` (Sui) and `sha3_256` (Aptos), the only two primitives the others do not provide and Web Crypto does not expose.
