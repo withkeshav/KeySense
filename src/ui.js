@@ -25,6 +25,23 @@ function initTheme() {
 }
 
 function initTabs() {
+  const menuToggle = document.getElementById("mobileNavToggle");
+  const navigation = document.getElementById("sectionNavigation");
+  function setMenuOpen(open) {
+    if (!menuToggle || !navigation) return;
+    navigation.dataset.open = String(open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+    menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    document.getElementById("mobileNavAction").textContent = open ? "Close" : "Menu";
+  }
+  if (menuToggle) menuToggle.addEventListener("click", function () {
+    setMenuOpen(menuToggle.getAttribute("aria-expanded") !== "true");
+  });
+  if (navigation) navigation.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && window.matchMedia("(max-width: 760px)").matches) {
+      setMenuOpen(false); menuToggle.focus();
+    }
+  });
   const tabs = Array.from(document.querySelectorAll(".tab"));
   function activate(tab) {
     const target = tab.getAttribute("data-tab");
@@ -38,6 +55,10 @@ function initTabs() {
       panel.classList.toggle("active", panel.getAttribute("data-content") === target);
     });
     document.body.dataset.view = target;
+    if (menuToggle) {
+      document.getElementById("mobileNavCurrent").textContent = tab.textContent;
+      document.getElementById("mobileNavCategory").textContent = target === "course" || target === "guide" ? "Learning" : "Tools";
+    }
   }
   tabs.forEach(function (tab, index) {
     const name = tab.getAttribute("data-tab");
@@ -45,7 +66,12 @@ function initTabs() {
     tab.setAttribute("aria-controls", "panel-" + name);
     const panel = document.querySelector('[data-content="' + name + '"]');
     if (panel) { panel.id = "panel-" + name; panel.setAttribute("aria-labelledby", tab.id); }
-    tab.addEventListener("click", function () { activate(tab); });
+    tab.addEventListener("click", function () {
+      activate(tab);
+      if (menuToggle && window.matchMedia("(max-width: 760px)").matches) {
+        setMenuOpen(false); menuToggle.focus();
+      }
+    });
     tab.addEventListener("keydown", function (event) {
       let next;
       if (event.key === "ArrowDown" || event.key === "ArrowRight") next = (index + 1) % tabs.length;

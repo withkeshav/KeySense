@@ -34,7 +34,10 @@ body { padding: 0; font-size: 16px; line-height: 1.6; }
 .offline-badge { padding: 5px 8px; font-size: 10px; background: var(--code-bg); border-color: var(--border); color: var(--text-muted); }
 .offline-badge::before { display: none; }
 .theme-toggle { min-height: 36px; padding: 6px 10px; border-radius: 4px; font-size: 11px; }
+.mobile-nav-toggle { display: none; }
 .tabs { display: flex; flex-direction: column; gap: 4px; background: none; padding: 0; border: 0; box-shadow: none; margin: 0; border-radius: 0; }
+.nav-section-label { display: block; grid-column: 1 / -1; padding: 0 12px 6px; color: var(--text-muted); font-size: 11px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; }
+.nav-section-divider { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 20px; }
 .tab { width: 100%; flex: none; justify-content: flex-start; text-align: left; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 4px; color: var(--text-muted); background: transparent; font-size: 14px; font-weight: 500; white-space: normal; }
 .tab.active { background: var(--accent-soft); color: var(--accent); box-shadow: none; }
 .tab:hover { background: var(--code-bg); }
@@ -141,12 +144,22 @@ body > footer { margin-left: var(--rail-width); border-top: 1px solid var(--bord
 @media (max-width: 760px) {
   .container { display: block; }
   .app-sidebar { position: relative; width: 100%; height: auto; padding: 18px 20px; border-right: 0; border-bottom: 1px solid var(--border); }
-  .app-sidebar header { display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; margin-bottom: 18px; }
+  .app-sidebar header { display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; text-align: left; }
   .app-sidebar h1 { font-size: 24px; }
-  .app-sidebar .subtitle, .app-sidebar .creator, .sidebar-note { display: none; }
+  .app-sidebar .subtitle, .app-sidebar .creator, .sidebar-note, .app-sidebar .offline-badge { display: none; }
   .app-sidebar header > div:last-child { margin-top: 0; justify-content: flex-end; }
-  .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
-  .tab { font-size: 13px; padding: 8px 10px; }
+  .theme-toggle { min-height: 44px; }
+  .mobile-nav-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 12px; text-align: left; background: var(--code-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+  .mobile-nav-category { display: block; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+  .mobile-nav-toggle strong { display: block; font-size: 14px; font-weight: 600; }
+  .mobile-nav-action { display: flex; align-items: center; gap: 10px; color: var(--accent); font-size: 13px; }
+  .mobile-nav-chevron { font-size: 20px; line-height: 1; }
+  .mobile-nav-toggle[aria-expanded="true"] .mobile-nav-chevron { transform: rotate(180deg); }
+  .tabs { display: none; margin-top: 12px; padding: 12px 0 0; border-top: 1px solid var(--border); }
+  .tabs[data-open="true"] { display: flex; }
+  .nav-section-label { padding-bottom: 4px; }
+  .nav-section-divider { margin-top: 8px; padding-top: 12px; }
+  .tab { font-size: 14px; padding: 10px 12px; }
   .app-workspace { padding: 28px 20px 40px; }
   .card { padding: 18px; }
   .course-intro { padding-bottom: 28px; }

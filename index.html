@@ -44,7 +44,7 @@
 
   <link rel="stylesheet" href="./src/viz-tokens.css?v=7fbf9894">
   <link rel="stylesheet" href="./src/styles.css?v=5873122d">
-  <link rel="stylesheet" href="./src/layout.css?v=e3e6a3e1">
+  <link rel="stylesheet" href="./src/layout.css?v=fb1604fd">
 
 </head>
 <body>
@@ -66,14 +66,20 @@
       </div>
     </header>
 
-    <div class="tabs" role="tablist" aria-label="KeySense sections" aria-orientation="vertical">
-      <button type="button" class="tab active" data-tab="derive" role="tab">Home</button>
-      <button type="button" class="tab" data-tab="course" role="tab">Wallet course</button>
-      <button type="button" class="tab" data-tab="learn" role="tab">Key paths</button>
-      <button type="button" class="tab" data-tab="guide" role="tab">Blockchain guide</button>
-      <button type="button" class="tab" data-tab="experiments" role="tab">Advanced practice</button>
-      <button type="button" class="tab" data-tab="vanity" role="tab">Vanity lab</button>
-      <button type="button" class="tab" data-tab="brain" role="tab">Brain wallet lab</button>
+    <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-controls="sectionNavigation" aria-expanded="false" aria-label="Open navigation">
+      <span><span class="mobile-nav-category" id="mobileNavCategory">Tools</span><strong id="mobileNavCurrent">Home</strong></span>
+      <span class="mobile-nav-action"><span id="mobileNavAction">Menu</span><span class="mobile-nav-chevron" aria-hidden="true">⌄</span></span>
+    </button>
+    <div class="tabs" id="sectionNavigation" role="tablist" aria-label="KeySense sections" aria-orientation="vertical">
+      <span class="nav-section-label" id="navTools" role="presentation">Tools</span>
+      <button type="button" class="tab active" data-tab="derive" role="tab" aria-describedby="navTools">Home</button>
+      <button type="button" class="tab" data-tab="learn" role="tab" aria-describedby="navTools">Key paths</button>
+      <button type="button" class="tab" data-tab="experiments" role="tab" aria-describedby="navTools">Advanced practice</button>
+      <button type="button" class="tab" data-tab="vanity" role="tab" aria-describedby="navTools">Vanity lab</button>
+      <button type="button" class="tab" data-tab="brain" role="tab" aria-describedby="navTools">Brain wallet lab</button>
+      <span class="nav-section-label nav-section-divider" id="navLearning" role="presentation">Learning</span>
+      <button type="button" class="tab" data-tab="course" role="tab" aria-describedby="navLearning">Wallet course</button>
+      <button type="button" class="tab" data-tab="guide" role="tab" aria-describedby="navLearning">Blockchain guide</button>
     </div>
     <div class="sidebar-note"><p class="eyebrow">Learn · inspect · explain</p><p>Understand the rules.<br>Question the result.</p><p class="hint">Public examples only.<br>Never enter a real wallet backup.</p></div>
     </aside>
@@ -1510,7 +1516,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
   <script src="./src/path-recovery.js?v=749e9a0f"></script>
   <script src="./src/tree-inspector.js?v=730b6dec"></script>
   <script src="./src/paper-wallet.js?v=8707864a"></script>
-  <script src="./src/ui.js?v=a3e167c0"></script>
+  <script src="./src/ui.js?v=2594ecbe"></script>
   <script src="./src/main.js?v=577fdcd8"></script>
 
 </body>

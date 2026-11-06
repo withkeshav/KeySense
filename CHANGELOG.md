@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 - 2026-11-06
+
+- Group navigation into Tools and Learning. Keep Home first and selected by default;
+  preserve all tools, lessons and calculations.
+- Use a compact current-section menu on phones, with expandable grouped navigation;
+  retain the visible sidebar on larger screens.
+
 ## 1.0.1 - 2026-11-06
 
 - Open the existing key tools first, under Home; remove the separate Workbench label.

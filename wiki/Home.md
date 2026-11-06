@@ -10,15 +10,21 @@ No CDN, no third-party requests. Every dependency is vendored into `src/vendor/`
 
 ## Tabs
 
-The app has seven sections:
+The menu separates tools from learning. Home opens by default. On phones, tap
+Menu beside the current section to open navigation. Larger screens show a sidebar.
+
+**Tools**
 
 - Home: seed and path inspection
-- Wallet course: twenty lessons and ten practical cases
 - Key paths: six live derivation lessons and Recovery Detective
-- Blockchain guide: chain and address reference
 - Advanced practice: limited typo, missing-word and path searches
 - Vanity lab: EVM address-prefix experiments
 - Brain wallet lab: why chosen phrases are unsafe
+
+**Learning**
+
+- Wallet course: twenty lessons and ten practical cases
+- Blockchain guide: chain and address reference
 
 Print example backup and the Physical entropy lab are inside the Home.
 The course checks reasoning without saving progress or claiming certification.
