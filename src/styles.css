@@ -1195,6 +1195,7 @@
       color: #111;
       background: #fff;
     }
+    .paper-wallet-print { font-size: 12px; line-height: 1.4; }
     .pw-header { text-align: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid #2563eb; }
     .pw-logo { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #18181b; }
     .pw-logo-accent { color: #2563eb; }
@@ -1227,8 +1228,10 @@
     }
     .pw-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
     .pw-footer-sep { color: #ccc; margin: 0 4px; }
-    .pw-word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .pw-slot { border: 1px solid #999; padding: 9px 6px; border-radius: 4px; text-align: center; }
+    .pw-word-grid { display: block; }
+    .pw-word-grid table { width: 100%; table-layout: fixed; border-spacing: 5px; }
+    .pw-word-grid td { width: 25%; }
+    .pw-slot { border: 1px solid #999; padding: 6px; border-radius: 4px; text-align: center; }
     .pw-num { display: block; font-size: 10px; color: #999; margin-bottom: 2px; }
     .pw-word { display: block; font-family: var(--mono); font-size: 13px; font-weight: 600; color: #000; }
 

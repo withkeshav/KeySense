@@ -6,21 +6,21 @@ KeySense is a multi-chain HD derivation, vanity miner, and brain wallet entropy 
 
 ## 100 percent offline
 
-No CDN, no third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. No seed, key, or address ever leaves the device. Once loaded, everything works with the network off. See `README.md` and `SECURITY.md`.
+No CDN, no third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. The app does not upload wallet inputs. Copying, printing or compromised equipment can expose them. Once loaded, everything works with the network off. See `README.md` and `SECURITY.md`.
 
 ## Tabs
 
 The app has seven sections:
 
+- Home: seed and path inspection
 - Wallet course: twenty lessons and ten practical cases
 - Key paths: six live derivation lessons and Recovery Detective
-- Workbench: seed and path inspection
 - Blockchain guide: chain and address reference
 - Advanced practice: limited typo, missing-word and path searches
 - Vanity lab: EVM address-prefix experiments
 - Brain wallet lab: why chosen phrases are unsafe
 
-Print example backup and the Physical entropy lab are inside the Workbench.
+Print example backup and the Physical entropy lab are inside the Home.
 The course checks reasoning without saving progress or claiming certification.
 
 ## Quick start

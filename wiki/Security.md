@@ -4,11 +4,11 @@ Summary of `SECURITY.md`. Read the full file for hashes and commands.
 
 ## No network
 
-The tool runs entirely in the browser. No seed phrases, private keys, or derived addresses are transmitted anywhere. There is no network activity beyond loading the page itself. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry. See `SECURITY.md`.
+The app processes wallet inputs locally and does not upload them. Hosting receives normal page requests; external links open other services. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry. See `SECURITY.md`.
 
 ## CSP connect-src none
 
-The page ships a Content-Security-Policy that includes `connect-src 'none'`. Even if a bug allowed script execution on the page, that script would have no way to send a seed anywhere. The full policy is in `index.html`. See `SECURITY.md`.
+The page ships a Content-Security-Policy that includes `connect-src 'none'`. This restricts interfaces such as fetch and WebSocket. It does not block every navigation or protect against a compromised browser, extension or device. The full policy is in `index.html`. See `SECURITY.md`.
 
 ## Vendored libs with versions
 
@@ -23,7 +23,7 @@ Verify copies against upstream SHA-384 hashes with `bash tools/verify-vendor.sh`
 
 ## No storage of keys
 
-Keys are never stored. Only the UI theme is kept in `localStorage` (see `src/ui.js`). Clearing or hiding the seed resets every panel that showed derived data.
+The app does not deliberately persist keys. Only the theme is kept in `localStorage`. Clear resets seed-dependent panels; Hide only masks the seed bar. Clipboard history, print jobs, PDFs and device memory can retain copies. See `PRIVACY.md`.
 
 ## Canary
 
@@ -35,4 +35,4 @@ Open an issue on GitHub rather than emailing; this is an educational tool and is
 
 ## Testing only
 
-KeySense is intended for learning, experimentation, and educational use. Do not use it to generate wallets that hold significant value without independent verification. Always test derived addresses against known-good tools before relying on them. See `SECURITY.md`.
+KeySense is intended for learning, experimentation, and educational use. Use public or disposable examples, not real wallet backups. Always test derived addresses against known-good tools before relying on them. See `SECURITY.md`.

@@ -39,7 +39,7 @@
             seedBarValue.textContent = v;
             seedBarValue.classList.remove("seed-bar-empty");
           } else {
-            seedBarValue.textContent = "No seed generated - click Generate in the Workbench";
+            seedBarValue.textContent = "No seed generated - click Generate on Home";
             seedBarValue.classList.add("seed-bar-empty");
             seedBarValue.classList.remove("seed-bar-masked");
           }
@@ -230,6 +230,8 @@
          * block at the top of deriveKeys so Clear Seed leaves the results panel
          * looking exactly like it does before a first derivation. */
         function resetDeriveResults() {
+          printableResult = null;
+          clearPaperWallet();
           clearFeatureError(errorDiv);
           successDiv.style.display = "none";
           successDiv.textContent = "";
@@ -355,7 +357,17 @@
           out.appendChild(devOutRow("WIF", L.wif));
         }
 
+        var printableResult = null;
+        function printInputState() {
+          return JSON.stringify(['mnemonic', 'bip39Pass', 'purpose', 'coinType', 'account', 'change', 'index', 'devCustomPath', 'devOutputFormat', 'devModeToggle'].map(function (id) {
+            var el = document.getElementById(id);
+            return el ? (el.type === 'checkbox' ? el.checked : el.value) : '';
+          }));
+        }
+
         async function deriveKeys() {
+          printableResult = null;
+          var printState = printInputState();
           clearFeatureError(errorDiv);
           successDiv.style.display = "none";
           successDiv.textContent = "";
@@ -492,6 +504,14 @@
             successDiv.textContent = "Derived path: " + displayPath +
               (result.pathNote ? "  -  " + result.pathNote : "");
             successDiv.style.display = "block";
+            if (!result.rawOnly && printState === printInputState()) {
+              printableResult = { state: printState, data: {
+                mnemonic: mnemonic, address: result.address, path: displayPath,
+                network: result.addressLabel, privateKey: result.privateHex,
+                wif: result.wif || '', pubKey: result.publicKeyHex || '',
+                passphraseRequired: passphrase.length > 0
+              }};
+            }
           } catch (e) {
             console.error(e);
             showFeatureError(errorDiv, "Derive", e);
@@ -1535,21 +1555,14 @@
         /* ── PAPER WALLET PRINT ─────────────────────────────────────────── */
         var printWalletBtn = document.getElementById("printWalletBtn");
         if (printWalletBtn) printWalletBtn.addEventListener("click", async function () {
-          var mn = mnemonicInput.value.trim();
-          if (!mn || !ethers.utils.isValidMnemonic(mn)) { showToast("Enter a valid mnemonic first"); return; }
-          var path = getEffectivePath();
-          var hasWif = wifBlock && wifBlock.style.display !== "none";
-          var pubKeyText = pubKeyCompressed ? pubKeyCompressed.textContent : "";
-          var data = {
-            mnemonic: mn,
-            address: addrSpan ? addrSpan.textContent : "",
-            path: path,
-            network: addressLabel ? addressLabel.textContent : "",
-            privateKey: pkSpan ? pkSpan.textContent : "",
-            wif: hasWif && wifOut ? wifOut.textContent : "",
-            pubKey: pubKeyText && pubKeyText !== "—" ? pubKeyText : ""
-          };
-          await printPaperWallet(data);
+          if (!printableResult || printableResult.state !== printInputState()) {
+            showToast("Derive again with the current settings before printing.");
+            return;
+          }
+          printWalletBtn.disabled = true;
+          try { await printPaperWallet(printableResult.data); }
+          catch (e) { showToast("Printing stopped: " + e.message); }
+          finally { printWalletBtn.disabled = false; }
         });
 
         /* ── HD TREE INSPECTOR ──────────────────────────────────────────── */
@@ -1584,7 +1597,7 @@
         /* ── LEARN -> ENTROPY CROSS-LINK ─────────────────────────────────── */
         /* ── BLOCKCHAIN GUIDE: rows load their preset ───────────────────────
          * Turns the reference table from something you read into something you
-         * can run, using the same presets map the buttons on the Workbench
+         * can run, using the same presets map the buttons on Home
          * already use. */
         function applyGuidePreset(presetName) {
           var preset = presets[presetName];
@@ -1622,7 +1635,7 @@
         /* ── LEARN STEP 3: read only path builder preview ─────────────────
          * Two sliders shape a fixed Bitcoin path (purpose 44, coin 0). Labels
          * come from the existing learnPathSegments; nothing here writes to
-         * the Workbench inputs. */
+         * the Home inputs. */
         var learnPathAccount = document.getElementById("learnPathAccount");
         var learnPathIndex = document.getElementById("learnPathIndex");
         var learnPathAccountLabel = document.getElementById("learnPathAccountLabel");
@@ -1640,7 +1653,7 @@
           note.className = "hint";
           note.style.marginTop = "8px";
           note.style.marginBottom = "0";
-          note.textContent = "Read only. The Workbench is untouched.";
+          note.textContent = "Read only. The Home is untouched.";
           learnPathBuilderHost.appendChild(note);
         }
         if (learnPathAccount) {
@@ -1655,7 +1668,7 @@
 
         /* ── LEARN STEP 3: empty wallet guided task ───────────────────────
          * One click per path. Reuses the same preset logic as the guide rows
-         * above, so behaviour matches Step 2 of the Workbench exactly. */
+         * above, so behaviour matches Step 2 of the Home exactly. */
         var learnTryLegacyBtn = document.getElementById("learnTryLegacyBtn");
         if (learnTryLegacyBtn) learnTryLegacyBtn.addEventListener("click", function () {
           applyGuidePreset("btc-legacy");

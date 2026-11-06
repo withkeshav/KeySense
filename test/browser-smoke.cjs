@@ -67,6 +67,43 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
     assert.equal(await evaluate(`document.getElementById('mnemonic').value.trim().split(/\\s+/).length`),24);
     await evaluate(`document.getElementById('seedBarClear').click()`);
     assert.equal(await evaluate(`document.getElementById('mnemonic').value`),'');
+    // Exercise the actual print button using public fixtures; never open a system printer.
+    if(mode==='healthy') {
+     await evaluate(`window.__printCalls=0;window.print=()=>{window.__printCalls++};document.getElementById('printWalletBtn').click()`);
+     assert.equal(await evaluate(`window.__printCalls`),0,'print refuses missing derivation');
+     for(const words of [12,15,18,21,24]) {
+      await evaluate(`document.getElementById('mnemonic').value=ethers.utils.entropyToMnemonic('0x'+'00'.repeat(${words}/3*4));document.getElementById('bip39Pass').value='TREZOR';document.getElementById('derive').click()`);
+      for(let i=0;i<100;i++){if(await evaluate(`document.getElementById('success').style.display==='block'`))break;await pause(30);}
+      await evaluate(`document.getElementById('printWalletBtn').click()`);
+      for(let i=0;i<100;i++){if(await evaluate(`document.body.classList.contains('print-active')`))break;await pause(30);}
+      const printed=await evaluate(`({words:[...document.querySelectorAll('#pwWordGrid .pw-word')].map(n=>n.textContent).filter(Boolean),address:document.getElementById('pwAddress').textContent,shown:document.getElementById('address').textContent,path:document.getElementById('pwPath').textContent,note:document.getElementById('pwPassphrase').textContent,qr:!!document.querySelector('#pwQrHost canvas')})`);
+      assert.equal(printed.words.length,words);assert.equal(printed.address,printed.shown);assert.equal(printed.path,"m/44'/60'/0'/0/0");assert.match(printed.note,/Required/);assert(!printed.note.includes('TREZOR'));assert(printed.qr);
+      await pause(650);assert(await evaluate(`document.body.classList.contains('print-active')`),'print content must survive a slow dialog');
+      if(words===24){const pdf=await send('Page.printToPDF',{preferCSSPageSize:true,printBackground:true});fs.writeFileSync(path.join(os.tmpdir(),'keysense-print-audit.pdf'),Buffer.from(pdf.data,'base64'));}
+      await evaluate(`window.dispatchEvent(new Event('afterprint'))`);
+      assert.equal(await evaluate(`document.getElementById('pwPrivateKey').textContent`),'');assert.equal(await evaluate(`document.querySelectorAll('#pwWordGrid .pw-word').length`),0);
+     }
+     const calls=await evaluate(`window.__printCalls`);
+     await evaluate(`document.getElementById('index').value='8';document.getElementById('printWalletBtn').click()`);
+     assert.equal(await evaluate(`window.__printCalls`),calls,'stale path must not print');
+     await evaluate(`document.getElementById('index').value='0';document.getElementById('bip39Pass').value='changed';document.getElementById('printWalletBtn').click()`);
+     assert.equal(await evaluate(`window.__printCalls`),calls,'stale passphrase must not print');
+     await evaluate(`document.getElementById('bip39Pass').value='';document.getElementById('seedBarClear').click()`);
+     await evaluate(`document.getElementById('mnemonic').value=${JSON.stringify(phrase)};document.querySelector('[data-preset="btc-native"]').click();document.getElementById('derive').click()`);
+     for(let i=0;i<100;i++){if(await evaluate(`document.getElementById('success').style.display==='block'`))break;await pause(30);}
+     await evaluate(`document.getElementById('printWalletBtn').click()`);
+     for(let i=0;i<100;i++){if(await evaluate(`document.body.classList.contains('print-active')`))break;await pause(30);}
+     assert.equal(await evaluate(`document.getElementById('pwAddress').textContent`),'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu');
+     assert.equal(await evaluate(`document.getElementById('pwWif').textContent===document.getElementById('wifOut').textContent`),true);
+     assert.match(await evaluate(`document.getElementById('pwPassphrase').textContent`),/No extra/);
+     await evaluate(`window.dispatchEvent(new Event('afterprint'));window.__savedQr=QRCode.toCanvas;QRCode.toCanvas=(c,t,o,cb)=>cb(new Error('test QR failure'));document.getElementById('printWalletBtn').click()`);
+     await pause(100);
+     assert.equal(await evaluate(`document.body.classList.contains('print-active')`),false,'QR failure stops printing');
+     assert.equal(await evaluate(`document.getElementById('pwPrivateKey').textContent`),'','QR failure clears secrets');
+     await evaluate(`QRCode.toCanvas=window.__savedQr;document.getElementById('seedBarClear').click()`);
+     console.log('PASS print: all five word counts, matching fields, passphrase note, QR, stale-input guard, slow-dialog retention and cleanup');
+    }
+
    }
    if(healthy){
     await evaluate(`document.querySelector('[data-tab="learn"]').click()`);

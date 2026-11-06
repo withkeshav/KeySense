@@ -29,7 +29,7 @@ The `brainCustomPath` input accepts one extra path for comparison. Empty means n
 
 ## Auto-harden for 501, 784, 637
 
-Ed25519 coins auto-harden like the Workbench does. If the custom path uses coin type 501 (Solana), 784 (Sui), or 637 (Aptos), every segment is hardened and the result notes the resolved path. See `src/brain-wallet-service.js` and `src/constants.js`.
+Ed25519 coins auto-harden like the Home does. If the custom path uses coin type 501 (Solana), 784 (Sui), or 637 (Aptos), every segment is hardened and the result notes the resolved path. See `src/brain-wallet-service.js` and `src/constants.js`.
 
 ## Where outputs show
 

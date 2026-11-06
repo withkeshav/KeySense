@@ -1,10 +1,10 @@
 # Security
 
-This tool runs entirely in your browser. No seed phrases, private keys, or derived addresses are transmitted anywhere.
+The app processes wallet inputs locally and does not upload them. Copying, printing, external software or a compromised device can still expose them. See [PRIVACY.md](PRIVACY.md) and [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Network activity
 
-There is none beyond loading the page itself.
+The app loads its own files and does not make background wallet-data requests. External source links navigate to other sites. Hosting may produce its own security reports.
 
 Every library is vendored into `src/vendor/` and served from the same origin as the page, so nothing is fetched from a CDN or any other third party. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry of any kind. Once the page has loaded you can disconnect the network entirely and everything still works, on every tab and every chain.
 

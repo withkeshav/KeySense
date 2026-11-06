@@ -13,7 +13,7 @@ Created by [Keshav Maheshwari](https://www.withkeshav.com)
 - **Wallet course** - Twenty lessons from custody and keys to fees, permissions,
   backups, hardware signing, multisig, smart accounts and cross-chain risks.
   Worked examples, explained checks and official sources connect concepts to practice.
-- **Workbench** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
+- **Home** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
 - **Vanity Miner** - Offline EVM vanity address generator
 - **Brain Wallet** - SHA-256 passphrase -> BIP39 mnemonic -> deterministic wallet, with optional custom path override
 - **Key paths** - The live six-step derivation walkthrough, with interactive builder, quizzes, verify badges, and Recovery Detective: a public-example address-matching exercise.
@@ -60,7 +60,7 @@ Runs the full vector and safety suite in Node against the same `src/*.js` files 
 
 ## Privacy
 
-The app itself collects nothing: no seeds, keys, or addresses ever leave your device, no analytics, no cookies. Theme only is kept in `localStorage`. Hosting still sees routine server traces such as IP and user agent. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
+The app does not upload wallet inputs or send analytics. It stores only the theme preference in `localStorage`. Hosting processes request metadata. Clipboard tools, printing and compromised devices can expose inputs. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
 
 ## Research
 
@@ -73,6 +73,8 @@ npm run test:readability
 ```
 
 It measures running prose per teaching segment against a recorded baseline, keeps tables and diagrams in a separate reported bucket, and says plainly when it cannot measure rather than reporting a pass. Nothing in this research is measured on you: the reader session page runs offline and stores nothing. See [PRIVACY.md](PRIVACY.md) and the wiki at [github.com/withkeshav/KeySense/wiki](https://github.com/withkeshav/KeySense/wiki).
+
+Future learning tools are proposed in [wallet feature research](docs/learn-research/WALLET-FEATURE-RESEARCH.md). They are not implemented in this release.
 
 ## Contributing
 
@@ -127,7 +129,7 @@ Free to download and use, including commercially, unmodified. Modifying, rebrand
 
 ---
 
-**Disclaimer:** For testing and educational purposes only. If you want to use a local version, download it from [https://github.com/withkeshav/KeySense](https://github.com/withkeshav/KeySense).
+**Disclaimer:** For testing and educational purposes only. Read [the full disclaimer](DISCLAIMER.md), including print risks and limits of results. If you want to use a local version, download it from [https://github.com/withkeshav/KeySense](https://github.com/withkeshav/KeySense).
 
 ---
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 - 2026-11-06
+
+- Open the existing key tools first, under Home; remove the separate Workbench label.
+- Fix print grids for every supported word count. Bind printed data to a completed,
+  unchanged derivation, include the resolved path and a passphrase-required note,
+  and stop printing when the address QR code fails. Keep previews intact until
+  the print dialog closes, then clear the print template.
+- Correct stale offline-use guidance and add print regression checks.
+- Correct privacy claims about network restrictions, log retention, copied data,
+  PDFs and printer storage. Add an educational disclaimer without changing license terms.
+- Refresh the published wiki using the configured Git identity.
+
 ## 1.0.0 - 2026-11-06
 
 ### Wallet education and interface

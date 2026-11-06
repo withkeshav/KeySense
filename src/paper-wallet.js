@@ -1,15 +1,15 @@
 function renderQrToHost(hostEl, text) {
-  return new Promise(function (resolve) {
-    if (!hostEl || !text || typeof QRCode === "undefined" || !QRCode.toCanvas) { resolve(); return; }
+  return new Promise(function (resolve, reject) {
+    if (!hostEl || !text || typeof QRCode === "undefined" || !QRCode.toCanvas) { reject(new Error("Address QR code unavailable")); return; }
     try {
       var canvas = document.createElement("canvas");
-      QRCode.toCanvas(canvas, text, { width: 140, margin: 1, color: { dark: "#000000", light: "#ffffff" } }, function (err) {
-        if (err) { resolve(); return; }
+      QRCode.toCanvas(canvas, text, { width: 180, margin: 4, color: { dark: "#000000", light: "#ffffff" } }, function (err) {
+        if (err) { reject(new Error("Address QR code failed")); return; }
         hostEl.innerHTML = "";
         hostEl.appendChild(canvas);
         resolve();
       });
-    } catch (e) { resolve(); }
+    } catch (e) { reject(e); }
   });
 }
 
@@ -21,7 +21,7 @@ function renderQrToHost(hostEl, text) {
 function buildWordGrid(mnemonic) {
   if (!mnemonic || typeof mnemonic !== "string") { return null; }
   var words = mnemonic.trim().split(/\s+/).filter(Boolean);
-  if (words.length !== 12 && words.length !== 24) { return null; }
+  if ([12, 15, 18, 21, 24].indexOf(words.length) === -1) { return null; }
 
   var wrap = document.createElement("div");
   wrap.className = "pw-word-grid";
@@ -69,6 +69,8 @@ function populatePaperWallet(data) {
   var pubKeyWrap = document.getElementById("pwPubKeyWrap");
   var pubKeyEl = document.getElementById("pwPubKey");
 
+  var passNote = document.getElementById("pwPassphrase");
+  if (passNote) passNote.textContent = data.passphraseRequired ? "Required. The separate BIP39 passphrase is NOT printed here. Words alone will restore different keys." : "No extra BIP39 passphrase was used.";
   if (addrEl) { addrEl.textContent = data.address || ""; }
   if (pathEl) { pathEl.textContent = data.path || ""; }
   if (netEl) { netEl.textContent = data.network || ""; }
@@ -86,53 +88,33 @@ function populatePaperWallet(data) {
     if (data.pubKey) { pubKeyWrap.style.display = ""; pubKeyEl.textContent = data.pubKey; }
     else { pubKeyWrap.style.display = "none"; pubKeyEl.textContent = ""; }
   }
-  if (qrHost) {
-    renderQrToHost(qrHost, data.address || "").catch(function () {});
-  }
+  if (qrHost) qrHost.replaceChildren();
   return true;
 }
 
 async function printPaperWallet(data) {
-  var ok = populatePaperWallet(data);
-  if (!ok) {
-    alert("Paper wallet element not found");
-    return;
-  }
-
-  var qrHost = document.getElementById("pwQrHost");
-  if (qrHost && data && data.address) {
-    try {
-      await renderQrToHost(qrHost, data.address);
-    } catch (e) {}
-  }
-
-  document.body.classList.add("print-active");
-
+  if (!populatePaperWallet(data)) throw new Error("Print layout unavailable");
   var cleanup = function () {
     document.body.classList.remove("print-active");
     clearPaperWallet();
+    window.removeEventListener("afterprint", cleanup);
   };
-
-  if (typeof window !== "undefined") {
-    window.onafterprint = function () {
-      cleanup();
-      window.onafterprint = null;
-    };
-  }
-
-  setTimeout(function () {
-    if (document.body.classList.contains("print-active")) { cleanup(); }
-  }, 500);
-
-  if (typeof window !== "undefined" && typeof window.print === "function") {
+  try {
+    await renderQrToHost(document.getElementById("pwQrHost"), data.address);
+    document.body.classList.add("print-active");
+    window.addEventListener("afterprint", cleanup, {once: true});
+    // Keep the page intact while the browser's print dialog is open.
+    // A fixed timer could erase a preview before it is printed.
     window.print();
-  }
+  } catch (e) { cleanup(); throw e; }
 }
 
 function clearPaperWallet() {
   var host = document.getElementById("paperWalletPrint");
   if (!host) { return; }
 
+  var passNote = document.getElementById("pwPassphrase");
+  if (passNote) passNote.textContent = "";
   var qrHost = document.getElementById("pwQrHost");
   if (qrHost) { qrHost.innerHTML = ""; }
 

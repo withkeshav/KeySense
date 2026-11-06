@@ -16,7 +16,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
   <meta name="author" content="Keshav Maheshwari - https://www.withkeshav.com">
   <meta name="description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab.">
-  <title>KeySense - Web3 Key, Path and Security Workbench</title>
+  <title>KeySense - Wallet Learning and Key Tools</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E">
 
@@ -29,21 +29,21 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://github.com/withkeshav/KeySense">
   <meta property="og:site_name" content="KeySense">
-  <meta property="og:title" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta property="og:title" content="KeySense - Wallet Learning and Key Tools">
   <meta property="og:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab, all offline in your browser.">
   <meta property="og:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:alt" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta property="og:image:alt" content="KeySense - Wallet Learning and Key Tools">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta name="twitter:title" content="KeySense - Wallet Learning and Key Tools">
   <meta name="twitter:description" content="Crypto key math is confusing, but we make it simple and understandable. Multi-chain HD derivation, vanity miner, brain wallet entropy lab, all offline in your browser.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/withkeshav/KeySense/main/og-image.png">
-  <meta name="twitter:image:alt" content="KeySense - Web3 Key, Path and Security Workbench">
+  <meta name="twitter:image:alt" content="KeySense - Wallet Learning and Key Tools">
 
   <link rel="stylesheet" href="./src/viz-tokens.css?v=7fbf9894">
-  <link rel="stylesheet" href="./src/styles.css?v=8a7487fb">
+  <link rel="stylesheet" href="./src/styles.css?v=5873122d">
   <link rel="stylesheet" href="./src/layout.css?v=e3e6a3e1">
 
 </head>
@@ -58,7 +58,7 @@
         <div class="creator">Created by <strong><a href="https://www.withkeshav.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" title="Keshav Maheshwari">Keshav Maheshwari</a></strong></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
-        <div class="offline-badge" title="All derivation runs in your browser. Every library is served from this site, so there are no third-party requests and the page works with the network off. No seed, key, or address is ever transmitted.">● 100% Offline</div>
+        <div class="offline-badge" title="All derivation runs in your browser. Every library is served from this site, so there are no third-party requests and the page works with the network off. The app does not upload wallet inputs. Copying, printing or compromised devices can expose them.">● 100% Offline</div>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light and dark theme">
           <span class="thumb" aria-hidden="true"></span>
           <span id="themeLabel">Dark</span>
@@ -67,9 +67,9 @@
     </header>
 
     <div class="tabs" role="tablist" aria-label="KeySense sections" aria-orientation="vertical">
-      <button type="button" class="tab active" data-tab="course" role="tab">Wallet course</button>
+      <button type="button" class="tab active" data-tab="derive" role="tab">Home</button>
+      <button type="button" class="tab" data-tab="course" role="tab">Wallet course</button>
       <button type="button" class="tab" data-tab="learn" role="tab">Key paths</button>
-      <button type="button" class="tab" data-tab="derive" role="tab">Workbench</button>
       <button type="button" class="tab" data-tab="guide" role="tab">Blockchain guide</button>
       <button type="button" class="tab" data-tab="experiments" role="tab">Advanced practice</button>
       <button type="button" class="tab" data-tab="vanity" role="tab">Vanity lab</button>
@@ -89,7 +89,7 @@
          Hide masks the phrase so it cannot be read over your shoulder; Clear empties it along with all derived results. -->
     <div class="seed-bar" id="seedBar">
       <span class="seed-bar-label">Seed</span>
-      <code class="seed-bar-value seed-bar-empty" id="seedBarValue">No seed generated - click Generate in the Workbench</code>
+      <code class="seed-bar-value seed-bar-empty" id="seedBarValue">No seed generated - click Generate on Home</code>
       <div class="seed-bar-actions">
         <button type="button" id="seedBarToggle" class="seed-bar-btn" disabled>Hide</button>
         <button type="button" id="seedBarClear" class="seed-bar-btn" disabled>Clear</button>
@@ -100,7 +100,7 @@
 
     <main class="tab-panels" id="mainContent" tabindex="-1">
 
-      <div class="tab-content active" data-content="course" role="tabpanel">
+      <div class="tab-content" data-content="course" role="tabpanel">
         <div id="walletCourse">
           <div id="courseOverview">
             <div class="course-intro">
@@ -115,8 +115,8 @@
       </div>
 
       <!-- DERIVE -->
-      <div class="tab-content" data-content="derive" role="tabpanel">
-        <div class="panel-heading"><p class="eyebrow">Workbench</p><h2>Inspect the path. Check the result.</h2><p>Use disposable examples to explore keys and addresses. All calculations stay in this browser.</p></div>
+      <div class="tab-content active" data-content="derive" role="tabpanel">
+        <div class="panel-heading"><p class="eyebrow">Home</p><h2>Inspect the path. Check the result.</h2><p>Use disposable examples to explore keys and addresses. All calculations stay in this browser.</p></div>
         <div class="card">
           <div class="card-title">
             <span>Step 1: Seed phrase</span>
@@ -125,7 +125,7 @@
               <input type="checkbox" id="expertModeToggle" aria-label="Expert mode"> Expert mode
             </label>
           </div>
-          <label for="mnemonic">Mnemonic (12 or 24 words)</label>
+          <label for="mnemonic">Mnemonic (12 to 24 words)</label>
           <textarea id="mnemonic" placeholder="Click Generate below, or type/paste a BIP39 mnemonic."></textarea>
           <p class="hint" style="margin-top:6px;"><strong>Never type a real seed here.</strong> This page is an educational tool for testing and learning. Any seed you enter or generate stays in this browser tab and is shown on screen in plain text. For a wallet you actually use, generate and sign on a trusted offline machine.</p>
           <div class="action-buttons" style="margin-top: 12px;">
@@ -163,7 +163,7 @@
             <p class="hint" style="margin-top:6px;">Same mnemonic + different passphrase → completely different wallet. Any string is valid; there is no wrong passphrase, only wrong <em>remembering</em>. If you lose it, you lose the wallet permanently.</p>
           </div>
           <div class="warning-box" style="margin-top:12px;">
-            <p><strong>Security:</strong> This page runs entirely in your browser. No data is ever sent to any server. For production wallets, always generate and sign on a trusted offline (air-gapped) machine.</p>
+            <p><strong>Security:</strong> The app does not upload wallet inputs. Browser extensions, copied data and print systems can expose them. Offline use does not make a compromised device safe. Use disposable examples only.</p>
           </div>
           <p class="hint" style="margin-top:12px;">Off: seeds use the browser CSPRNG. On: type your own dice rolls or coin flips and their hash becomes your seed.</p>
 
@@ -617,7 +617,7 @@
         <div class="panel-heading"><p class="eyebrow">Reference</p><h2>Different chains. Different rules.</h2><p>Compare formats and supported paths before drawing conclusions from an address.</p></div>
         <div class="card">
           <div class="card-title">What this toolkit does</div>
-          <p class="hint" style="margin-bottom: 12px;">This is a <strong>single static HTML page</strong> with no build step. Every library is served from this site rather than a CDN, so the page makes no third-party requests and works with the network switched off. Mnemonics never leave the device unless you copy them. The <strong>Derive</strong> tab turns a BIP39 phrase + path into addresses for Ethereum, Bitcoin (Legacy/SegWit/Native/Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, and Aptos. <strong>Vanity</strong> searches for EVM address prefixes. <strong>Brain wallet</strong> demonstrates why human-chosen entropy is unsafe. The Workbench also has a <strong>Physical entropy lab</strong> (type your own dice rolls or coin flips so the seed does not depend on your computer alone, enable Expert mode to see it), a <strong>paper wallet</strong> printer, and an <strong>HD tree inspector</strong> on the Key paths tab. The Advanced practice tab has a <strong>Mnemonic diagnostics</strong> panel (find typos or the lost last word) and a <strong>Path recovery</strong> scanner (match a known address to its derivation path). The current seed also shows in the sticky bar above the tabs. Solana, Sui, and Aptos derivation needs the page served over <code style="font-family:var(--mono);font-size:0.92em;">http://</code> or <code style="font-family:var(--mono);font-size:0.92em;">https://</code>, because ES module loading is blocked from a <code style="font-family:var(--mono);font-size:0.92em;">file://</code> origin. Everything else, including the entropy lab and brain wallet, works from <code style="font-family:var(--mono);font-size:0.92em;">file://</code>.</p>
+          <p class="hint" style="margin-bottom: 12px;">KeySense runs locally in your browser. Home contains seed and path controls, example printing and the Physical entropy lab. Key paths shows the derivation steps and tree inspector. Advanced practice offers limited word and path searches. All supported chains work offline when the complete set of files is kept together. Use disposable examples only. The app does not send wallet inputs to a server.</p>
           <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> + inline SLIP-0010 (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; <code style="font-family:var(--mono);font-size:0.92em;">@noble/hashes</code> (BLAKE2b for Sui, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. All libraries live in <code style="font-family:var(--mono);font-size:0.92em;">src/vendor/</code> and are served from this site, so nothing is fetched from a third party. To run it air-gapped, clone the repository and open the page with any local server.</p>
         </div>
         <div class="card">
@@ -626,7 +626,7 @@
         </div>
         <div class="card">
           <div class="card-title">Blockchain derivation reference</div>
-          <p class="hint" style="margin-bottom:12px;">Click any row to load that preset into the Workbench and see the real address for the seed you have loaded.</p>
+          <p class="hint" style="margin-bottom:12px;">Click any row to load that preset into the Home and see the real address for the seed you have loaded.</p>
           <p class="hint" style="margin-bottom: 16px;">Each row is a common convention. Your wallet might use a different path for recovery - always check its docs.</p>
           <div style="overflow-x:auto;">
           <table class="guide-table">
@@ -634,25 +634,25 @@
               <tr><th>Blockchain</th><th>Derivation path</th><th>Coin type</th><th>Notes</th></tr>
             </thead>
             <tbody>
-              <tr class="guide-row" data-preset="eth" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Ethereum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>MetaMask, Trust Wallet, most EVM “account 0”</td></tr>
-              <tr class="guide-row" data-preset="btc-native" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Bitcoin (Native SegWit)</strong></td><td><code>m/84'/0'/0'/0/0</code></td><td>0</td><td><code>bc1q…</code> addresses (BIP84)</td></tr>
-              <tr class="guide-row" data-preset="btc-segwit" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Bitcoin (Wrapped SegWit)</strong></td><td><code>m/49'/0'/0'/0/0</code></td><td>0</td><td><code>3…</code> nested SegWit (BIP49)</td></tr>
-              <tr class="guide-row" data-preset="btc-legacy" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Bitcoin (Legacy)</strong></td><td><code>m/44'/0'/0'/0/0</code></td><td>0</td><td><code>1…</code> P2PKH (BIP44)</td></tr>
-              <tr class="guide-row" data-preset="btc-taproot" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) - experimental on some altcoins</td></tr>
-              <tr class="guide-row" data-preset="solana" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Solana</strong></td><td><code>m/44'/501'/0'/0'</code></td><td>501</td><td>Phantom / Solflare-style; Ed25519 not secp256k1</td></tr>
-              <tr class="guide-row" data-preset="polygon" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Polygon</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr class="guide-row" data-preset="bsc" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>BSC</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr class="guide-row" data-preset="avalanche" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Avalanche C-Chain</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr class="guide-row" data-preset="tron" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Tron</strong></td><td><code>m/44'/195'/0'/0/0</code></td><td>195</td><td>TronLink-style; secp256k1, Base58 <code>T…</code> address</td></tr>
+              <tr class="guide-row" data-preset="eth" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Ethereum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>MetaMask, Trust Wallet, most EVM “account 0”</td></tr>
+              <tr class="guide-row" data-preset="btc-native" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Bitcoin (Native SegWit)</strong></td><td><code>m/84'/0'/0'/0/0</code></td><td>0</td><td><code>bc1q…</code> addresses (BIP84)</td></tr>
+              <tr class="guide-row" data-preset="btc-segwit" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Bitcoin (Wrapped SegWit)</strong></td><td><code>m/49'/0'/0'/0/0</code></td><td>0</td><td><code>3…</code> nested SegWit (BIP49)</td></tr>
+              <tr class="guide-row" data-preset="btc-legacy" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Bitcoin (Legacy)</strong></td><td><code>m/44'/0'/0'/0/0</code></td><td>0</td><td><code>1…</code> P2PKH (BIP44)</td></tr>
+              <tr class="guide-row" data-preset="btc-taproot" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Bitcoin (Taproot)</strong></td><td><code>m/86'/0'/0'/0/0</code></td><td>0</td><td><code>bc1p…</code> (BIP86) - experimental on some altcoins</td></tr>
+              <tr class="guide-row" data-preset="solana" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Solana</strong></td><td><code>m/44'/501'/0'/0'</code></td><td>501</td><td>Phantom / Solflare-style; Ed25519 not secp256k1</td></tr>
+              <tr class="guide-row" data-preset="polygon" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Polygon</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="bsc" tabindex="0" role="button" title="Load this preset on Home"><td><strong>BSC</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="avalanche" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Avalanche C-Chain</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
+              <tr class="guide-row" data-preset="tron" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Tron</strong></td><td><code>m/44'/195'/0'/0/0</code></td><td>195</td><td>TronLink-style; secp256k1, Base58 <code>T…</code> address</td></tr>
               <tr><td><strong>Arbitrum</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
               <tr><td><strong>Optimism</strong></td><td><code>m/44'/60'/0'/0/0</code></td><td>60</td><td>Same as Ethereum (EVM)</td></tr>
-              <tr class="guide-row" data-preset="ltc" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Litecoin</strong></td><td><code>m/44'/2'/0'/0/0</code></td><td>2</td><td>Legacy; use purpose 84/49 for SegWit-style LTC</td></tr>
-              <tr class="guide-row" data-preset="doge" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Dogecoin</strong></td><td><code>m/44'/3'/0'/0/0</code></td><td>3</td><td>Legacy-style; SegWit less universal on DOGE</td></tr>
+              <tr class="guide-row" data-preset="ltc" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Litecoin</strong></td><td><code>m/44'/2'/0'/0/0</code></td><td>2</td><td>Legacy; use purpose 84/49 for SegWit-style LTC</td></tr>
+              <tr class="guide-row" data-preset="doge" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Dogecoin</strong></td><td><code>m/44'/3'/0'/0/0</code></td><td>3</td><td>Legacy-style; SegWit less universal on DOGE</td></tr>
               <tr><td><strong>Bitcoin Cash</strong></td><td><code>m/44'/145'/0'/0/0</code></td><td>145</td><td>Not modeled in this tool - would need BCH params</td></tr>
               <tr><td><strong>Cardano</strong></td><td><code>m/1852'/1815'/0'/0/0</code></td><td>1815</td><td>CIP-1852; different from BIP44-only wallets</td></tr>
-              <tr class="guide-row" data-preset="cosmos" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
-              <tr class="guide-row" data-preset="sui" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + BLAKE2b-256(0x00 || pubkey), not the pubkey itself</td></tr>
-              <tr class="guide-row" data-preset="aptos" tabindex="0" role="button" title="Load this preset in the Workbench"><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); legacy address (SDK default) = 0x + SHA3-256(pubkey || 0x00). SingleKey accounts from the same seed use a different address. SHA3-256, not Keccak-256</td></tr>
+              <tr class="guide-row" data-preset="cosmos" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Cosmos</strong></td><td><code>m/44'/118'/0'/0/0</code></td><td>118</td><td>secp256k1 + Bech32 with <code>cosmos</code> HRP (Keplr-style)</td></tr>
+              <tr class="guide-row" data-preset="sui" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Sui</strong></td><td><code>m/44'/784'/0'/0'</code></td><td>784</td><td>Ed25519 (SLIP-0010); address = 0x + BLAKE2b-256(0x00 || pubkey), not the pubkey itself</td></tr>
+              <tr class="guide-row" data-preset="aptos" tabindex="0" role="button" title="Load this preset on Home"><td><strong>Aptos</strong></td><td><code>m/44'/637'/0'/0'</code></td><td>637</td><td>Ed25519 (SLIP-0010); legacy address (SDK default) = 0x + SHA3-256(pubkey || 0x00). SingleKey accounts from the same seed use a different address. SHA3-256, not Keccak-256</td></tr>
             </tbody>
           </table>
         </div>
@@ -772,7 +772,7 @@ PBKDF2(mnemonic, passphrase, 2048 rounds) - 512-bit seed
               <summary>Go deeper: where the randomness comes from, and why dice still matter</summary>
               <div class="warning-box" style="margin-top:10px;">
                 <p>By default this tool uses the browser CSPRNG. That is not a plain software random number generator. It is a thin wrapper over the operating system, which seeds itself from hardware noise such as thermal noise in the CPU and interrupt timing.</p>
-                <p style="margin-top:8px;">If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on the Workbench with Expert mode on. Type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy.</p>
+                <p style="margin-top:8px;">If you would rather not depend on that, open the <a href="#" id="learnOpenEntropy" style="color:var(--accent);font-weight:600;">Physical entropy lab</a> on Home with Expert mode on. Type your own dice rolls or coin flips. The SHA-256 hash of what you type becomes the entropy.</p>
                 <p style="margin-top:8px;">The value of real dice is not that they are more random than the CPU. It is that they do not depend on your machine, so malware on it cannot predict them. The simulate buttons in that panel use the browser CSPRNG, so real throws are what count.</p>
               </div>
             </details>
@@ -904,13 +904,13 @@ Child keys: CKD(parent, index) - child private key + child chain code
               <div class="learn-segment"><span class="learn-seg-label">index</span> <span class="learn-seg-desc">The nth address in this chain. Most wallets increment this for each new address</span></div>
             </div>
             <div style="margin-top:16px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
-              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your current path (Workbench, Step 3)</div>
+              <div class="card-title" style="font-size:12px;margin-bottom:8px;">With your current path (Home, Step 3)</div>
               <div id="learnStep3Live"></div>
             </div>
 
             <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:var(--radius-sm);border:1px solid var(--border);">
               <div class="card-title" style="font-size:12px;margin-bottom:6px;">Try it: move account and index</div>
-              <p class="hint" style="margin-bottom:10px;">Read only preview. Moving these sliders never changes the Workbench. It shows how the account and index segments reshape a Bitcoin path.</p>
+              <p class="hint" style="margin-bottom:10px;">Read only preview. Moving these sliders never changes the Home. It shows how the account and index segments reshape a Bitcoin path.</p>
               <label for="learnPathAccount" style="font-size:11px;">Account: <span id="learnPathAccountLabel">0</span></label>
               <input id="learnPathAccount" type="range" min="0" max="9" step="1" value="0" style="width:100%;margin-top:6px;" aria-label="Preview account segment">
               <label for="learnPathIndex" style="font-size:11px;margin-top:10px;">Address index: <span id="learnPathIndexLabel">0</span></label>
@@ -926,7 +926,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
                 <button type="button" class="btn-secondary" id="learnTryLegacyBtn">Try m/44'/0'/0'/0/0 in Derive</button>
                 <button type="button" class="btn-secondary" id="learnTryNativeBtn">Try m/84'/0'/0'/0/0 in Derive</button>
               </div>
-              <p class="hint" style="margin-top:8px;margin-bottom:0;">Each button loads one path into the Workbench using the same presets as Step 2 there. Click one, note the address, then click the other.</p>
+              <p class="hint" style="margin-top:8px;margin-bottom:0;">Each button loads one path into the Home using the same presets as Step 2 there. Click one, note the address, then click the other.</p>
             </div>
 
             <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);">
@@ -1204,7 +1204,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
         <!-- 3g: live self-verification against official BIP vectors -->
         <div class="card">
           <div class="card-title">This page verifies itself</div>
-          <p class="hint" style="margin-bottom:12px;">Trust nothing, including this tool. The checks below recompute the official BIP39, BIP32, BIP44 and BIP84 test vectors right now, in your browser, with the same code the Workbench uses. Every row must read PASS. A FAIL means this copy of the page is broken or has been tampered with: do not use it, and re-download it from the official repository.</p>
+          <p class="hint" style="margin-bottom:12px;">Trust nothing, including this tool. The checks below recompute the official BIP39, BIP32, BIP44 and BIP84 test vectors right now, in your browser, with the same code the Home uses. Every row must read PASS. A FAIL means this copy of the page is broken or has been tampered with: do not use it, and re-download it from the official repository.</p>
           <div id="learnVerifyHost"></div>
         </div>
 
@@ -1333,7 +1333,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
         <!-- HD Derivation Tree Inspector -->
         <div class="card">
           <div class="card-title">HD derivation tree inspector</div>
-          <p class="hint" style="margin-bottom:12px;">Step 1: click <strong>Build tree from current seed</strong> below (uses the mnemonic from the Workbench). Step 2: the root and its first branches appear. Click any node to derive its keys; click a branch node again to expand or collapse its children.</p>
+          <p class="hint" style="margin-bottom:12px;">Step 1: click <strong>Build tree from current seed</strong> below (uses the mnemonic from the Home). Step 2: the root and its first branches appear. Click any node to derive its keys; click a branch node again to expand or collapse its children.</p>
           <div class="action-buttons" style="margin-bottom:12px;">
             <button type="button" id="treeBuildBtn" class="btn-primary">Build tree from current seed</button>
           </div>
@@ -1354,7 +1354,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <ul class="list-plain">
             <li><strong style="color:var(--accent);">Visualize the tree</strong> - click "Build tree from current seed" above to see every derivation branch and click nodes to derive keys.</li>
             <li><strong style="color:var(--accent);">Find a lost path</strong> - on the Advanced practice tab, use "Path recovery" to scan ~15 common wallet paths and match a known address back to its derivation.</li>
-            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on the Workbench, enable Expert mode to open "Physical entropy lab". There you type your own dice rolls, so the seed does not depend on your computer alone.</li>
+            <li><strong style="color:var(--accent);">Bring your own entropy</strong> - on Home, enable Expert mode to open "Physical entropy lab". There you type your own dice rolls, so the seed does not depend on your computer alone.</li>
           </ul>
         </div>
       </div>
@@ -1363,13 +1363,13 @@ Child keys: CKD(parent, index) - child private key + child chain code
       <div class="tab-content" data-content="experiments" role="tabpanel">
         <div class="panel-heading"><p class="eyebrow">Advanced practice</p><h2>Investigate with clear limits.</h2><p>Study candidates and common paths. These helpers are not a full wallet recovery service.</p></div>
         <div class="warning-box" style="margin-bottom:16px;">
-          <p><strong>Advanced practice, disposable examples only.</strong> These helpers use the words and passphrase from Workbench. They do not check balances, prove ownership or guarantee recovery. Never enter a real wallet backup.</p>
+          <p><strong>Advanced practice, disposable examples only.</strong> These helpers use the words and passphrase from Home. They do not check balances, prove ownership or guarantee recovery. Never enter a real wallet backup.</p>
         </div>
 
         <!-- Mnemonic diagnostics -->
         <div class="card">
           <div class="card-title">Explore seed typos and missing words</div>
-          <p class="hint" style="margin-bottom:12px;">Study typo suggestions and possible last words using a disposable phrase in Workbench. A candidate that passes the checksum is not proof of the original wallet.</p>
+          <p class="hint" style="margin-bottom:12px;">Study typo suggestions and possible last words using a disposable phrase in Home. A candidate that passes the checksum is not proof of the original wallet.</p>
           <div class="action-buttons" style="margin-top:6px;">
             <button type="button" id="typoCheckBtn" class="btn-secondary">Check &amp; suggest fixes</button>
             <button type="button" id="find12thBtn" class="btn-secondary">Find 12th word</button>
@@ -1385,7 +1385,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
           <p class="hint" style="margin-bottom:12px;">Compare an expected public address against 15 listed wallet paths. The search is limited: it does not scan every account or address index. No match does not prove the words are wrong.</p>
           <label for="recoveryTarget">Expected public example address</label>
           <input id="recoveryTarget" type="text" placeholder="0x... / bc1q... / T... / cosmos..." autocomplete="off" style="margin-top:6px;">
-          <p class="hint" style="margin-top:6px;">Uses the example words and BIP39 passphrase from Workbench. It makes no blockchain request.</p>
+          <p class="hint" style="margin-top:6px;">Uses the example words and BIP39 passphrase from Home. It makes no blockchain request.</p>
           <div class="action-buttons" style="margin-top:10px;">
             <button type="button" id="recoveryScanBtn" class="btn-secondary">Scan paths</button>
           </div>
@@ -1412,6 +1412,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
       <div id="pwWordGrid"></div>
     </div>
 
+    <div class="pw-section pw-nobreak"><div class="pw-label">Extra passphrase</div><div id="pwPassphrase"></div></div>
     <div class="pw-row pw-nobreak">
       <div class="pw-col">
         <div class="pw-section">
@@ -1445,7 +1446,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
       <div class="pw-mono" id="pwPubKey"></div>
     </div>
 
-    <div class="pw-warning pw-nobreak">Anyone who reads the seed words or private key above can spend these funds instantly. Store this page like cash: offline, out of sight of cameras, and destroyed or secured once you no longer need it. Generated locally in your browser. Nothing on this page was ever transmitted or stored anywhere. For testing and educational purposes only. Always verify an address with an independent tool before sending real funds. KeySense is not a custodian or wallet provider and is not responsible for lost or stolen funds.</div>
+    <div class="pw-warning pw-nobreak">Anyone who reads the seed words or private key above can spend these funds instantly. Store this page like cash: offline, out of sight of cameras, and destroyed or secured once you no longer need it. Generated locally in your browser. KeySense does not upload this output. Your browser, printer, print service or saved PDF may retain copies. The address QR code is public; the seed and private key are secret. For testing and educational purposes only. Always verify an address with an independent tool before sending real funds. KeySense is not a custodian or wallet provider and is not responsible for lost or stolen funds.</div>
 
     <div class="pw-footer pw-nobreak">
       <span>Created by <a href="https://www.withkeshav.com" target="_blank" rel="noopener">Keshav Maheshwari</a></span>
@@ -1464,8 +1465,9 @@ Child keys: CKD(parent, index) - child private key + child chain code
       <a href="https://www.x.com/withkeshav" target="_blank" rel="noopener"
          style="color:var(--accent);text-decoration:none;font-weight:600;">@withkeshav</a>
     </p>
-    <p style="margin-top:4px;">All derivation happens in your browser. No seeds or keys are ever transmitted.</p>
+    <p style="margin-top:4px;">The app processes wallet inputs locally. Copying, printing and your device can expose them.</p>
     <p style="margin-top:8px;">
+      <a href="./DISCLAIMER.md" style="color:var(--accent);text-decoration:none;font-weight:600;">Disclaimer</a> &middot;
       <a href="./PRIVACY.md" style="color:var(--accent);text-decoration:none;font-weight:600;">Privacy</a>
       &nbsp;·&nbsp;
       <a href="./SECURITY.md" style="color:var(--accent);text-decoration:none;font-weight:600;">Security</a>
@@ -1504,12 +1506,12 @@ Child keys: CKD(parent, index) - child private key + child chain code
   <script src="./src/course-content.js?v=9d371108"></script>
   <script src="./src/course.js?v=3930547f"></script>
   <script src="./src/learn-recovery.js?v=b9775b8d"></script>
-  <script src="./src/learn-live.js?v=8a5e2a78"></script>
+  <script src="./src/learn-live.js?v=964bfb24"></script>
   <script src="./src/path-recovery.js?v=749e9a0f"></script>
   <script src="./src/tree-inspector.js?v=730b6dec"></script>
-  <script src="./src/paper-wallet.js?v=11b44532"></script>
+  <script src="./src/paper-wallet.js?v=8707864a"></script>
   <script src="./src/ui.js?v=a3e167c0"></script>
-  <script src="./src/main.js?v=c40eddda"></script>
+  <script src="./src/main.js?v=577fdcd8"></script>
 
 </body>
 </html>

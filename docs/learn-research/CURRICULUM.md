@@ -32,7 +32,7 @@ apply the idea without the tool. Official sources support further study.
 
 ## Existing tool coverage
 
-- Workbench: seed word count/language, passphrase, presets, custom paths,
+- Home: seed word count/language, passphrase, presets, custom paths,
   address/key results, account/index changes, extended keys, import and batch
   derivation. These illustrate reproducible key derivation, not live balances.
 - Physical entropy: real input versus simulated rolls, source mixing and repeatable

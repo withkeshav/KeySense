@@ -6,7 +6,7 @@ cross-chain risks. Search the course by topic. Each lesson includes an example,
 limits, an explained knowledge check, an independent reasoning task and source links.
 Course answers are not saved and opening a page does not mark it mastered.
 
-Use **Key paths** for the existing live derivation walkthrough below. **Workbench**
+Use **Key paths** for the existing live derivation walkthrough below. **Home**
 contains the key tools. **Advanced practice** contains the existing typo, missing-word
 and limited path-comparison helpers, formerly labelled Experiments (alpha).
 These tools accept disposable examples only; they are not a full recovery service.
@@ -31,7 +31,7 @@ Each step computes live values from the loaded seed and falls back to the standa
 
 - Step 1: entropy hex, each word's 11-bit index, checksum bits picked out on the last word.
 - Step 2: 512-bit PBKDF2 seed, master private key, chain code.
-- Step 3: current Workbench path resolved segment by segment.
+- Step 3: current Home path resolved segment by segment.
 - Step 4: same index derived hardened and normal, side by side.
 - Step 5: private-key-to-address pipeline for Ethereum and Bitcoin Native SegWit with intermediate hashes.
 
@@ -45,11 +45,11 @@ Edit the last word of the seed and watch the checksum pass or fail live, with th
 
 ## Path builder sliders
 
-`learnPathAccount` and `learnPathIndex` are a read only preview. Moving them never changes the Workbench. They show how the account and index segments reshape a Bitcoin path.
+`learnPathAccount` and `learnPathIndex` are a read only preview. Moving them never changes the Home. They show how the account and index segments reshape a Bitcoin path.
 
 ## Empty wallet task buttons
 
-`learnTryLegacyBtn` loads `m/44'/0'/0'/0/0` and `learnTryNativeBtn` loads `m/84'/0'/0'/0/0` into the Workbench using the same presets as Step 2 there. Same seed, same account, Legacy vs Native SegWit defaults, two different addresses.
+`learnTryLegacyBtn` loads `m/44'/0'/0'/0/0` and `learnTryNativeBtn` loads `m/84'/0'/0'/0/0` into the Home using the same presets as Step 2 there. Same seed, same account, Legacy vs Native SegWit defaults, two different addresses.
 
 ## Quizzes
 

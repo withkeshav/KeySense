@@ -126,7 +126,7 @@ function learnHardenedComparison(mnemonic, passphrase, parentPath, index) {
 }
 
 /* Step 5: decompose the private-key-to-address pipeline for two archetypal
- * chains, at fixed illustrative paths independent of whatever the Workbench
+ * chains, at fixed illustrative paths independent of whatever the Home
  * currently has selected, so this box is self-contained. */
 function learnAddressPipeline(mnemonic, passphrase) {
   var out = { evm: null, btc: null, error: null };
@@ -202,7 +202,7 @@ function learnRenderStep1(hostEl, breakdown) {
     note.className = "hint";
     note.style.marginBottom = "8px";
     note.textContent = "No valid seed is loaded yet (or the checksum does not pass), so this box " +
-      "shows the standard published test phrase instead. Generate a seed on the Workbench, or " +
+      "shows the standard published test phrase instead. Generate a seed on Home, or " +
       "fix the checksum below, to see your own.";
     hostEl.appendChild(note);
   }
@@ -806,7 +806,7 @@ function learnRenderWalletMismatch(hostEl, demo) {
   note.style.marginBottom = "0";
   note.textContent = "Send BTC to the first address, restore the same 12 words in a wallet defaulting to " +
     "the second, and it will show a zero balance. The funds are not lost. They are one purpose byte away, " +
-    "recoverable by entering the correct path or trying the other preset on the Workbench.";
+    "recoverable by entering the correct path or trying the other preset on Home.";
   hostEl.appendChild(note);
 }
 

@@ -115,8 +115,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   exit 0
 fi
 
-git -c user.name="KeySense" -c user.email="noreply@github.com" \
-  commit --quiet -m "Publish wiki pages from the repository"
+git commit --quiet -m "Publish wiki pages from the repository"
 
 if ! git push --quiet origin HEAD 2>"$WORKDIR/push.err"; then
   echo "publish failed: push rejected"

@@ -1,62 +1,73 @@
 # Privacy Policy
 
-Last updated: 2026-09-26
+Last updated: 2026-11-06
 
-KeySense runs entirely in your browser. This policy covers both the app itself and the hosting of the site on a custom domain.
+This policy describes the KeySense app and its hosted site, maintained by Keshav
+Maheshwari. It does not promise privacy on a compromised browser or device.
 
-## The app collects nothing
+## Wallet inputs and learning
 
-* No seed phrases, private keys, addresses, or derived values leave your device. All derivation happens locally with vendored libraries served from the same origin.
-* No `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, no analytics, no telemetry. The page ships `connect-src 'none'`, so even injected script has no way to send data out. See `SECURITY.md`.
-* No cookies are set by the app. Theme choice only is kept in `localStorage` under `hd-tool-theme`. Nothing secret is stored there.
-* The app works with the network off after load and from `file://` on an air-gapped machine.
+The app processes seed words, passphrases, keys and addresses locally. Its own code
+does not upload those values, send analytics or create user accounts. The wallet
+course and Recovery Detective keep their state in memory and do not save scores.
+Only the light/dark theme is stored in browser localStorage, under `hd-tool-theme`,
+until you clear site data. The app does not set cookies.
 
-## What the hosting still sees
+The page restricts network connections with its content security policy. That is a
+layer of protection, not a guarantee: navigation, extensions, compromised software,
+clipboard tools and other device features can expose data. Never use a real wallet
+backup in this educational tool. See [SECURITY.md](SECURITY.md).
 
-When you open the hosted site, the server must receive a basic request to send the files. Like almost every site, that can leave routine server traces:
+## Hosting and external services
 
-* IP address, date and time, requested file, user agent, referrer, TLS handshake data.
-* These traces live with the host or CDN in front of it, not in the app. They are kept for operations and security only, such as rate limiting and abuse review, and are not joined to any wallet data because the app never sends wallet data.
-* This project sets no marketing cookies and runs no trackers. If the host adds any, that would be a hosting change to disclose here first.
+Opening the hosted site sends requests to the hosting provider and Cloudflare,
+which delivers and protects the site. Requests may reveal IP address, time,
+requested file, browser details and other connection metadata. These systems may
+process logs or security reports to operate the service and detect abuse. They do
+not receive wallet inputs through the app's intended operation.
 
-## Data policy
+The origin web logs are configured for daily rotation with 14 rotated files.
+This is a rotation setting, not a guarantee that every copy is deleted within
+14 days. Provider logs, backups and Cloudflare records may have separate retention.
+Their complete retention periods have not been independently verified. We do not
+claim that hosted visits are anonymous or that no personal data is processed.
 
-What data exists around this tool, why it exists, who touches it, and how long it is kept.
+Source links and links to GitHub or the maintainer's website open external services.
+Those services receive normal navigation data and apply their own privacy policies.
+GitHub issues and comments are public. Deleting a post does not guarantee removal
+from caches, notifications, backups or other people's copies. Do not post secrets.
 
-| Data | Who collects it | Why | Where it lives | How long |
-|---|---|---|---|---|
-| Anything you type or derive: seeds, passphrases, keys, addresses | nobody | not applicable | never leaves the browser tab | not applicable |
-| Request traces: IP address, time, requested file, user agent, referrer, TLS handshake data | the CDN in front of the site (Cloudflare) and the server that runs it | deliver the page, stop abuse, rate limit | those two systems, never the app | set by them, not by this project |
-| Theme choice, light or dark | the app, on your device only | remember your choice | your browser's `localStorage`, key `hd-tool-theme` | until you clear site data |
-| Reader session answers, if you take part in a research session | nobody by default; the facilitator only if you say them out loud or write them down | improve how the teaching reads | a paper form or the facilitator's own notes, never the app | as long as the facilitator keeps their notes |
-| Anything you post in a GitHub issue | GitHub, and you decide the content | bug reports and questions | on GitHub, publicly visible | until you delete it |
+## Copying and printing
 
-What this means in plain terms:
+Copying sends the selected data to your device clipboard. Clipboard history, sync
+and other apps may retain it. Printing sends output to the browser and print system.
+Printers, print servers, saved PDFs, cloud print services and photographs may keep
+copies. The printed QR code contains the address, not the seed or private key.
+The written seed and private key on the sheet remain secret material.
 
-* We do not collect personal data, wallet data, accounts, emails, or usage analytics. There is no sign up, no profile, and no server side record of anything you derive.
-* Nothing is sold, rented, shared, or handed to advertisers or data brokers. There is no ad network and no third party script. The code libraries are served from this same site, not from a CDN.
-* Only two third parties are involved, and both are infrastructure: the CDN and server that deliver the files, and GitHub, which hosts the source and the issue tracker. Neither receives wallet data, because wallet data never leaves your browser.
-* Retention: this project stores nothing, so it sets no retention period and can give no number for one. Log retention is a hosting and CDN setting. If you want the current figure, ask in an issue and it will be answered with the measured value rather than an estimate.
-* Deleting your data: there is nothing stored by the app to delete. Clear site data to remove the theme preference. To avoid leaving server traces at all, use the offline copy, which contacts nothing.
-* Security: the site is served over HTTPS, but the stronger protection here is architectural. The page ships `connect-src 'none'`, so it has no way to send data anywhere even if injected code tried to.
-* Children: the tool is educational and collects nothing from anyone, so there is nothing for it to collect from a child either. The only caution is the subject matter: a child should not type a seed that holds real money.
+Clear removes the app's displayed results and print data. Closing the tab ends the
+normal app session. Neither action securely erases device memory, screenshots,
+clipboard history, print jobs, saved files or backups.
 
-## Research and how we measure the teaching
+## Learning research
 
-This project researches its own teaching and publishes the results in the open, under `docs/learn-research/`. Three things matter for privacy.
+Automated readability checks inspect lesson text, not users. The optional local
+reader-session page does not submit answers. If a person facilitates a study, they
+must explain what notes they will keep, why, for how long and how to withdraw before
+collecting answers. Publish only consented, de-identified results. No completed
+reader study or measured learning gain is claimed for this release.
 
-* The research measures the teaching material, not the reader. The readability gate reads the page's own text. It has no access to anything you typed.
-* The reader session page, `test/learn-comprehension.html`, runs from a local file with no network access, no cookies, no `localStorage`, and no reporting of any kind. It contains no reporting code. Its content policy restricts network requests; this is not a guarantee against a compromised browser or device.
-* There is no telemetry in this project at all, so it cannot learn that you read the Learn tab, how long you stayed, or what you clicked. Comprehension figures come from people who agreed to take part in a session and were asked questions in person, and they are published as counts, never with names.
+## Your choices and contact
 
-Recovery Detective uses fixed public examples and keeps its exercise state only in memory. It does not read the active seed or save progress.
+Use a complete local copy without network access to avoid hosted-site requests
+while using it. Downloading the copy still involves a request. Clear site data to
+remove the theme preference. Use only public or disposable examples, including
+when teaching children or sharing a screen.
 
-## Your control
+Raise non-sensitive privacy questions through the
+[project issue tracker](https://github.com/withkeshav/KeySense/issues). For sensitive
+security reports, follow [SECURITY.md](SECURITY.md). Do not include a seed, private
+key or other private data in a public issue. Applicable privacy rights depend on
+your location and the processing involved; this notice does not waive them.
 
-* Use the page offline or from a local copy for maximum privacy: clone `https://github.com/withkeshav/KeySense`, open `index.html` directly, or use the restricted local preview with `python3 tools/devserver.py` and open `http://127.0.0.1:8731`.
-* Clear the sticky seed bar with Clear when done on a shared screen. Print output is paper only.
-* Contact through GitHub issues. Do not paste seeds or private keys anywhere, including issues.
-
-## Changes
-
-Material changes to this policy will be noted in `CHANGELOG.md` before release.
+Material changes to this policy are recorded in [CHANGELOG.md](https://github.com/withkeshav/KeySense/blob/master/CHANGELOG.md).
