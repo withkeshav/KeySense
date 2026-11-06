@@ -1,7 +1,7 @@
 # Navigation
 
 - [Home](Home.md)
-- [Learn Paths](Learn-Paths.md)
+- [Wallet course and Key paths](Learn-Paths.md)
 - [Learn Research](Learn-Research.md)
 - [Brain Wallet](Brain-Wallet.md)
 - [Verification](Verification.md)

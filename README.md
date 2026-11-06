@@ -4,7 +4,7 @@
 
 > Crypto key math is confusing, but KeySense makes it simple and understandable.
 
-Multi-chain HD derivation, vanity miner, brain wallet entropy lab. BIP39/32/44/49/84/86, extended keys, path discovery - all in your browser. No CDN, no third-party requests, and no seed, key, or address ever leaves your device.
+Learn how crypto wallets work through twenty lessons, ten practical cases and live key-path tools. Explore multi-chain key derivation, vanity search and the risks of brain wallets in your browser. The app loads its code locally and does not transmit wallet inputs. External source links open other websites.
 
 Created by [Keshav Maheshwari](https://www.withkeshav.com)
 
@@ -23,6 +23,11 @@ Created by [Keshav Maheshwari](https://www.withkeshav.com)
 - **Paper output** - Print example key data. The printer and its stored jobs are part
   of the exposure risk; printing does not create an air gap.
 - **Entropy Lab** - Generate seeds from dice rolls or coin flips
+
+The wallet course includes ten paper-based practice cases. Each asks for a decision,
+evidence and limits before revealing a model answer. Changed cases test whether
+the reasoning transfers. These are learning exercises, not a certificate or a
+real-wallet recovery service.
 
 ## Quick Start (Local)
 
@@ -51,7 +56,7 @@ questions. It uses fixed public examples, never reads the active seed, and saves
 npm test
 ```
 
-Runs the full vector and safety suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP and maintainer fixtures, plus explicitly labelled cross-tool regression examples, the entropy lab, the brain wallet including custom path vectors, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 22 and 24 for every push and PR, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
+Runs the full vector and safety suite in Node against the same `src/*.js` files the browser loads: official BIP/SLIP and maintainer fixtures, plus explicitly labelled cross-tool regression examples, the entropy lab, the brain wallet including custom path vectors, the RNG fail-closed suite, and a vendor pin guard. GitHub Actions runs it on Node 22 and 24 for pushes to main/master and pull requests, and re-verifies the vendored supply chain on a weekly schedule. See [RELEASE.md](RELEASE.md) for the release checklist.
 
 ## Privacy
 
@@ -127,8 +132,3 @@ Free to download and use, including commercially, unmodified. Modifying, rebrand
 ---
 
 Made and maintained by <a href="https://www.withkeshav.com" target="_blank" rel="noopener">Keshav Maheshwari</a>.
-
-The wallet course includes ten paper-based practice cases. Each asks for a decision,
-evidence and limits before revealing a model answer. Changed cases test whether
-the reasoning transfers. These are learning exercises, not a certificate or a
-real-wallet recovery service.

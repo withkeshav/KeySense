@@ -9,7 +9,7 @@ are the ones you intend, then push a tag.
 
 1. **Run the full test suite.**
    `npm test` must end with `0 failed`. It covers every address vector, the
-   entropy lab, the brain wallet, the Learn tab's live values, and the RNG
+   entropy lab, the brain wallet, the Key paths live values, and the RNG
    fail-closed suite added in the security pass.
 2. **Verify vendored supply chain.**
    - `bash tools/verify-vendor.sh` re-checks the three copied vendors
@@ -21,7 +21,7 @@ are the ones you intend, then push a tag.
 3. **Browser and release checks.** Run `npm run test:browser` with Chrome installed
    (or set `CHROME_BIN` to its executable). Run `npm run test:release`,
    `npm run test:readability` and `npm run test:viz`. Then open `index.html` and confirm:
-   - Generate a 12-word and a 24-word seed; the sticky seed bar updates.
+   - Generate a 12-word and a 24-word seed; the seed bar updates.
    - Seed bar Hide masks the phrase, Show reveals it, Clear empties it and
      resets every derived result.
    - Derive an address on at least one EVM and one non-EVM chain (e.g. Ethereum

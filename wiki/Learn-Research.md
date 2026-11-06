@@ -1,6 +1,6 @@
 # Learn Research
 
-This page explains the research behind the Learn Paths tab: what we are trying to find out, what we
+This page explains the research behind the Key paths tab: what we are trying to find out, what we
 measured, what the evidence says, and how you can reproduce or challenge any of it.
 
 Status: research in the open. The plan, the evidence briefs and the measurement kit all live in the
@@ -9,7 +9,7 @@ Every source is named with a link, and every number was produced by a command an
 
 ## Why this exists
 
-The Learn Paths tab teaches how a seed phrase becomes an address. Most people who read it can repeat
+The Key paths tab teaches how a seed phrase becomes an address. Most people who read it can repeat
 the steps, and that is not the same thing as understanding it. So we asked three narrow questions and
 went looking for evidence rather than opinion.
 
@@ -80,7 +80,8 @@ output is qualitative and volunteered, and it is published in the repository as 
 | Learn redesign outline | Published as a proposal: `docs/learn-research/OUTLINE.md` |
 | Visual system: diagrams, charts, motion | Built and in use: `docs/learn-research/VISUAL-SYSTEM.md` and `src/learn-visuals.js` |
 | Rebuild | All six segments rewritten and drawn, a mixed practice section added, every segment below the grade 8 target. Measured: segment 2 dropped from 6.88 to 4.38 with its longest sentence down from 43 words to 22 |
-| What is left | The five reader sessions, and nothing else. A page with no network and no analytics cannot measure its own comprehension |
+| Wallet course | Twenty lessons and ten fictional practice cases; coverage and limits in `docs/learn-research/CURRICULUM.md` |
+| What is left | Reader studies, later recall checks and deeper specialist practice. Automated checks do not establish comprehension |
 
 ## Challenge it
 

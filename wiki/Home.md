@@ -2,24 +2,26 @@
 
 Crypto key math is confusing, but KeySense makes it simple and understandable.
 
-KeySense is a multi-chain HD derivation, vanity miner, and brain wallet entropy lab. It supports BIP39/32/44/49/84/86, extended keys, and path discovery, all in the browser. See `README.md:7`.
+KeySense is a multi-chain HD derivation, vanity miner, and brain wallet entropy lab. It supports BIP39/32/44/49/84/86, extended keys, and path discovery, all in the browser. See `README.md`.
 
 ## 100 percent offline
 
-No CDN, no third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. No seed, key, or address ever leaves the device. Once loaded, everything works with the network off. See `README.md:67` and `SECURITY.md:5-13`.
+No CDN, no third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. No seed, key, or address ever leaves the device. Once loaded, everything works with the network off. See `README.md` and `SECURITY.md`.
 
 ## Tabs
 
-The app has six tabs. See `index.html:82-87`.
+The app has seven sections:
 
-- Derive Keys
-- Vanity (EVM)
-- Brain Wallet
-- Blockchain Guide
-- Learn Paths
-- Experiments (alpha)
+- Wallet course: twenty lessons and ten practical cases
+- Key paths: six live derivation lessons and Recovery Detective
+- Workbench: seed and path inspection
+- Blockchain guide: chain and address reference
+- Advanced practice: limited typo, missing-word and path searches
+- Vanity lab: EVM address-prefix experiments
+- Brain wallet lab: why chosen phrases are unsafe
 
-Paper Wallet printing and the Physical entropy lab live inside the Derive tab flow. Path recovery lives on the Experiments tab.
+Print example backup and the Physical entropy lab are inside the Workbench.
+The course checks reasoning without saving progress or claiming certification.
 
 ## Quick start
 
@@ -29,7 +31,7 @@ npm run dev
 python3 tools/devserver.py
 ```
 
-Open `http://127.0.0.1:8731` in your browser while the server is running. Python 3.9 or newer is required. Keep the full folder together for offline `file://` use; an HTML attachment preview may not load its sibling assets. See the README Quick Start.
+Open `http://127.0.0.1` in your browser while the server is running. Python 3.9 or newer is required. Keep the full folder together for offline `file://` use; an HTML attachment preview may not load its sibling assets. See the README Quick Start.
 
 ## Tests
 
@@ -37,7 +39,7 @@ Open `http://127.0.0.1:8731` in your browser while the server is running. Python
 npm test
 ```
 
-Runs the full vector suite in Node against the same `src/*.js` files the browser loads. The current check count is printed by `npm test`. See `README.md:32-38`.
+Runs the full vector suite in Node against the same `src/*.js` files the browser loads. The current check count is printed by `npm test`. See `README.md`.
 
 Other checks:
 
@@ -46,11 +48,11 @@ Other checks:
 
 ## License
 
-KeySense License 1.0. Free to download and use, including commercially, unmodified. Modifying, rebranding, or redistributing a changed version requires the copyright holder's written permission. This is a source-available license, not an OSI open source license. See `README.md:97-100` and `LICENSE`.
+KeySense License 1.0. Free to download and use, including commercially, unmodified. Modifying, rebranding, or redistributing a changed version requires the copyright holder's written permission. This is a source-available license, not an OSI open source license. See `README.md` and `LICENSE`.
 
 ## Disclaimer
 
-For testing and educational purposes only. Not a custodian or wallet provider. Always verify with an independent tool before sending real funds. See `README.md:103`.
+For testing and educational purposes only. Not a custodian or wallet provider. Always verify with an independent tool before sending real funds. See `README.md`.
 
 ## Privacy
 
@@ -62,12 +64,12 @@ Found an issue or idea. Open an issue at `https://github.com/withkeshav/KeySense
 
 ## Research
 
-The Learn tab is built on published research, and the research is in the open: the plan, the evidence briefs and the measurement kit live in `docs/learn-research/`, and the reading level is checked by a gate, `npm run test:readability`. Nothing is measured on you. The reader session page has no network and stores nothing. See [Learn Research](Learn-Research.md) and `PRIVACY.md`.
+The Key paths walkthrough is built on published research, and the research is in the open: the plan, the evidence briefs and the measurement kit live in `docs/learn-research/`, and the reading level is checked by a gate, `npm run test:readability`. Nothing is measured on you. The reader session page has no network and stores nothing. See [Learn Research](Learn-Research.md) and `PRIVACY.md`.
 
 ## More pages
 
 - [Learn Research](Learn-Research.md)
 - [Brain Wallet](Brain-Wallet.md)
-- [Learn Paths](Learn-Paths.md)
+- [Wallet course and Key paths](Learn-Paths.md)
 - [Verification](Verification.md)
 - [Security](Security.md)
