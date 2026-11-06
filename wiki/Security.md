@@ -4,11 +4,11 @@ Summary of `SECURITY.md`. Read the full file for hashes and commands.
 
 ## No network
 
-The app processes wallet inputs locally and does not upload them. Hosting receives normal page requests; external links open other services. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry. See `SECURITY.md`.
+The app processes wallet inputs locally and does not upload them. Hosting receives normal page requests; external links open other services. The default page contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry. See `SECURITY.md`.
 
 ## CSP connect-src none
 
-The page ships a Content-Security-Policy that includes `connect-src 'none'`. This restricts interfaces such as fetch and WebSocket. It does not block every navigation or protect against a compromised browser, extension or device. The full policy is in `index.html`. See `SECURITY.md`.
+The default page ships a Content-Security-Policy that includes `connect-src 'none'`. This restricts interfaces such as fetch and WebSocket. It does not block every navigation or protect against a compromised browser, extension or device. The full policy is in `index.html`. See `SECURITY.md`.
 
 ## Vendored libs with versions
 
@@ -36,3 +36,7 @@ Open an issue on GitHub rather than emailing; this is an educational tool and is
 ## Testing only
 
 KeySense is intended for learning, experimentation, and educational use. Use public or disposable examples, not real wallet backups. Always test derived addresses against known-good tools before relying on them. See `SECURITY.md`.
+
+The optional `--hosted` package adds InsightFlare visit analytics and permits its
+script and connections. Default downloads stay tracker-free. See `PRIVACY.md`
+and `SECURITY.md` for storage, data use and the remote-script trust boundary.

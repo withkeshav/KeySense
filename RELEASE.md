@@ -38,6 +38,10 @@ are the ones you intend, then push a tag.
 ## Public artifact and privacy
 
 - `npm run package:site` creates a new public folder from `tools/site-files.json`.
+  The default package is tracker-free. Use `npm run package:site -- /tmp/keysense-hosted --hosted`
+  only for the hosted website, never for downloadable offline archives. Check the
+  generated head has exactly one tracker and that script and collection requests
+  pass its CSP.
   Deploy only that folder. Never deploy the checkout or ignored local files.
 - Review `git status --short`, `git diff` and `git ls-files --cached --others --exclude-standard`, including new documents, for credentials,
   workstation paths and operational notes. Ignore rules do not remove tracked history.

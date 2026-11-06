@@ -6,7 +6,7 @@ KeySense is a multi-chain HD derivation, vanity miner, and brain wallet entropy 
 
 ## 100 percent offline
 
-No CDN, no third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. The app does not upload wallet inputs. Copying, printing or compromised equipment can expose them. Once loaded, everything works with the network off. See `README.md` and `SECURITY.md`.
+Default downloads have no CDN or third-party requests. Every dependency is vendored into `src/vendor/` and served from the same origin. The app does not upload wallet inputs. Copying, printing or compromised equipment can expose them. Once loaded, everything works with the network off. See `README.md` and `SECURITY.md`.
 
 ## Tabs
 
@@ -79,3 +79,7 @@ The Key paths walkthrough is built on published research, and the research is in
 - [Wallet course and Key paths](Learn-Paths.md)
 - [Verification](Verification.md)
 - [Security](Security.md)
+
+The optional `--hosted` package adds InsightFlare visit analytics and permits its
+script and connections. Default downloads stay tracker-free. See `PRIVACY.md`
+and `SECURITY.md` for storage, data use and the remote-script trust boundary.

@@ -60,7 +60,7 @@ Runs the full vector and safety suite in Node against the same `src/*.js` files 
 
 ## Privacy
 
-The app does not upload wallet inputs or send analytics. It stores only the theme preference in `localStorage`. Hosting processes request metadata. Clipboard tools, printing and compromised devices can expose inputs. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
+The app does not upload wallet inputs. Default downloads are tracker-free and store only the theme preference in `localStorage`. The optional hosted package loads cookieless InsightFlare analytics, which also uses browser storage. Hosting processes request metadata. Clipboard tools, printing and compromised devices can expose inputs. See [PRIVACY.md](PRIVACY.md) for the full policy, including offline use.
 
 ## Research
 
@@ -93,7 +93,7 @@ Use HTTPS for a hosted copy. For local offline learning, open `index.html` direc
 
 Zero framework, zero build step. Pure HTML, CSS, and vanilla JavaScript.
 
-**No CDN.** Every dependency is vendored into `src/vendor/` and served from the same origin as the page. A tool that generates spendable private keys should not let a third party ship code into it, and pinning a version in a CDN URL does not prevent that. Serving them locally also means the page works with the network switched off, and that you can diff what a server sends you against this repository.
+**Local cryptographic libraries.** Every cryptographic dependency is vendored into `src/vendor/` and served from the same origin as the page. The hosted-only analytics script is a separate remote-code trust dependency; use a tracker-free download offline for local experiments. Serving them locally also means the page works with the network switched off, and that you can diff what a server sends you against this repository.
 
 - [ethers.js](https://github.com/ethers-io/ethers.js) 5.8.0 - BIP39 mnemonic, BIP32 HD derivation, EVM addresses
 - [tweetnacl](https://github.com/dchest/tweetnacl-js) 1.0.3 - Ed25519 key pairs (Solana, Sui, Aptos)
@@ -134,3 +134,14 @@ Free to download and use, including commercially, unmodified. Modifying, rebrand
 ---
 
 Made and maintained by <a href="https://www.withkeshav.com" target="_blank" rel="noopener">Keshav Maheshwari</a>.
+
+### Hosted analytics packaging
+
+Default: `npm run package:site -- /tmp/keysense-offline` produces a tracker-free
+public package. For keysense.withkeshav.com only, use
+`npm run package:site -- /tmp/keysense-hosted --hosted`.
+This inserts the supplied InsightFlare tag exactly once in the generated document
+head and allows stats.withkeshav.com in both `script-src` and `connect-src`.
+It does not modify the source page or add tracking to tests or internal tools.
+The site ID is public, not a secret. Do not distribute the hosted package as the
+offline download. See [PRIVACY.md](PRIVACY.md) for the additional trust and data use.

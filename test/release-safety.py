@@ -38,6 +38,25 @@ with tempfile.TemporaryDirectory(prefix='keysense-release-') as temp:
     assert run('node', str(source / 'tools/package-site.js'), str(temp / 'unlisted')).returncode != 0
     assert not (temp / 'unlisted').exists()
     page.write_text(original_page)
+    # Analytics is opt-in, once in the public head, with a narrow CSP exception.
+    assert 'stats.withkeshav.com' not in (output / 'index.html').read_text()
+    hosted = temp / 'hosted'
+    result = run('node', str(source / 'tools/package-site.js'), str(hosted), '--hosted')
+    assert result.returncode == 0, result.stderr
+    hosted_html = (hosted / 'index.html').read_text()
+    tracker = '<script defer src="https://stats.withkeshav.com/script.js?siteId=ae9805a9-791b-44f0-b518-19288926c8a8"></script>'
+    assert hosted_html.count(tracker) == 1
+    assert tracker in hosted_html.split('</head>')[0]
+    assert "script-src 'self' https://stats.withkeshav.com;" in hosted_html
+    assert 'connect-src https://stats.withkeshav.com;' in hosted_html
+    import re
+    assert re.findall(r'<script[^>]+src="(\./[^"]+)"', hosted_html) == re.findall(r'<script[^>]+src="(\./[^"]+)"', original_page)
+    assert page.read_text() == original_page
+    page.write_text(original_page.replace('</head>', tracker + '</head>'))
+    assert run('node', str(source / 'tools/package-site.js'), str(temp / 'duplicate'), '--hosted').returncode != 0
+    assert not (temp / 'duplicate').exists()
+    page.write_text(original_page)
+    print('PASS hosted analytics is opt-in, once in head, with unchanged local script order')
     victim = source / 'src/styles.css'
     victim.unlink()
     victim.symlink_to(source / 'private/note.txt')

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 - 2026-11-06
+
+- Add explicit hosted-only InsightFlare packaging; keep default downloads and test
+  pages tracker-free. Document analytics storage and the additional remote-script
+  trust dependency. Update hosted CSP and offline wording accordingly.
+
 ## 1.0.2 - 2026-11-06
 
 - Group navigation into Tools and Learning. Keep Home first and selected by default;

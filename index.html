@@ -58,7 +58,7 @@
         <div class="creator">Created by <strong><a href="https://www.withkeshav.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" title="Keshav Maheshwari">Keshav Maheshwari</a></strong></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
-        <div class="offline-badge" title="All derivation runs in your browser. Every library is served from this site, so there are no third-party requests and the page works with the network off. The app does not upload wallet inputs. Copying, printing or compromised devices can expose them.">● 100% Offline</div>
+        <div class="offline-badge" title="All derivation runs in your browser. Cryptographic libraries are served from this site. The hosted release uses analytics; downloaded copies do not. Wallet tools work with the network off. The app does not upload wallet inputs. Copying, printing or compromised devices can expose them.">● Offline capable</div>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light and dark theme">
           <span class="thumb" aria-hidden="true"></span>
           <span id="themeLabel">Dark</span>
@@ -624,7 +624,7 @@
         <div class="card">
           <div class="card-title">What this toolkit does</div>
           <p class="hint" style="margin-bottom: 12px;">KeySense runs locally in your browser. Home contains seed and path controls, example printing and the Physical entropy lab. Key paths shows the derivation steps and tree inspector. Advanced practice offers limited word and path searches. All supported chains work offline when the complete set of files is kept together. Use disposable examples only. The app does not send wallet inputs to a server.</p>
-          <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> + inline SLIP-0010 (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; <code style="font-family:var(--mono);font-size:0.92em;">@noble/hashes</code> (BLAKE2b for Sui, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. All libraries live in <code style="font-family:var(--mono);font-size:0.92em;">src/vendor/</code> and are served from this site, so nothing is fetched from a third party. To run it air-gapped, clone the repository and open the page with any local server.</p>
+          <p class="hint" style="margin-bottom: 0;"><strong>Stack:</strong> <code style="font-family:var(--mono);font-size:0.92em;">ethers v5</code> (BIP32 + UTXO crypto); <code style="font-family:var(--mono);font-size:0.92em;">tweetnacl</code> + inline SLIP-0010 (Solana, Sui, Aptos); <code style="font-family:var(--mono);font-size:0.92em;">qrcode</code>; <code style="font-family:var(--mono);font-size:0.92em;">@noble/hashes</code> (BLAKE2b for Sui, SHA3-256 for Aptos). UTXO chains use zero extra libraries - pure inline Bech32 + ethers primitives. Theme stored in <code style="font-family:var(--mono);font-size:0.92em;">localStorage</code>. All libraries live in <code style="font-family:var(--mono);font-size:0.92em;">src/vendor/</code> and are served from this site. The hosted release separately loads InsightFlare analytics; downloaded copies do not. To run it air-gapped, clone the repository and open the page with any local server.</p>
         </div>
         <div class="card">
           <div class="card-title">What this toolkit does not do</div>
@@ -1195,7 +1195,7 @@ Child keys: CKD(parent, index) - child private key + child chain code
 </section>
 <div class="rd-footer">
 <button id="rd-reset" class="secondary">Start again</button>
-<p>No accounts, tracking or saved progress. Closing this page clears the session.</p>
+<p>No accounts or saved learning progress. The hosted release uses visit analytics; see Privacy. Closing this page clears the learning session.</p>
 </div>
 
         </div>

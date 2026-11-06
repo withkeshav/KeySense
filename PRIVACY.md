@@ -8,15 +8,39 @@ Maheshwari. It does not promise privacy on a compromised browser or device.
 ## Wallet inputs and learning
 
 The app processes seed words, passphrases, keys and addresses locally. Its own code
-does not upload those values, send analytics or create user accounts. The wallet
+does not upload those values or create user accounts. The optional hosted-release
+analytics integration described below measures visits, not wallet inputs. The wallet
 course and Recovery Detective keep their state in memory and do not save scores.
-Only the light/dark theme is stored in browser localStorage, under `hd-tool-theme`,
+In the tracker-free copy, only the light/dark theme is stored in browser localStorage, under `hd-tool-theme`,
 until you clear site data. The app does not set cookies.
 
 The page restricts network connections with its content security policy. That is a
 layer of protection, not a guarantee: navigation, extensions, compromised software,
 clipboard tools and other device features can expose data. Never use a real wallet
 backup in this educational tool. See [SECURITY.md](SECURITY.md).
+
+## Hosted-release analytics
+
+The hosted package for keysense.withkeshav.com loads InsightFlare once from
+stats.withkeshav.com. The site ID is public and shared with other withkeshav.com
+apps; the dashboard separates traffic by hostname. Repository copies and default
+release downloads contain no tracker. Analytics is enabled only by the explicit
+`--hosted` packaging option.
+
+InsightFlare is cookieless, but that does not mean no data or browser storage is
+used. The script inspected on 2026-11-06 uses localStorage, and its configuration
+enables URL query strings, URL fragments and performance sampling. It is set to
+ignore the browser's Do Not Track preference. Requests also disclose connection
+metadata to the analytics service. Do not put wallet secrets in URLs. KeySense
+adds no wallet-input, quiz-answer or navigation-event reporting to this tracker.
+The service handles navigation itself.
+
+The hosted policy permits scripts and connections to stats.withkeshav.com.
+Remote JavaScript runs with access to the page, including its inputs. This is an
+additional trust dependency; cookieless analytics does not isolate it from wallet
+data. The remote script can change independently of this repository. Analytics
+retention and server-side processing have not been independently verified here.
+Use the tracker-free copy with the network disconnected for offline learning.
 
 ## Hosting and external services
 

@@ -6,9 +6,9 @@ The app processes wallet inputs locally and does not upload them. Copying, print
 
 The app loads its own files and does not make background wallet-data requests. External source links navigate to other sites. Hosting may produce its own security reports.
 
-Every library is vendored into `src/vendor/` and served from the same origin as the page, so nothing is fetched from a CDN or any other third party. The source contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry of any kind. Once the page has loaded you can disconnect the network entirely and everything still works, on every tab and every chain.
+In the default tracker-free package, every library is vendored into `src/vendor/` and served from the same origin as the page, so nothing is fetched from a CDN or any other third party. That page contains no `fetch`, no `XMLHttpRequest`, no `WebSocket`, no `sendBeacon`, and no analytics or telemetry of any kind. Once the page has loaded you can disconnect the network entirely and everything still works, on every tab and every chain.
 
-The page also ships a Content-Security-Policy that includes `connect-src 'none'`. This blocks connections through interfaces such as fetch and WebSocket, but does not block every form of navigation. It is not a guarantee against malicious scripts, browser extensions, a compromised host or a compromised device. See [MDN's connect-src reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/connect-src). Disconnecting the network prevents network transmission while disconnected; it does not make a compromised device safe.
+The default page also ships a Content-Security-Policy that includes `connect-src 'none'`. This blocks connections through interfaces such as fetch and WebSocket, but does not block every form of navigation. It is not a guarantee against malicious scripts, browser extensions, a compromised host or a compromised device. See [MDN's connect-src reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/connect-src). Disconnecting the network prevents network transmission while disconnected; it does not make a compromised device safe.
 
 The optional Brain Wallet custom path selects a locally derived address and is not sent by the app.
 
@@ -88,7 +88,7 @@ If you find a security issue, please open an issue on GitHub rather than emailin
 
 Chain addresses are pinned in `test/vectors.js` to either a published BIP/SLIP, or to fixtures from the chain maintainers' own repositories (Sui SDK, Aptos TS SDK, CosmJS), each with a file path and commit hash in a comment. Run `npm test` to re-check the shipped code against those values. Rows tagged `crosstool-locked` or `no-official-vector` are regression locks only; see `audit/AUDIT.md` section 5 for what is still open (notably Tron).
 
-Nothing about this changes how the page runs: still zero network calls after load, still no runtime dependencies beyond the vendored libraries listed above.
+These derivation checks do not add runtime network dependencies. The optional hosted analytics package has the separate network access described below.
 
 ## For Testing and Educational Purposes Only
 
@@ -118,3 +118,12 @@ That result is time-bound and does not cover every bundled component or prove sa
 The optional build uses esbuild 0.28.1. Runtime library notices are retained in
 `src/vendor/NOTICES.txt`. Never automatically replace a cryptographic library: review
 its changes, update the hash, and rerun known-answer and browser checks first.
+
+## Optional hosted analytics
+
+The `--hosted` package inserts InsightFlare in the document head and permits
+stats.withkeshav.com in both `script-src` and `connect-src`. This permits remote
+code to run in the same document as wallet inputs and allows outbound analytics
+requests. It is an additional trust dependency, not a sandboxed widget.
+Default packages and test pages retain `connect-src 'none'` and no tracker.
+Use a default download offline when network isolation matters. See [PRIVACY.md](PRIVACY.md).
