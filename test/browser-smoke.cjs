@@ -20,10 +20,18 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const profile=fs.mkdtempSync(path.join(os.tmpdir(),'keysense-chrome-'));
- const chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+ const chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
+ // Keep startup errors instead of hiding the reason Chrome failed to launch.
+ let startupLog='',launchError;
+ chrome.stderr.on('data',chunk=>{startupLog=(startupLog+chunk.toString()).slice(-8000);});
+ chrome.on('error',error=>{launchError=error;});
+ const stopped=new Promise(resolve=>{chrome.once('exit',resolve);chrome.once('error',resolve);});
  try{
-  for(let i=0;i<100&&!fs.existsSync(path.join(profile,'DevToolsActivePort'));i++)await pause(100);
-  const port=fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').split('\n')[0];
+  const portFile=path.join(profile,'DevToolsActivePort');
+  const deadline=Date.now()+30000;
+  while(!fs.existsSync(portFile)&&!launchError&&chrome.exitCode===null&&chrome.signalCode===null&&Date.now()<deadline)await pause(100);
+  if(!fs.existsSync(portFile))throw Error('Chrome did not become ready: '+(launchError?.message || ('exit='+chrome.exitCode+', signal='+chrome.signalCode))+'\n'+startupLog);
+  const port=fs.readFileSync(portFile,'utf8').split('\n')[0];
   for(const mode of ['healthy','zero','throws','missing','second-zero','hosted-healthy']){
    const healthy=mode==='healthy'||mode==='hosted-healthy';
    const target=await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`,{method:'PUT'})).json();
@@ -171,5 +179,5 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
    console.log('PASS Chrome '+mode+': Generate, vanity, mixed entropy, replay, no uncaught errors');
    ws.close();await fetch(`http://127.0.0.1:${port}/json/close/${target.id}`);
   }
- }finally{chrome.kill();await new Promise(r=>chrome.once('exit',r));fs.rmSync(profile,{recursive:true,force:true});await new Promise(r=>server.close(r));fs.rmSync(release,{recursive:true,force:true});}
+ }finally{chrome.kill();await stopped;fs.rmSync(profile,{recursive:true,force:true});await new Promise(r=>server.close(r));fs.rmSync(release,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1;});
