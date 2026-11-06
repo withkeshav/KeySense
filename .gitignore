@@ -34,8 +34,7 @@ Thumbs.db
 /.worktrees/
 # Includes hosted analytics settings; never publish or package this directory.
 /private/
-/artifacts# Includes hosted analytics settings; never publish or package this directory.
-/private/
+/artifacts/private/
 /.npmrc
 /.netrc
 *.p12

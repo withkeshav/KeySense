@@ -139,7 +139,7 @@ finally:
     server.server_close()
 print('PASS preview blocks private paths and directory listings')
 
-for name in ['private/hosted-analytics.json', 'private/session.json', '.codex/state.json', '.env', '.env.production', 'wallet.keystore', 'test-results/report.json', 'dist/index.html']:
+for name in ['artifacts/private/note.txt', 'private/hosted-analytics.json', 'private/session.json', '.codex/state.json', '.env', '.env.production', 'wallet.keystore', 'test-results/report.json', 'dist/index.html']:
     assert run('git', 'check-ignore', '-q', name).returncode == 0, name
 for name in ['.env.example', 'test/vectors.js', 'docs/learn-research/PLAN.md', 'package-lock.json']:
     assert run('git', 'check-ignore', '-q', name).returncode == 1, name
