@@ -23,7 +23,7 @@ const ROOT = path.resolve(__dirname, "..");
 /* The roles come from the token file that every page links; --text and the page
  * background come from the app stylesheet. Reading both means the measurement
  * follows the shipped values rather than a copy of them. */
-const CSS_FILES = ["src/viz-tokens.css", "src/styles.css"];
+const CSS_FILES = ["src/viz-tokens.css", "src/styles.css", "src/layout.css"];
 const CSS_BY_FILE = CSS_FILES.map((f) => ({ file: f, text: fs.readFileSync(path.join(ROOT, f), "utf8") }));
 
 /* Text is 4.5:1. Shapes only need 3:1 per WCAG 1.4.11. */
@@ -102,11 +102,11 @@ function tokensFor(selector) {
   return out;
 }
 
-const dark = tokensFor(":root");
+const dark = Object.assign(tokensFor(":root"), tokensFor('[data-theme="dark"]'));
 const light = tokensFor('[data-theme="light"]');
 const THEMES = [
-  { name: "dark", tokens: dark, page: dark && dark["--bg-gradient-start"] },
-  { name: "light", tokens: light, page: light && light["--bg-gradient-end"] }
+  { name: "dark", tokens: dark, page: dark && (dark["--bg-page"] || dark["--bg-gradient-start"]) },
+  { name: "light", tokens: light, page: light && (light["--bg-page"] || light["--bg-gradient-end"]) }
 ];
 
 const ROLES = ["--viz-secret", "--viz-public", "--viz-hashed", "--viz-address", "--viz-warn"];
@@ -162,8 +162,17 @@ for (const theme of THEMES) {
   rows.push([theme.name, "--text on surface", theme.tokens["--text"], body.toFixed(2), "-", body >= TEXT_TARGET ? "ok" : "BELOW TARGET"]);
 }
 
-const width = [8, 20, 10, 12, 12, 14];
-console.log("visual system contrast, read from src/styles.css");
+for (const theme of THEMES) {
+  for (const bg of ["--bg-page", "--surface"]) {
+    for (const fg of ["--text", "--text-muted", "--accent"]) {
+      const ratio = contrast(hexToRgb(theme.tokens[fg]), hexToRgb(theme.tokens[bg]));
+      if (ratio < TEXT_TARGET) failures += 1;
+      rows.push([theme.name, fg + " / " + bg, theme.tokens[fg], ratio.toFixed(2), "-", ratio >= TEXT_TARGET ? "ok" : "BELOW TARGET"]);
+    }
+  }
+}
+const width = [8, 30, 10, 12, 12, 14];
+console.log("visual system contrast, read from shipped stylesheets");
 console.log("targets: " + TEXT_TARGET + ":1 text, " + SHAPE_TARGET + ":1 shapes\n");
 console.log(["theme", "token", "value", "as text", "as shape", "verdict"].map((h, i) => h.padEnd(width[i])).join(""));
 for (const row of rows) {

@@ -1,4 +1,20 @@
-# Learn Paths
+# Wallet learning and Key paths
+
+Start in **Wallet course** for twenty lessons covering custody, keys, transactions,
+fees, approvals, backups, hardware signing, multisig, smart accounts, privacy and
+cross-chain risks. Search the course by topic. Each lesson includes an example,
+limits, an explained knowledge check, an independent reasoning task and source links.
+Course answers are not saved and opening a page does not mark it mastered.
+
+Use **Key paths** for the existing live derivation walkthrough below. **Workbench**
+contains the key tools. **Advanced practice** contains the existing typo, missing-word
+and limited path-comparison helpers, formerly labelled Experiments (alpha).
+These tools accept disposable examples only; they are not a full recovery service.
+
+See the [curriculum map](../docs/learn-research/CURRICULUM.md) for coverage,
+tool connections and the advanced topics that still require specialist study.
+
+## The live key-path walkthrough
 
 A six-step walkthrough from seed to address. Each step builds on the previous one.
 

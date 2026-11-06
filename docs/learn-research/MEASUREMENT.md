@@ -101,3 +101,40 @@ The Learn Paths exercise uses fixed public fixtures and changes only the example
 wallet path. Ask the reader to match the old address, then explain the cause.
 Record hint use and corrected answers separately from an unaided explanation.
 Its completion message is local feedback, not evidence of a completed reader study.
+
+## Broader wallet course assessment
+
+The twenty-lesson course expands the scope beyond derivation. See CURRICULUM.md
+for the coverage map and limits. Evaluate new cases without showing the lesson text:
+
+| Case | Evidence of understanding | Unsafe conclusion to record |
+|---|---|---|
+| A site is disconnected but still has an allowance | Separates browser connection from on-chain permission | Disconnecting revokes all spending rights |
+| A hardware device shows an unexpected recipient | Stops and checks the request independently | Any hardware-approved request is safe |
+| A 2-of-3 wallet has two seeds but lacks its policy | Identifies missing reconstruction data | Any two seeds always restore the wallet alone |
+| A path scan finds no match | States exactly what was searched and names remaining hypotheses | No match proves there are no funds |
+| A deposit uses an unsupported network | Separates address format, network and asset support | Matching address text guarantees recovery |
+
+Score each case 0 for an unsafe or unsupported conclusion, 1 for a correct choice
+without reasons, and 2 for correct reasoning with stated limits. Record help
+separately. A useful pilot target is at least 8/10 with no unsafe conclusion,
+followed by a later session using new examples. This target is provisional and
+is not a professional certification. Do not combine these scores with results
+from the earlier four-question study as though the tests were interchangeable.
+
+Use disposable examples and public policy data. Keep names, recordings and raw
+answers outside this repository. No reader results are claimed until sessions
+have actually been conducted.
+
+## Reviewing the ten practical cases
+
+Ask the reader to answer each case before expanding its review. Use the two stated
+criteria to discuss the answer. For a study, record 0 for an unsafe or unsupported
+conclusion, 1 for a sound choice without reasons, and 2 for sound reasoning that
+states a limit. Record help and opened reviews separately from unaided answers.
+Use each changed case in discussion, then prepare a new unseen case for later recall.
+Do not use the revealed model answer as evidence of independent understanding.
+
+The five-case pilot target above applies only to that five-case instrument. Do not
+reuse its 8/10 target for these ten cases or merge their results. This set has no
+validated pass mark. No learner sessions or learning gains are claimed.

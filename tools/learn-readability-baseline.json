@@ -24,23 +24,71 @@
         "1: FK 5.78 to 5.56, words 1094 to 1091",
         "recovery (new)"
       ]
+    },
+    {
+      "at": "2026-11-06",
+      "reason": "Add the approved twenty-lesson wallet course, including collapsed explanations and answer feedback. Keep the existing reading and sentence limits unchanged.",
+      "moved": [
+        "3: FK 5.54 to 5.53, words 218 to 219",
+        "panel-extra: FK 7.94 to 7.94, words 769 to 771",
+        "course-wallets (new)",
+        "course-entropy (new)",
+        "course-signatures (new)",
+        "course-paths (new)",
+        "course-addresses (new)",
+        "course-transactions (new)",
+        "course-fees (new)",
+        "course-tokens (new)",
+        "course-backups (new)",
+        "course-hardware (new)",
+        "course-multisig (new)",
+        "course-smart-wallets (new)",
+        "course-privacy (new)",
+        "course-recovery (new)",
+        "course-cross-chain (new)",
+        "course-scripts (new)",
+        "course-channels (new)",
+        "course-staking (new)",
+        "course-review (new)",
+        "course-judgment (new)"
+      ]
+    },
+    {
+      "at": "2026-11-06",
+      "reason": "Measure ten approved fictional practice cases, including hidden reviews and changed cases. Keep all reading limits unchanged.",
+      "moved": [
+        "1: FK 5.56 to 5.37, words 1091 to 1079",
+        "3: FK 5.53 to 5.54, words 219 to 218",
+        "practice: FK 5.13 to 4.63, words 763 to 724",
+        "panel-extra: FK 7.94 to 7.94, words 771 to 768",
+        "case-transactions (new)",
+        "case-tokens (new)",
+        "case-hardware (new)",
+        "case-multisig (new)",
+        "case-smart-wallets (new)",
+        "case-recovery (new)",
+        "case-scripts (new)",
+        "case-channels (new)",
+        "case-staking (new)",
+        "case-judgment (new)"
+      ]
     }
   ],
   "steps": {
     "1": {
-      "prose_fk": 5.56,
-      "prose_words": 1091,
-      "prose_sentences": 97,
-      "longest_sentence": 25,
-      "sentences_over_guideline": 0,
+      "prose_fk": 5.37,
+      "prose_words": 1079,
+      "prose_sentences": 99,
+      "longest_sentence": 26,
+      "sentences_over_guideline": 1,
       "sentences_over_ceiling": 0,
-      "share_over_guideline": 0,
+      "share_over_guideline": 0.01,
       "visual_fk": 4.33,
       "visual_words": 307,
-      "full_fk": 5.36,
+      "full_fk": 5.21,
       "jargon": {
-        "entropy": 10,
-        "checksum": 10,
+        "entropy": 9,
+        "checksum": 11,
         "mnemonic": 2,
         "PBKDF2": 1,
         "BIP39": 5
@@ -74,9 +122,9 @@
       "sentences_over_guideline": 0,
       "sentences_over_ceiling": 0,
       "share_over_guideline": 0,
-      "visual_fk": 10.23,
-      "visual_words": 104,
-      "full_fk": 7.14,
+      "visual_fk": 10.24,
+      "visual_words": 102,
+      "full_fk": 7.15,
       "jargon": {
         "Bech32": 1,
         "derivation path": 3
@@ -143,16 +191,16 @@
       }
     },
     "practice": {
-      "prose_fk": 5.13,
-      "prose_words": 763,
-      "prose_sentences": 65,
-      "longest_sentence": 27,
-      "sentences_over_guideline": 1,
+      "prose_fk": 4.63,
+      "prose_words": 724,
+      "prose_sentences": 67,
+      "longest_sentence": 25,
+      "sentences_over_guideline": 0,
       "sentences_over_ceiling": 0,
-      "share_over_guideline": 0.015,
+      "share_over_guideline": 0,
       "visual_fk": null,
       "visual_words": 0,
-      "full_fk": 5.13,
+      "full_fk": 4.63,
       "jargon": {
         "entropy": 1,
         "checksum": 1,
@@ -179,7 +227,7 @@
     },
     "panel-extra": {
       "prose_fk": 7.94,
-      "prose_words": 769,
+      "prose_words": 768,
       "prose_sentences": 55,
       "longest_sentence": 29,
       "sentences_over_guideline": 4,
@@ -212,6 +260,426 @@
         "hardened": 6,
         "derivation path": 3
       }
+    },
+    "course-wallets": {
+      "prose_fk": 5.62,
+      "prose_words": 290,
+      "prose_sentences": 38,
+      "longest_sentence": 16,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.62,
+      "jargon": {}
+    },
+    "course-entropy": {
+      "prose_fk": 5.66,
+      "prose_words": 259,
+      "prose_sentences": 35,
+      "longest_sentence": 17,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.66,
+      "jargon": {
+        "entropy": 1,
+        "checksum": 9,
+        "BIP39": 1
+      }
+    },
+    "course-signatures": {
+      "prose_fk": 5.74,
+      "prose_words": 275,
+      "prose_sentences": 39,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.74,
+      "jargon": {
+        "secp256k1": 1,
+        "Ed25519": 1
+      }
+    },
+    "course-paths": {
+      "prose_fk": 6.44,
+      "prose_words": 264,
+      "prose_sentences": 35,
+      "longest_sentence": 18,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.44,
+      "jargon": {
+        "BIP44": 1,
+        "xpub": 3,
+        "chain code": 1,
+        "hardened": 4,
+        "derivation path": 2
+      }
+    },
+    "course-addresses": {
+      "prose_fk": 6.79,
+      "prose_words": 254,
+      "prose_sentences": 34,
+      "longest_sentence": 18,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.79,
+      "jargon": {
+        "checksum": 3
+      }
+    },
+    "course-transactions": {
+      "prose_fk": 6.72,
+      "prose_words": 261,
+      "prose_sentences": 36,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.72,
+      "jargon": {}
+    },
+    "case-transactions": {
+      "prose_fk": 4.88,
+      "prose_words": 137,
+      "prose_sentences": 19,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 4.88,
+      "jargon": {}
+    },
+    "course-fees": {
+      "prose_fk": 6.96,
+      "prose_words": 285,
+      "prose_sentences": 35,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.96,
+      "jargon": {}
+    },
+    "course-tokens": {
+      "prose_fk": 6.62,
+      "prose_words": 274,
+      "prose_sentences": 39,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.62,
+      "jargon": {}
+    },
+    "case-tokens": {
+      "prose_fk": 7.29,
+      "prose_words": 178,
+      "prose_sentences": 19,
+      "longest_sentence": 17,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.29,
+      "jargon": {}
+    },
+    "course-backups": {
+      "prose_fk": 6.89,
+      "prose_words": 279,
+      "prose_sentences": 35,
+      "longest_sentence": 21,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.89,
+      "jargon": {
+        "checksum": 2,
+        "BIP39": 2
+      }
+    },
+    "course-hardware": {
+      "prose_fk": 7.23,
+      "prose_words": 275,
+      "prose_sentences": 33,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.23,
+      "jargon": {}
+    },
+    "case-hardware": {
+      "prose_fk": 6.82,
+      "prose_words": 145,
+      "prose_sentences": 16,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.82,
+      "jargon": {}
+    },
+    "course-multisig": {
+      "prose_fk": 6.66,
+      "prose_words": 291,
+      "prose_sentences": 36,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.66,
+      "jargon": {
+        "checksum": 1
+      }
+    },
+    "case-multisig": {
+      "prose_fk": 5.97,
+      "prose_words": 178,
+      "prose_sentences": 18,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.97,
+      "jargon": {}
+    },
+    "course-smart-wallets": {
+      "prose_fk": 5.64,
+      "prose_words": 299,
+      "prose_sentences": 37,
+      "longest_sentence": 20,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.64,
+      "jargon": {}
+    },
+    "case-smart-wallets": {
+      "prose_fk": 7.15,
+      "prose_words": 162,
+      "prose_sentences": 16,
+      "longest_sentence": 21,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.15,
+      "jargon": {}
+    },
+    "course-privacy": {
+      "prose_fk": 6.78,
+      "prose_words": 281,
+      "prose_sentences": 34,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.78,
+      "jargon": {
+        "xpub": 4
+      }
+    },
+    "course-recovery": {
+      "prose_fk": 7,
+      "prose_words": 290,
+      "prose_sentences": 36,
+      "longest_sentence": 16,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7,
+      "jargon": {
+        "checksum": 1
+      }
+    },
+    "case-recovery": {
+      "prose_fk": 6.62,
+      "prose_words": 163,
+      "prose_sentences": 18,
+      "longest_sentence": 16,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.62,
+      "jargon": {
+        "checksum": 2
+      }
+    },
+    "course-cross-chain": {
+      "prose_fk": 5.41,
+      "prose_words": 279,
+      "prose_sentences": 35,
+      "longest_sentence": 18,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.41,
+      "jargon": {}
+    },
+    "course-scripts": {
+      "prose_fk": 7.45,
+      "prose_words": 299,
+      "prose_sentences": 34,
+      "longest_sentence": 16,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.45,
+      "jargon": {}
+    },
+    "case-scripts": {
+      "prose_fk": 7.88,
+      "prose_words": 162,
+      "prose_sentences": 16,
+      "longest_sentence": 13,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.88,
+      "jargon": {}
+    },
+    "course-channels": {
+      "prose_fk": 5.66,
+      "prose_words": 300,
+      "prose_sentences": 38,
+      "longest_sentence": 17,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.66,
+      "jargon": {
+        "BIP39": 2
+      }
+    },
+    "case-channels": {
+      "prose_fk": 7.92,
+      "prose_words": 163,
+      "prose_sentences": 18,
+      "longest_sentence": 17,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.92,
+      "jargon": {}
+    },
+    "course-staking": {
+      "prose_fk": 5.17,
+      "prose_words": 326,
+      "prose_sentences": 41,
+      "longest_sentence": 15,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 5.17,
+      "jargon": {}
+    },
+    "case-staking": {
+      "prose_fk": 4.37,
+      "prose_words": 171,
+      "prose_sentences": 20,
+      "longest_sentence": 14,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 4.37,
+      "jargon": {}
+    },
+    "course-review": {
+      "prose_fk": 7.63,
+      "prose_words": 298,
+      "prose_sentences": 34,
+      "longest_sentence": 17,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 7.63,
+      "jargon": {}
+    },
+    "course-judgment": {
+      "prose_fk": 6.64,
+      "prose_words": 303,
+      "prose_sentences": 39,
+      "longest_sentence": 20,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 6.64,
+      "jargon": {
+        "entropy": 1
+      }
+    },
+    "case-judgment": {
+      "prose_fk": 3.61,
+      "prose_words": 178,
+      "prose_sentences": 22,
+      "longest_sentence": 16,
+      "sentences_over_guideline": 0,
+      "sentences_over_ceiling": 0,
+      "share_over_guideline": 0,
+      "visual_fk": null,
+      "visual_words": 0,
+      "full_fk": 3.61,
+      "jargon": {}
     }
   }
 }

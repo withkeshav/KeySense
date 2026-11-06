@@ -32,6 +32,8 @@ const APP_FILES = [
   "src/entropy-compare.js",
   "src/learn-live.js",
   "src/learn-recovery.js",
+  "src/course-content.js",
+  "src/course.js",
   "src/path-recovery.js",
   "src/tree-inspector.js"
 ];

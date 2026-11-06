@@ -222,6 +222,22 @@ if (!blocks) {
   process.exit(2);
 }
 
+// Measure all course prose too, including feedback and collapsed explanations.
+// Titles get punctuation so the scanner does not join unrelated UI labels.
+const course = require('../src/course-content.js');
+for (const lesson of course) {
+  const text = [lesson.title, lesson.stage, lesson.outcome, lesson.concept,
+    ...lesson.body, ...lesson.flow, lesson.example, lesson.caution, lesson.deeper,
+    lesson.question, ...lesson.options, ...lesson.feedback, lesson.transfer];
+  const escaped = text.map(s => '<p>' + s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + (/[.!?]$/.test(s) ? '' : '.') + '</p>');
+  blocks.push({step: 'course-' + lesson.id, html: escaped.join('\n')});
+  if (lesson.caseStudy) {
+    const prose = Object.values(lesson.caseStudy).flat();
+    const html = prose.map(s => '<p>' + s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + (/[.!?]$/.test(s) ? '' : '.') + '</p>').join('\n');
+    blocks.push({step: 'case-' + lesson.id, html});
+  }
+}
+
 const results = {};
 for (const b of blocks) {
   const r = measure(b.html);

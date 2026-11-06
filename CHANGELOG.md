@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Wallet education and interface
+
+- Add ten fictional practice cases with hidden reasoning reviews, explicit
+  assessment criteria and changed-case follow-ups. No funds, signing or real
+  recovery are involved; reading an answer does not award mastery.
+
+- Redesign the application layout around a wallet course, live Key paths,
+  Workbench, chain reference and advanced tools, using an OpenDesign Cloud reference.
+- Add twenty sourced wallet lessons with worked examples, limits, explained checks
+  and independent reasoning tasks. Extend readability measurement to every lesson.
+- Keep the existing experimental tools under Advanced practice and explain their
+  limited searches. Preserve their calculations and all chain presets.
+- Add keyboard navigation and explicit selection states to the app navigation.
+  Visiting a key-path step no longer marks earlier steps as completed.
+- Correct older claims that seed words alone are always a complete backup. Replace
+  an unsourced incident account with an explicitly hypothetical random-source example.
+- Publish the curriculum coverage map and broader reader-assessment rubric.
+  No claim of measured learning effectiveness or expert certification is made.
+
 ### Local preview and public documentation
 
 - Document the styled local preview at `http://127.0.0.1:8731`, its Python requirement,

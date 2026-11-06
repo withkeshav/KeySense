@@ -10,13 +10,18 @@ Created by [Keshav Maheshwari](https://www.withkeshav.com)
 
 ## Features
 
-- **Derive Keys** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
+- **Wallet course** - Twenty lessons from custody and keys to fees, permissions,
+  backups, hardware signing, multisig, smart accounts and cross-chain risks.
+  Worked examples, explained checks and official sources connect concepts to practice.
+- **Workbench** - Multi-chain HD derivation: Ethereum, Bitcoin (Legacy, SegWit, Native SegWit, Taproot), Solana, Tron, Litecoin, Dogecoin, Cosmos, Sui, Aptos
 - **Vanity Miner** - Offline EVM vanity address generator
 - **Brain Wallet** - SHA-256 passphrase -> BIP39 mnemonic -> deterministic wallet, with optional custom path override
-- **Learn Paths** - Visual explanation of BIP44/49/84/86 derivation structure, with interactive builder, quizzes, verify badges, and Recovery Detective: a public-example address-matching exercise.
+- **Key paths** - The live six-step derivation walkthrough, with interactive builder, quizzes, verify badges, and Recovery Detective: a public-example address-matching exercise.
 - **Blockchain Guide** - Address format reference across chains
-- **Path Recovery** - Find which derivation path matches a known address
-- **Paper Wallet** - Print an air-gapped cold backup
+- **Advanced practice** - Typo suggestions, missing-word candidates and comparison
+  against fifteen listed wallet paths. No match is not proof of no funds or wrong words.
+- **Paper output** - Print example key data. The printer and its stored jobs are part
+  of the exposure risk; printing does not create an air gap.
 - **Entropy Lab** - Generate seeds from dice rolls or coin flips
 
 ## Quick Start (Local)
@@ -37,7 +42,7 @@ normal browser. Every chain works from `file://`. An editor or chat attachment p
 may show only the HTML and block sibling CSS or scripts; use the local preview above
 if the page looks unstyled. Opening a detached copy of `index.html` is not enough.
 
-To try Recovery Detective, open **Learn Paths** and scroll below the mixed practice
+To try Recovery Detective, open **Key paths** and scroll below the mixed practice
 questions. It uses fixed public examples, never reads the active seed, and saves no progress.
 
 ## Tests and CI
@@ -54,7 +59,7 @@ The app itself collects nothing: no seeds, keys, or addresses ever leave your de
 
 ## Research
 
-The Learn Paths tab is built on published research, and the research is done in the open. The plan, the misconception inventory, the learning science brief with its primary sources, the prior art teardown and the reader measurement kit all live in [docs/learn-research](docs/learn-research), and the plain language summary is on the wiki at [wiki/Learn-Research.md](wiki/Learn-Research.md).
+The Key paths tab is built on published research, and the research is done in the open. The plan, the misconception inventory, the learning science brief with its primary sources, the prior art teardown and the reader measurement kit all live in [docs/learn-research](docs/learn-research), and the plain language summary is on the wiki at [wiki/Learn-Research.md](wiki/Learn-Research.md).
 
 Reading level is checked by a gate you can run yourself:
 
@@ -122,3 +127,8 @@ Free to download and use, including commercially, unmodified. Modifying, rebrand
 ---
 
 Made and maintained by <a href="https://www.withkeshav.com" target="_blank" rel="noopener">Keshav Maheshwari</a>.
+
+The wallet course includes ten paper-based practice cases. Each asks for a decision,
+evidence and limits before revealing a model answer. Changed cases test whether
+the reasoning transfers. These are learning exercises, not a certificate or a
+real-wallet recovery service.
